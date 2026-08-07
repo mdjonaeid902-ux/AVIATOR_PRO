@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Aviator Portal - Original Dark Login & Bkash Demo</title>
+
+<style>
+/* গ্লোবাল স্টাইল ও ফুল স্ক্রিন ফিট */
+body {
+    margin: 0;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: #000000;
+    color: white;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow: hidden;
+    touch-action: manipulation;
+}
+
+.wrapper {
+    max-width: 430px;
+    margin: auto;
+    height: 100vh;
+    height: -webkit-fill-available;
+    display: flex;
+    flex-direction: column;
+    background: #101112;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ==========================================
+   ১. আপনার পছন্দের প্রথম অরিজিনাল ডার্ক লগইন পেজ
+   ========================================== */
+#login-screen {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at center, #111317 0%, #07080a 100%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.login-logo {
+    font-size: 42px;
+    font-weight: 900;
+    color: #e11d48;
+    font-style: italic;
+    margin-bottom: 25px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px rgba(225, 29, 72, 0.6);
+    animation: pulseLogo 2s infinite alternate;
+}
+
+@keyframes pulseLogo {
+    from { transform: scale(1); text-shadow: 0 0 20px rgba(225, 29, 72, 0.6); }
+    to { transform: scale(1.03); text-shadow: 0 0 30px rgba(225, 29, 72, 0.9); }
+}
+
+.login-card {
+    width: 100%;
+    background: #131416;
+    border: 1px solid rgba(225, 29, 72, 0.2);
+    border-radius: 20px;
+    padding: 28px 24px;
+    box-sizing: border-box;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.7), 0 0 15px rgba(225, 29, 72, 0.15);
+}
+
+.login-title-sub {
+    text-align: center;
+    font-size: 14px;
+    color: #a1a1aa;
+    margin-bottom: 24px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-group label {
+    font-size: 11px;
+    color: #f43f5e;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+/* অরিজিনাল ডার্ক স্টাইল ইনপুট */
+.input-wrapper input {
+    width: 100%;
+    background: #090a0c !important;
+    border: 1px solid #2d2f31;
+    color: white !important;
+    padding: 14px 16px 14px 40px;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.input-wrapper input:focus {
+    border-color: #e11d48;
+    box-shadow: 0 0 10px rgba(225, 29, 72, 0.25);
+    background: #0c0d10;
+}
+
+.login-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(225, 29, 72, 0.3);
+    transition: all 0.2s ease;
+}
+
+.login-btn:active {
+    transform: scale(0.98);
+}
+
+.demo-hint {
+    font-size: 11px;
+    color: #71717a;
+    text-align: center;
+    margin-top: 15px;
+    line-height: 1.5;
+}
+
+.login-error {
+    color: #f87171;
+    font-size: 12px;
+    margin-top: 12px;
+    text-align: center;
+    font-weight: bold;
+    display: none;
+}
+
+/* ==========================================
+   ২. হোম পেজ স্টাইল
+   ========================================== */
+#home-screen {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #101112;
+    z-index: 900;
+    display: none;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.home-header {
+    background: #1b1c1d;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #2d2f31;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    background: #e11d48;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.about-btn {
+    background: #27282a;
+    border: 1px solid #3f3f46;
+    color: #e4e4e7;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.logout-btn {
+    background: transparent;
+    border: 1px solid #4b5563;
+    color: #9ca3af;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.home-content {
+    flex: 1;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+
+.wallet-card {
+    background: linear-gradient(135deg, #1b1c1d 0%, #111213 100%);
+    border: 1px solid #2d2f31;
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    box-sizing: border-box;
+    margin-top: 10px;
+}
+
+.wallet-title {
+    color: #9ca3af;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.wallet-balance {
+    font-size: 30px;
+    font-weight: bold;
+    color: #22c55e;
+}
+
+/* ডিপোজিট ও উইথড্র বার */
+.transaction-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #2d2f31;
+    border-bottom: 1px solid #2d2f31;
+    padding: 12px 10px;
+    margin: 15px 0;
+}
+
+.trans-btn {
+    flex: 1;
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: white;
+    padding: 10px 0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+}
+
+.trans-btn:first-child {
+    margin-right: 8px;
+    background: #065f46;
+    border-color: #059669;
+}
+
+.trans-btn:last-child {
+    margin-left: 8px;
+    background: #7f1d1d;
+    border-color: #b91c1c;
+}
+
+.trans-btn:active {
+    transform: scale(0.97);
+}
+
+/* এভিয়েটর লোগো বাটন */
+.aviator-logo-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.aviator-game-logo-btn {
+    background: linear-gradient(145deg, #1e1b4b 0%, #111827 100%);
+    border: 2px solid #e11d48;
+    border-radius: 20px;
+    width: 85%;
+    padding: 24px 16px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(225, 29, 72, 0.25);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.aviator-game-logo-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 5px 15px rgba(225, 29, 72, 0.15);
+}
+
+.logo-icon-svg {
+    width: 60px;
+    height: 60px;
+    filter: drop-shadow(0 0 10px #e11d48);
+}
+
+.logo-title-text {
+    font-size: 24px;
+    font-weight: 900;
+    color: #e11d48;
+    font-style: italic;
+    letter-spacing: 1px;
+}
+
+.logo-sub-text {
+    font-size: 11px;
+    color: #a1a1aa;
+    text-transform: uppercase;
+}
+
+/* ==========================================
+   ৩. নতুন ফুল স্ক্রিন ডেমো ডিপোজিট ও উইথড্র উইন্ডো
+   ========================================== */
+.custom-modal {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 950;
+    display: none;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* ১ম স্ক্রিনশট অনুযায়ী ডিপোজিট গেটওয়ে (সম্পূর্ণ ফুল স্ক্রিন ফিক্সড) */
+#depositModal {
+    background: #fafafa;
+    color: #333;
+}
+
+.gate-header {
+    background: #111111;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    color: white;
+}
+.gate-back-arrow {
+    font-size: 22px;
+    cursor: pointer;
+    margin-right: 15px;
+    color: white;
+    font-weight: bold;
+}
+.gate-title {
+    font-size: 18px;
+    font-weight: bold;
+    flex: 1;
+    text-align: center;
+    margin-right: 25px;
+}
+
+.gate-content {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.gate-section-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    margin: 15px 0 8px 0;
+}
+.gate-section-title::before {
+    content: "● ";
+    color: #f59e0b;
+}
+.gate-section-title.teal::before {
+    color: #0d9488;
+}
+
+/* আমানত মোড কার্ড */
+.deposit-mode-card {
+    border: 1.5px solid #e11d48;
+    border-radius: 8px;
+    width: 90px;
+    padding: 8px;
+    text-align: center;
+    position: relative;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.deposit-mode-card svg {
+    width: 45px;
+    height: 45px;
+}
+.deposit-mode-title {
+    font-size: 11px;
+    font-weight: bold;
+    color: #b91c1c;
+    margin-top: 4px;
+    line-height: 1.2;
+}
+.deposit-mode-card::after {
+    content: "✓";
+    position: absolute;
+    bottom: 0; right: 0;
+    background: #e11d48;
+    color: white;
+    font-size: 8px;
+    width: 12px; height: 12px;
+    border-top-left-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+}
+
+/* পেমেন্ট চ্যানেল */
+.channel-badge {
+    border: 1px solid #f87171;
+    background: #fff5f5;
+    border-radius: 6px;
+    padding: 8px 12px;
+    display: inline-block;
+    font-size: 11px;
+    color: #b91c1c;
+    font-weight: bold;
+    position: relative;
+    margin-bottom: 10px;
+}
+.channel-badge::before {
+    content: "👍";
+    position: absolute;
+    top: -8px; left: 4px;
+    font-size: 10px;
+}
+
+/* এমাউন্ট গ্রিড */
+.amount-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.amt-btn {
+    background: white;
+    border: 1px solid #e4e4e7;
+    border-radius: 6px;
+    padding: 10px 0;
+    font-size: 12px;
+    font-weight: bold;
+    color: #3f3f46;
+    cursor: pointer;
+    text-align: center;
+}
+.amt-btn.active {
+    border-color: #e11d48;
+    color: #e11d48;
+    background: #fff1f2;
+}
+
+.custom-amt-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.custom-amt-symbol {
+    position: absolute;
+    left: 12px;
+    font-size: 15px;
+    color: #71717a;
+}
+.custom-amt-input {
+    width: 100%;
+    padding: 12px 12px 12px 30px;
+    border: 1px solid #e4e4e7;
+    border-radius: 6px;
+    font-size: 15px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.warning-box {
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 15px;
+    line-height: 1.5;
+}
+
+/* পরবর্তী বাটন */
+.gate-footer-btn {
+    width: 100%;
+    background: #cccccc;
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+}
+.gate-footer-btn.ready {
+    background: #e11d48;
+}
+
+/* ==========================================
+   ৪. বিকাশ গেটওয়ে স্ক্রিন (২য় স্ক্রিনশট অনুযায়ী ফুল স্ক্রিন)
+   ========================================== */
+#bkash-gateway-screen {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #e2136e;
+    z-index: 980;
+    display: none;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+.bkash-header {
+    background: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.bkash-header-logo {
+    font-size: 26px;
+    font-weight: 900;
+    color: #e2136e;
+    font-style: italic;
+}
+.bkash-close-btn {
+    background: #333;
+    color: white;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: bold; cursor: pointer;
+}
+
+.bkash-merchant-info {
+    background: white;
+    padding: 15px;
+    margin-top: 1px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #333;
+}
+.merchant-text-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.bkash-avatar {
+    width: 38px; height: 38px;
+    background: #fdf2f8;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+}
+.merchant-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.bkash-instructions {
+    text-align: center;
+    padding: 12px;
+    font-size: 13px;
+    color: white;
+}
+.bkash-link-guide {
+    text-decoration: underline;
+    font-size: 12px;
+    cursor: pointer;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.bkash-form-container {
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.bkash-field {
+    background: white;
+    border-radius: 4px;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.bkash-field-label {
+    font-size: 11px;
+    color: #666;
+}
+.bkash-field-value {
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+}
+.bkash-copy-btn {
+    border: 1px solid #e2136e;
+    background: white;
+    color: #e2136e;
+    padding: 3px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.txid-input-box {
+    width: 100%;
+    background: white;
+    border: none;
+    border-radius: 4px;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.bkash-footer-bar {
+    margin-top: auto;
+    display: flex;
+    background: #d1d1d6;
+}
+.bkash-footer-btn {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+}
+.bkash-btn-cancel {
+    background: #e5e5ea;
+    color: #333;
+}
+.bkash-btn-submit {
+    background: #d1d1d6;
+    color: #8e8e93;
+}
+.bkash-btn-submit.active {
+    background: #e2136e;
+    color: white;
+}
+
+/* ==========================================
+   ৫. ডেমো উইথড্র উইন্ডো
+   ========================================== */
+#withdrawModal {
+    background: #111214;
+}
+
+/* এবাউট পপআপ */
+.modal-card {
+    background: #141517;
+    border: 1px solid #2d2f31;
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+.modal-card h3 {
+    margin-top: 0;
+    color: #e11d48;
+    font-size: 20px;
+    font-weight: bold;
+}
+.modal-card p {
+    color: #d1d5db;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 10px 0;
+}
+.modal-close-btn {
+    background: #374151;
+    color: #d1d5db;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 5px;
+}
+
+/* ==========================================
+   ৬. গেম স্ক্রিন স্টাইল
+   ========================================== */
+#game-container {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #1b1c1d;
+    border-bottom: 1px solid #2d2f31;
+}
+
+.back-home-btn {
+    background: #27282a;
+    border: none;
+    color: #9ca3af;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.brand {
+    font-size: 18px;
+    font-weight: 900;
+    color: #e11d48;
+    font-style: italic;
+}
+
+.balance-box {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.bal-value {
+    color: #22c55e;
+}
+
+/* হিস্ট্রি বার */
+.history-bar {
+    display: flex;
+    gap: 6px;
+    padding: 6px 10px;
+    background: #141516;
+    overflow-x: auto;
+    white-space: nowrap;
+    border-bottom: 1px solid #242628;
+}
+
+.history-bar::-webkit-scrollbar { display: none; }
+
+.hist-badge {
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: #1b1c1d;
+}
+
+.low-mult { color: #3b82f6; }
+.mid-mult { color: #a855f7; }
+.high-mult { color: #ec4899; }
+
+/* গেম স্ক্রিন */
+.game-screen {
+    height: 250px;
+    position: relative;
+    background: #020204;
+    overflow: hidden;
+    border-radius: 12px;
+    margin: 6px 8px;
+    border: 1px solid #1f2022;
+}
+
+.sunburst {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background: repeating-conic-gradient(from 0deg, #040508 0deg 15deg, #0b111e 15deg 30deg);
+    opacity: 0.6;
+    animation: rotateSunburst 100s linear infinite;
+}
+
+@keyframes rotateSunburst { 100% { transform: rotate(360deg); } }
+
+#multiplier {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+    z-index: 10;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+}
+
+.crashed-text { color: #e11d48 !important; }
+
+/* গ্রাফিক্স */
+.graph-svg {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* বিমান কন্টেইনার */
+.plane-container {
+    position: absolute;
+    width: 65px; 
+    height: 45px;
+    z-index: 5;
+    transform: translate(-50%, -50%);
+    display: none;
+}
+
+#countdown-overlay {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 44px;
+    font-weight: 800;
+    color: #f59e0b;
+    z-index: 15;
+}
+
+/* ক্যাশ আউট নোটিফিকেশন টোস্ট */
+.toast-notification {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: rgba(34, 197, 94, 0.95);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* কন্ট্রোলস */
+.controls-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 4px 8px;
+    overflow-y: auto;
+}
+
+.bet-card {
+    background: #18191b;
+    border-radius: 12px;
+    padding: 8px;
+    border: 1px solid #27282a;
+}
+
+.main-bet-row { display: flex; gap: 8px; align-items: center; }
+.input-block { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.number-stepper { display: flex; align-items: center; background: #101112; border-radius: 20px; border: 1px solid #2d2f31; padding: 3px 6px; }
+.step-btn { width: 24px; height: 24px; background: #27282a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: #9ca3af; cursor: pointer; }
+.step-input { flex: 1; background: transparent; border: none; color: white; text-align: center; font-size: 14px; font-weight: bold; width: 50px; outline: none; }
+
+.bet-action-btn { width: 125px; height: 58px; background: #22c55e; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
+.cashout-active { background: #d97706 !important; }
+
+/* প্লেয়ার লিস্ট */
+.live-players-section { 
+    background: #0e0f10; 
+    border-top: 1px solid #1b1c1d; 
+    padding: 8px 12px; 
+    height: 150px; 
+    display: flex;
+    flex-direction: column;
+}
+.live-header { 
+    display: flex; 
+    justify-content: space-between; 
+    font-size: 11px; 
+    color: #6b7280; 
+    padding-bottom: 6px; 
+    border-bottom: 1px solid #1b1c1d;
+}
+.live-list-scroll { 
+    flex: 1; 
+    overflow-y: auto; 
+    margin-top: 4px; 
+}
+.live-list-scroll::-webkit-scrollbar { display: none; }
+
+.live-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 5px 0; 
+    font-size: 12px; 
+    color: #e5e7eb; 
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+}
+.player-info {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.player-avatar {
+    width: 18px;
+    height: 18px;
+    background: #374151;
+    border-radius: 50%;
+    font-size: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    font-weight: bold
