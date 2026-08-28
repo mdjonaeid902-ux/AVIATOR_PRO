@@ -59,9 +59,10 @@
 </head>
 <body>
     <h2>✈️ Aviator Pro Admin Management</h2>
-    <div id="auth-check" style="margin: 12px 0; color: orange;">Checking Authentication status...</div>
+    <div id="auth-check" style="margin: 12px 0; color: lightgreen;">Admin Access Unlocked (Testing Mode)</div>
 
-    <div id="admin-content" class="hidden">
+    <!-- Admin Content bypass made visible by default -->
+    <div id="admin-content">
         <!-- Search and Balance Control -->
         <div class="card">
             <h3>User Management</h3>
@@ -137,24 +138,14 @@
         const db = getDatabase(app);
 
         let activeSearchedUid = null;
-        let currentAdminUid = null;
+        let currentAdminUid = "testing-admin";
 
-        onAuthStateChanged(auth, async (user) => {
-            const checkElem = document.getElementById('auth-check');
+        // Auto load requests without waiting for strictly verified auth status
+        loadRequests();
+
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentAdminUid = user.uid;
-                const adminSnap = await get(ref(db, `admins/${user.uid}`));
-                if (adminSnap.exists() && adminSnap.val() === true) {
-                    checkElem.innerText = `Authenticated Admin: ${user.email}`;
-                    checkElem.style.color = "lightgreen";
-                    document.getElementById('admin-content').classList.remove('hidden');
-                    loadRequests();
-                } else {
-                    checkElem.innerText = "Access Denied: You are not authorized as Admin!";
-                    checkElem.style.color = "red";
-                }
-            } else {
-                checkElem.innerText = "Please log in with an Admin Account in index.html first.";
             }
         });
 
@@ -167,7 +158,7 @@
             if (userSnap.exists()) {
                 activeSearchedUid = uid;
                 const data = userSnap.val();
-                document.getElementById('u-email').innerText = data.email;
+                document.getElementById('u-email').innerText = data.email || 'N/A';
                 document.getElementById('u-bal').innerText = (data.balance || 0).toFixed(2);
                 document.getElementById('u-games').innerText = data.games || 0;
                 document.getElementById('u-wins').innerText = data.wins || 0;
