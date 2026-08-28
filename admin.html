@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviator Admin Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0b0e14;
+            --card-bg: rgba(22, 27, 38, 0.75);
+            --accent-green: #43a047;
+            --accent-red: #e53935;
+            --text-color: #ffffff;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 24px;
+        }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid var(--glass-border);
+            padding: 10px;
+            text-align: left;
+        }
+        th { background: rgba(0,0,0,0.5); }
+        input {
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--glass-border);
+            color: white;
+            border-radius: 4px;
+        }
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
+        .btn-add { background: var(--accent-green); }
+        .btn-remove { background: var(--accent-red); }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h2>✈️ Aviator Pro Admin Management</h2>
+    <div id="auth-check" style="margin: 12px 0; color: orange;">Checking Authentication status...</div>
+
+    <div id="admin-content" class="hidden">
+        <!-- Search and Balance Control -->
+        <div class="card">
+            <h3>User Management</h3>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <input type="text" id="search-uid" placeholder="Enter User UID" style="flex: 1;">
+                <button class="btn btn-add" id="search-btn">Search User</button>
+            </div>
+            
+            <div id="user-details" class="hidden" style="margin-top: 15px;">
+                <p><strong>Email:</strong> <span id="u-email"></span></p>
+                <p><strong>Current Balance:</strong> ৳<span id="u-bal"></span></p>
+                <p><strong>Games Played:</strong> <span id="u-games"></span> | <strong>Wins:</strong> <span id="u-wins"></span></p>
+                
+                <div style="margin-top: 12px; display: flex; gap: 10px;">
+                    <input type="number" id="mod-amount" placeholder="Amount (৳)">
+                    <button class="btn btn-add" id="add-bal-btn">ADD BALANCE</button>
+                    <button class="btn btn-remove" id="rem-bal-btn">REMOVE BALANCE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deposit Requests -->
+        <div class="card">
+            <h3>Pending Deposit Requests</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Amount</th>
+                        <th>TrxID</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="dep-table-body"></tbody>
+            </table>
+        </div>
+
+        <!-- Withdraw Requests -->
+        <div class="card">
+            <h3>Pending Withdraw Requests</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>UID</th>
+                        <th>Amount</th>
+                        <th>Receiver</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="with-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, get, update, runTransaction, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyTOnCm5IuPcB-yvGjFl3KbwRVxNrcNSY",
+            authDomain: "ff-to-gaming-4ea1b.firebaseapp.com",
+            databaseURL: "https://ff-to-gaming-4ea1b-default-rtdb.firebaseio.com",
+            projectId: "ff-to-gaming-4ea1b",
+            storageBucket: "ff-to-gaming-4ea1b.appspot.com",
+            messagingSenderId: "816776130875",
+            appId: "1:816776130875:web:c3e7984e0de53cbd89871e",
+            measurementId: "G-N36W0TG2HD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let activeSearchedUid = null;
+        let currentAdminUid = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            const checkElem = document.getElementById('auth-check');
+            if (user) {
+                currentAdminUid = user.uid;
+                const adminSnap = await get(ref(db, `admins/${user.uid}`));
+                if (adminSnap.exists() && adminSnap.val() === true) {
+                    checkElem.innerText = `Authenticated Admin: ${user.email}`;
+                    checkElem.style.color = "lightgreen";
+                    document.getElementById('admin-content').classList.remove('hidden');
+                    loadRequests();
+                } else {
+                    checkElem.innerText = "Access Denied: You are not authorized as Admin!";
+                    checkElem.style.color = "red";
+                }
+            } else {
+                checkElem.innerText = "Please log in with an Admin Account in index.html first.";
+            }
+        });
+
+        // Search User by UID
+        document.getElementById('search-btn').onclick = async () => {
+            const uid = document.getElementById('search-uid').value.trim();
+            if (!uid) return;
+
+            const userSnap = await get(ref(db, `users/${uid}`));
+            if (userSnap.exists()) {
+                activeSearchedUid = uid;
+                const data = userSnap.val();
+                document.getElementById('u-email').innerText = data.email;
+                document.getElementById('u-bal').innerText = (data.balance || 0).toFixed(2);
+                document.getElementById('u-games').innerText = data.games || 0;
+                document.getElementById('u-wins').innerText = data.wins || 0;
+                document.getElementById('user-details').classList.remove('hidden');
+            } else {
+                alert("User not found!");
+            }
+        };
+
+        // Balance Addition/Removal Transaction Logic
+        async function modifyBalance(type) {
+            const amount = parseFloat(document.getElementById('mod-amount').value);
+            if (isNaN(amount) || amount <= 0 || !activeSearchedUid) return;
+
+            const userBalRef = ref(db, `users/${activeSearchedUid}/balance`);
+            let prevBal = 0;
+
+            const res = await runTransaction(userBalRef, (currentBal) => {
+                prevBal = currentBal || 0;
+                return type === 'add' ? prevBal + amount : Math.max(0, prevBal - amount);
+            });
+
+            if (res.committed) {
+                // Record Audit Trail History
+                await push(ref(db, 'balanceTransactions'), {
+                    uid: activeSearchedUid,
+                    amount: amount,
+                    type: type === 'add' ? 'admin_add' : 'admin_remove',
+                    previousBalance: prevBal,
+                    newBalance: res.snapshot.val(),
+                    adminUid: currentAdminUid,
+                    createdAt: Date.now()
+                });
+
+                document.getElementById('u-bal').innerText = res.snapshot.val().toFixed(2);
+                alert("Balance modified successfully!");
+            }
+        }
+
+        document.getElementById('add-bal-btn').onclick = () => modifyBalance('add');
+        document.getElementById('rem-bal-btn').onclick = () => modifyBalance('remove');
+
+        // Load Pending Requests
+        function loadRequests() {
+            onValue(ref(db, 'depositRequests'), (snap) => {
+                const body = document.getElementById('dep-table-body');
+                body.innerHTML = '';
+                snap.forEach((child) => {
+                    const req = child.val();
+                    if (req.status === 'pending') {
+                        body.innerHTML += `
+                            <tr>
+                                <td>${req.email}</td>
+                                <td>৳${req.amount}</td>
+                                <td>${req.trxId}</td>
+                                <td>
+                                    <button class="btn btn-add" onclick="approveDeposit('${child.key}', '${req.uid}', ${req.amount})">Approve</button>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
+            });
+
+            onValue(ref(db, 'withdrawRequests'), (snap) => {
+                const body = document.getElementById('with-table-body');
+                body.innerHTML = '';
+                snap.forEach((child) => {
+                    const req = child.val();
+                    if (req.status === 'pending') {
+                        body.innerHTML += `
+                            <tr>
+                                <td>${req.uid}</td>
+                                <td>৳${req.amount}</td>
+                                <td>${req.receiver}</td>
+                                <td>
+                                    <button class="btn btn-add" onclick="approveWithdraw('${child.key}', '${req.uid}', ${req.amount})">Approve</button>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
+            });
+        }
+
+        window.approveDeposit = async (reqId, uid, amount) => {
+            await runTransaction(ref(db, `users/${uid}/balance`), (b) => (b || 0) + amount);
+            await update(ref(db, `depositRequests/${reqId}`), { status: 'approved' });
+            alert("Deposit Approved!");
+        };
+
+        window.approveWithdraw = async (reqId, uid, amount) => {
+            await runTransaction(ref(db, `users/${uid}/balance`), (b) => Math.max(0, (b || 0) - amount));
+            await update(ref(db, `withdrawRequests/${reqId}`), { status: 'approved' });
+            alert("Withdraw Approved!");
+        };
+    </script>
+</body>
+</html>
