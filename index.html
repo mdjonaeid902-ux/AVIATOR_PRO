@@ -249,6 +249,38 @@
             transform: scale(0.92);
         }
 
+        /* Global user bar: balance / bonus / logout, shown on every screen */
+        .global-user-bar {
+            position: fixed;
+            top: 8px;
+            right: 8px;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(15, 18, 28, 0.92);
+            border: 1px solid rgba(255, 204, 0, 0.25);
+            border-radius: 20px;
+            padding: 6px 8px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            max-width: calc(100vw - 100px);
+        }
+
+        .global-user-bar #user-email-display {
+            font-size: 0.65rem;
+            color: var(--text-dim, #a0aec0);
+            max-width: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: none;
+        }
+
+        @media (min-width: 420px) {
+            .global-user-bar #user-email-display { display: inline; }
+        }
+
         /* ------------------ AVIATOR STYLES ------------------ */
         :root {
             --bg-color: #0e121b;
@@ -283,7 +315,6 @@
         
         .av-btn { background: #1e88e5; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.72rem; }
         .av-btn-deposit { background: var(--accent-green-bright); }
-        .av-btn-withdraw { background: #fb8c00; }
         .av-btn-logout { background: #455a64; }
 
         .av-container { display: flex; flex-direction: column; gap: 8px; flex: 1; margin-top: 8px; overflow: hidden; }
@@ -337,22 +368,13 @@
         .av-live-bet-row.lost { background: rgba(229, 57, 53, 0.15); color: #ef9a9a; }
         .av-no-bet-text { text-align: center; padding: 12px; font-size: 0.72rem; color: var(--text-dim); }
 
-        .av-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .av-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 200000; }
         .hidden { display: none !important; }
         .av-modal { width: 90%; max-width: 320px; }
         .av-modal h2 { margin-bottom: 10px; font-size: 0.95rem; }
         .av-modal .form-group { margin-bottom: 8px; }
         .av-modal .form-group input { width: 100%; padding: 8px; background: rgba(0,0,0,0.6); border: 1px solid var(--glass-border); color: white; border-radius: 6px; font-size: 0.85rem; outline: none; }
         .av-error-msg { color: var(--accent-red); font-size: 0.72rem; margin-top: 4px; text-align: center; }
-
-        .av-send-money-box {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px dashed var(--accent-green-bright);
-            padding: 10px; border-radius: 8px; margin-bottom: 12px;
-        }
-        .av-number-display-row {
-            display: flex; justify-content: space-between; align-items: center; margin-top: 4px;
-        }
 
         /* ------------------ BOXING KING STYLES ------------------ */
         #boxing-king-screen {
@@ -587,6 +609,55 @@
     </button>
 
     <!-- ==========================================
+         GLOBAL USER BAR (shared virtual wallet, visible on every screen)
+    ========================================== -->
+    <div class="global-user-bar hidden" id="global-user-bar">
+        <span id="user-email-display"></span>
+        <div class="av-balance-box">🪙 <span class="av-balance-amount" id="bal">0.00</span></div>
+        <button class="av-btn av-btn-deposit" id="claim-bonus-btn">🎁 Bonus</button>
+        <button class="av-btn av-btn-logout" id="logout-btn">Exit</button>
+    </div>
+
+    <!-- ==========================================
+         GLOBAL AUTH MODAL (blocks all screens until logged in)
+    ========================================== -->
+    <div class="av-modal-overlay hidden" id="auth-modal">
+        <div class="av-glass-card av-modal">
+            <h2 id="auth-title">GAMING ZONE LOGIN</h2>
+            <div style="font-size:0.68rem;color:var(--text-dim);text-align:center;margin-bottom:8px;">
+                🎮 Practice / Demo Mode &mdash; Virtual Coins Only, No Real Money
+            </div>
+            <form id="auth-form" onsubmit="return false;">
+                <div class="form-group"><input type="email" id="auth-email" placeholder="Email" required></div>
+                <div class="form-group"><input type="password" id="auth-password" placeholder="Password" required></div>
+                <button type="button" class="av-btn av-btn-deposit" style="width: 100%; padding: 8px;" id="auth-submit-btn">Login</button>
+                <div style="margin-top: 8px; font-size: 0.72rem; text-align: center;">
+                    <a href="#" id="toggle-auth-mode" style="color: #64b5f6; text-decoration: none;">Create Account</a>
+                </div>
+                <div class="av-error-msg" id="auth-error"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         GLOBAL BONUS MODAL (virtual coins top-up, no real payment)
+    ========================================== -->
+    <div class="av-modal-overlay hidden" id="bonus-modal">
+        <div class="av-glass-card av-modal">
+            <h2>🎁 Free Practice Coins</h2>
+            <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;">
+                এটি একটি demo/practice ওয়ালেট। এখানে বাস্তব টাকা জড়িত নেই।
+                প্রতি <span id="bonus-cooldown-hrs">6</span> ঘণ্টায় একবার ফ্রি virtual coins নিতে পারবেন।
+            </div>
+            <div class="av-error-msg" id="bonus-msg" style="color:#81c784;"></div>
+            <div style="display:flex; gap:6px; margin-top:8px;">
+                <button type="button" class="av-btn av-btn-deposit" id="claim-bonus-confirm-btn" style="flex:1; padding:8px;">Claim Bonus</button>
+                <button type="button" class="av-btn av-btn-logout" id="close-bonus-btn" style="padding:8px;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
          PAGE 1: GAME LOBBY
     ========================================== -->
     <div class="page-screen active" id="lobby-screen">
@@ -616,13 +687,6 @@
     <div class="page-screen" id="aviator-game-screen">
         <header class="av-header">
             <div class="av-logo">✈️ AVIATOR PRO</div>
-            <div class="av-user-info">
-                <span id="user-email-display"></span>
-                <div class="av-balance-box">Bal: <span class="av-balance-amount" id="bal">৳ 0.00</span></div>
-                <button class="av-btn av-btn-deposit" id="open-deposit-btn">DEP</button>
-                <button class="av-btn av-btn-withdraw" id="open-withdraw-btn">WD</button>
-                <button class="av-btn av-btn-logout" id="logout-btn">Exit</button>
-            </div>
         </header>
 
         <div class="av-container">
@@ -654,56 +718,6 @@
             </div>
         </div>
 
-        <div class="av-modal-overlay hidden" id="auth-modal">
-            <div class="av-glass-card av-modal">
-                <h2 id="auth-title">AVIATOR PRO LOGIN</h2>
-                <form id="auth-form" onsubmit="return false;">
-                    <div class="form-group"><input type="email" id="auth-email" placeholder="Email" required></div>
-                    <div class="form-group"><input type="password" id="auth-password" placeholder="Password" required></div>
-                    <button type="button" class="av-btn av-btn-deposit" style="width: 100%; padding: 8px;" id="auth-submit-btn">Login</button>
-                    <div style="margin-top: 8px; font-size: 0.72rem; text-align: center;">
-                        <a href="#" id="toggle-auth-mode" style="color: #64b5f6; text-decoration: none;">Create Account</a>
-                    </div>
-                    <div class="av-error-msg" id="auth-error"></div>
-                </form>
-            </div>
-        </div>
-
-        <div class="av-modal-overlay hidden" id="deposit-modal">
-            <div class="av-glass-card av-modal">
-                <h2>Deposit Money</h2>
-                <div class="av-send-money-box">
-                    <div style="font-size: 0.7rem; color: var(--text-dim);">Send Money Number:</div>
-                    <div class="av-number-display-row">
-                        <span id="admin-send-number" style="font-size: 0.95rem; font-weight: bold; color: #ffd700;">Loading...</span>
-                        <button type="button" class="av-btn" id="copy-num-btn" style="padding: 2px 8px; font-size: 0.65rem; background: #37474f;">Copy</button>
-                    </div>
-                </div>
-                <form id="deposit-form" onsubmit="return false;">
-                    <div class="form-group"><input type="number" id="dep-amount" placeholder="Amount (৳)" min="50" required></div>
-                    <div class="form-group"><input type="text" id="dep-trx" placeholder="Transaction ID (TrxID)" required></div>
-                    <div style="display: flex; gap: 6px; margin-top: 6px;">
-                        <button type="button" class="av-btn av-btn-deposit" id="sub-dep-btn" style="flex: 1; padding: 8px;">Submit Request</button>
-                        <button type="button" class="av-btn av-btn-logout" id="close-dep-btn" style="padding: 8px;">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div class="av-modal-overlay hidden" id="withdraw-modal">
-            <div class="av-glass-card av-modal">
-                <h2>Withdraw Request</h2>
-                <form id="withdraw-form" onsubmit="return false;">
-                    <div class="form-group"><input type="number" id="with-amount" placeholder="Amount (৳)" min="100" required></div>
-                    <div class="form-group"><input type="text" id="with-receiver" placeholder="Receiver Phone Number" required></div>
-                    <div style="display: flex; gap: 6px; margin-top: 4px;">
-                        <button type="button" class="av-btn av-btn-withdraw" id="sub-with-btn" style="flex: 1; padding: 8px;">Withdraw</button>
-                        <button type="button" class="av-btn av-btn-logout" id="close-with-btn" style="padding: 8px;">Cancel</button>
-                    </div>
-                    <div class="av-error-msg" id="with-error"></div>
-                </form>
-            </div>
-        </div>
     </div>
 
     <!-- ==========================================
@@ -746,7 +760,7 @@
                 </div>
                 <div class="bk-dash-box">
                     <span class="bk-dash-label">Balance</span>
-                    <span id="bk-bal" class="bk-dash-value">100.00</span>
+                    <span id="bk-bal" class="bk-dash-value">0.00</span>
                 </div>
             </div>
 
@@ -864,32 +878,10 @@
         let isProcessingBet = false;
         let historyArray = [];
 
-        const adminSendNumberElem = document.getElementById('admin-send-number');
-        const copyNumBtn = document.getElementById('copy-num-btn');
-        const subDepBtn = document.getElementById('sub-dep-btn');
-
-        db.ref('adminSettings/sendMoneyNumber').on('value', function(snapshot) {
-            const num = snapshot.val();
-            if (num && num.trim() !== "") {
-                adminSendNumberElem.innerText = num;
-                adminSendNumberElem.style.color = "#ffd700";
-                copyNumBtn.style.display = "inline-block";
-                subDepBtn.disabled = false;
-            } else {
-                adminSendNumberElem.innerText = "Deposit Off Currently";
-                adminSendNumberElem.style.color = "#e53935";
-                copyNumBtn.style.display = "none";
-                subDepBtn.disabled = true;
-            }
-        });
-
-        copyNumBtn.addEventListener('click', function() {
-            const numText = adminSendNumberElem.innerText;
-            if (numText && numText !== "Deposit Off Currently" && numText !== "Loading...") {
-                navigator.clipboard.writeText(numText);
-                alert("Copied: " + numText);
-            }
-        });
+        // Virtual/demo wallet only -- no real payment gateway, no deposit/withdraw to real money.
+        const BONUS_AMOUNT = 500;
+        const BONUS_COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6 hours
+        document.getElementById('bonus-cooldown-hrs').innerText = (BONUS_COOLDOWN_MS / 3600000).toString();
 
         const authModal = document.getElementById('auth-modal');
         const authError = document.getElementById('auth-error');
@@ -897,8 +889,12 @@
         const authTitle = document.getElementById('auth-title');
         const authSubmitBtn = document.getElementById('auth-submit-btn');
 
+        const globalUserBar = document.getElementById('global-user-bar');
         const userEmailDisplay = document.getElementById('user-email-display');
         const balDisplay = document.getElementById('bal');
+
+        const bonusModal = document.getElementById('bonus-modal');
+        const bonusMsg = document.getElementById('bonus-msg');
 
         const betBtn = document.getElementById('bet-btn');
         const betInput = document.getElementById('bet-amount');
@@ -907,8 +903,35 @@
         const historyBar = document.getElementById('history-bar');
         const liveBetsList = document.getElementById('live-bets-list');
 
-        const depositModal = document.getElementById('deposit-modal');
-        const withdrawModal = document.getElementById('withdraw-modal');
+        // Shared Boxing King configuration (admin-controlled, public read-only, transparent)
+        let bkConfig = {
+            enabled: true,
+            minBet: 1,
+            maxBet: 10,
+            betOptions: [1.00, 2.00, 3.00, 5.00, 10.00],
+            animationSpeedMs: 90,
+            rtpFactor: 1.0,
+            testMode: false
+        };
+        db.ref('config/boxingKing').on('value', function(snapshot) {
+            const cfg = snapshot.val();
+            if (cfg) {
+                bkConfig = Object.assign({}, bkConfig, cfg);
+                if (typeof bkConfig.betOptions === 'string') {
+                    bkConfig.betOptions = bkConfig.betOptions.split(',').map(n => parseFloat(n.trim())).filter(n => !isNaN(n));
+                }
+                if (!Array.isArray(bkConfig.betOptions) || bkConfig.betOptions.length === 0) {
+                    bkConfig.betOptions = [1.00, 2.00, 3.00, 5.00, 10.00];
+                }
+            }
+            applyBkConfigToUI();
+        });
+
+        function updateSharedBalanceUI() {
+            balDisplay.innerText = currentBalance.toFixed(2);
+            const bkBalEl = document.getElementById('bk-bal');
+            if (bkBalEl) bkBalEl.innerText = bkFormatDecimal(currentBalance);
+        }
 
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
@@ -924,7 +947,7 @@
         toggleAuthMode.addEventListener('click', function(e) {
             e.preventDefault();
             isSignUp = !isSignUp;
-            authTitle.innerText = isSignUp ? "CREATE ACCOUNT" : "AVIATOR PRO LOGIN";
+            authTitle.innerText = isSignUp ? "CREATE ACCOUNT" : "GAMING ZONE LOGIN";
             authSubmitBtn.innerText = isSignUp ? "Sign Up" : "Login";
             toggleAuthMode.innerText = isSignUp ? "Already have an account? Login" : "Create Account";
             authError.innerText = "";
@@ -942,7 +965,11 @@
 
             if (isSignUp) {
                 auth.createUserWithEmailAndPassword(email, password)
-                    .then(cred => db.ref('users/' + cred.user.uid).set({ email, balance: 500, games: 0, wins: 0, createdAt: Date.now() }))
+                    .then(cred => db.ref('users/' + cred.user.uid).set({
+                        email, balance: 1000, games: 0, wins: 0,
+                        boxingKingGames: 0, boxingKingWins: 0,
+                        lastBonusClaim: 0, createdAt: Date.now()
+                    }))
                     .then(() => { authError.innerText = ""; })
                     .catch(err => { authError.innerText = err.message; });
             } else {
@@ -960,6 +987,7 @@
             if (user) {
                 currentUser = user;
                 authModal.classList.add('hidden');
+                globalUserBar.classList.remove('hidden');
                 userEmailDisplay.innerText = user.email;
 
                 if (userDbRef) userDbRef.off();
@@ -969,16 +997,55 @@
                     const data = snapshot.val();
                     if (data) {
                         currentBalance = data.balance || 0;
-                        balDisplay.innerText = "৳ " + currentBalance.toFixed(2);
+                        lastBonusClaim = data.lastBonusClaim || 0;
+                        updateSharedBalanceUI();
                     } else {
-                        db.ref('users/' + user.uid).update({ email: user.email, balance: 100, games: 0, wins: 0 });
+                        db.ref('users/' + user.uid).update({
+                            email: user.email, balance: 1000, games: 0, wins: 0,
+                            boxingKingGames: 0, boxingKingWins: 0, lastBonusClaim: 0
+                        });
                     }
                 });
             } else {
                 currentUser = null;
+                userDbRef = null;
                 authModal.classList.remove('hidden');
-                balDisplay.innerText = "৳ 0.00";
+                globalUserBar.classList.add('hidden');
+                currentBalance = 0;
+                updateSharedBalanceUI();
             }
+        });
+
+        let lastBonusClaim = 0;
+
+        document.getElementById('claim-bonus-btn').addEventListener('click', function() {
+            if (!currentUser) return alert("প্রথমে Login করুন!");
+            bonusMsg.style.color = "#81c784";
+            bonusMsg.innerText = "";
+            bonusModal.classList.remove('hidden');
+        });
+        document.getElementById('close-bonus-btn').onclick = () => bonusModal.classList.add('hidden');
+
+        document.getElementById('claim-bonus-confirm-btn').addEventListener('click', function() {
+            if (!currentUser) return;
+            const now = Date.now();
+            const remaining = BONUS_COOLDOWN_MS - (now - lastBonusClaim);
+            if (lastBonusClaim && remaining > 0) {
+                const mins = Math.ceil(remaining / 60000);
+                bonusMsg.style.color = "#ef9a9a";
+                bonusMsg.innerText = `আবার চেষ্টা করুন ${mins} মিনিট পরে।`;
+                return;
+            }
+            db.ref('users/' + currentUser.uid + '/balance').transaction(cur => (cur || 0) + BONUS_AMOUNT, (err, committed) => {
+                if (committed) {
+                    db.ref('users/' + currentUser.uid).update({ lastBonusClaim: now });
+                    bonusMsg.style.color = "#81c784";
+                    bonusMsg.innerText = `+${BONUS_AMOUNT} virtual coins যোগ হয়েছে! 🎉`;
+                } else {
+                    bonusMsg.style.color = "#ef9a9a";
+                    bonusMsg.innerText = "কিছু ভুল হয়েছে, আবার চেষ্টা করুন।";
+                }
+            });
         });
 
         function getDeterministicCrashPoint(roundIndex) {
@@ -1299,52 +1366,6 @@
             }
         });
 
-        document.getElementById('open-deposit-btn').onclick = () => depositModal.classList.remove('hidden');
-        document.getElementById('close-dep-btn').onclick = () => depositModal.classList.add('hidden');
-        document.getElementById('open-withdraw-btn').onclick = () => withdrawModal.classList.remove('hidden');
-        document.getElementById('close-with-btn').onclick = () => withdrawModal.classList.add('hidden');
-
-        document.getElementById('sub-dep-btn').onclick = function() {
-            if (!currentUser) return alert("Please login first");
-            const amount = parseFloat(document.getElementById('dep-amount').value);
-            const trxId = document.getElementById('dep-trx').value.trim();
-            if (!amount || !trxId) return alert("Fill all fields");
-
-            db.ref('depositRequests').push({
-                uid: currentUser.uid, email: currentUser.email, amount, trxId, status: 'pending', createdAt: Date.now()
-            }).then(() => {
-                alert("Deposit request submitted!");
-                depositModal.classList.add('hidden');
-                document.getElementById('dep-amount').value = '';
-                document.getElementById('dep-trx').value = '';
-            }).catch(err => alert(err.message));
-        };
-
-        document.getElementById('sub-with-btn').onclick = function() {
-            if (!currentUser) return alert("Please login first");
-            const amount = parseFloat(document.getElementById('with-amount').value);
-            const receiver = document.getElementById('with-receiver').value.trim();
-            const errorElem = document.getElementById('with-error');
-            errorElem.innerText = "";
-
-            if (isNaN(amount) || amount < 100) return errorElem.innerText = "Minimum withdraw amount is ৳100";
-            if (amount > currentBalance) return errorElem.innerText = "Insufficient balance!";
-
-            db.ref('users/' + currentUser.uid + '/balance').transaction(current => {
-                if (current >= amount) return current - amount;
-            }, (error, committed) => {
-                if (committed) {
-                    db.ref('withdrawRequests').push({
-                        uid: currentUser.uid, email: currentUser.email, amount, receiver, status: 'pending', createdAt: Date.now()
-                    });
-                    alert("Withdraw request submitted!");
-                    withdrawModal.classList.add('hidden');
-                } else {
-                    errorElem.innerText = "Insufficient balance!";
-                }
-            });
-        };
-
         /* ----------------------------------------------------
            3. BOXING KING GAME LOGIC
         ---------------------------------------------------- */
@@ -1352,11 +1373,10 @@
         const BK_SYMBOL_VALUES = {
             '🥊': 1.2, '👑': 2.0, '🔥': 1.0, '⚡': 0.8, '👊': 0.6, '💎': 1.5, '🥇': 0.5
         };
-        const BK_BET_OPTIONS = [1.00, 2.00, 3.00, 5.00, 10.00];
+        let BK_BET_OPTIONS = [1.00, 2.00, 3.00, 5.00, 10.00];
         const BK_MULTIPLIER_STEPS = [1, 2, 3, 5];
 
         let bkCurrentBetIndex = 0;
-        let bkBalance = 100.00;
         let bkIsSpinning = false;
         let bkCurrentMultiplierIndex = 0;
         let bkCurrentSpinTotalWin = 0;
@@ -1459,6 +1479,25 @@
             document.getElementById('bk-bet-display').innerText = bkFormatDecimal(BK_BET_OPTIONS[bkCurrentBetIndex]);
         }
 
+        // Reflect admin-controlled, transparent Boxing King configuration (bet list / enabled / test mode)
+        function applyBkConfigToUI() {
+            BK_BET_OPTIONS = bkConfig.betOptions;
+            if (bkCurrentBetIndex >= BK_BET_OPTIONS.length) bkCurrentBetIndex = BK_BET_OPTIONS.length - 1;
+            const betDisplayEl = document.getElementById('bk-bet-display');
+            if (betDisplayEl) betDisplayEl.innerText = bkFormatDecimal(BK_BET_OPTIONS[bkCurrentBetIndex]);
+
+            const spinBtn = document.getElementById('bk-spin-btn');
+            const statusEl = document.getElementById('bk-status');
+            if (spinBtn) {
+                if (!bkConfig.enabled) {
+                    spinBtn.disabled = true;
+                    if (statusEl) { statusEl.innerText = "গেমটি বর্তমানে বন্ধ আছে (Admin Disabled) 🚧"; statusEl.style.color = "#ff9900"; }
+                } else if (!bkIsSpinning) {
+                    spinBtn.disabled = false;
+                }
+            }
+        }
+
         function setBkControlsDisabled(disabled) {
             document.getElementById("bk-spin-btn").disabled = disabled;
             document.getElementById("bk-bet-minus-btn").disabled = disabled;
@@ -1469,20 +1508,48 @@
             if (bkIsSpinning) return;
             initBkAudio();
 
+            if (!currentUser) { alert("প্রথমে Login করুন!"); return; }
+            if (!bkConfig.enabled) {
+                const statusEl = document.getElementById("bk-status");
+                statusEl.innerText = "গেমটি বর্তমানে বন্ধ আছে 🚧";
+                statusEl.style.color = "#ff9900";
+                return;
+            }
+
             const activeBet = BK_BET_OPTIONS[bkCurrentBetIndex];
 
-            if (bkBalance < activeBet) {
+            if (!bkConfig.testMode && currentBalance < activeBet) {
                 const statusEl = document.getElementById("bk-status");
                 statusEl.innerText = "পর্যাপ্ত ব্যালেন্স নেই! 😢";
                 statusEl.style.color = "#ff3333";
                 return;
             }
 
-            bkBalance = Math.max(0, bkBalance - activeBet);
-            document.getElementById("bk-bal").innerText = bkFormatDecimal(bkBalance);
-            
             bkIsSpinning = true;
             setBkControlsDisabled(true);
+
+            if (bkConfig.testMode) {
+                // Test Mode: admin-enabled practice spins that do not touch the real virtual balance
+                startBkSpinSequence(activeBet);
+                return;
+            }
+
+            db.ref('users/' + currentUser.uid + '/balance').transaction(cur => {
+                if ((cur || 0) >= activeBet) return (cur || 0) - activeBet;
+            }, (error, committed) => {
+                if (!committed) {
+                    bkIsSpinning = false;
+                    setBkControlsDisabled(false);
+                    const statusEl = document.getElementById("bk-status");
+                    statusEl.innerText = "পর্যাপ্ত ব্যালেন্স নেই! 😢";
+                    statusEl.style.color = "#ff3333";
+                    return;
+                }
+                startBkSpinSequence(activeBet);
+            });
+        }
+
+        function startBkSpinSequence(activeBet) {
 
             bkCurrentSpinTotalWin = 0;
             bkCurrentMultiplierIndex = 0;
@@ -1516,7 +1583,7 @@
                         evaluateBkCascade(activeBet);
                     }, 200);
                 }
-            }, 90);
+            }, bkConfig.animationSpeedMs || 90);
         }
 
         function findBkLeftToRightMatches() {
@@ -1584,13 +1651,12 @@
 
             if (winningIndices.length > 0) {
                 const currentMultiplier = BK_MULTIPLIER_STEPS[bkCurrentMultiplierIndex];
-                const stepWin = evalResult.matchUnits * (activeBet * 0.4) * currentMultiplier;
-                
+                const rtpFactor = (typeof bkConfig.rtpFactor === 'number' && bkConfig.rtpFactor > 0) ? bkConfig.rtpFactor : 1.0;
+                const stepWin = evalResult.matchUnits * (activeBet * 0.4) * currentMultiplier * rtpFactor;
+
                 bkCurrentSpinTotalWin += stepWin;
-                bkBalance += stepWin;
 
                 document.getElementById("bk-win-display").innerText = bkFormatDecimal(bkCurrentSpinTotalWin);
-                document.getElementById("bk-bal").innerText = bkFormatDecimal(bkBalance);
                 
                 const statusEl = document.getElementById("bk-status");
                 statusEl.innerText = `💥 চেইন হিট (${currentMultiplier}X)! উইন: +${bkFormatDecimal(stepWin)}`;
@@ -1666,9 +1732,19 @@
                     statusEl.innerText = `💰 চেইন শেষ! মোট উইন: ${bkFormatDecimal(bkCurrentSpinTotalWin)}`;
                     statusEl.style.color = "#ffcc00";
                 }
-                
+
+                // Settle this spin's result once, atomically, against the shared Firebase virtual balance.
+                if (currentUser && !bkConfig.testMode) {
+                    const uidRef = 'users/' + currentUser.uid;
+                    if (bkCurrentSpinTotalWin > 0) {
+                        db.ref(uidRef + '/balance').transaction(cur => (cur || 0) + bkCurrentSpinTotalWin);
+                        db.ref(uidRef + '/boxingKingWins').transaction(w => (w || 0) + 1);
+                    }
+                    db.ref(uidRef + '/boxingKingGames').transaction(g => (g || 0) + 1);
+                }
+
                 bkIsSpinning = false;
-                setBkControlsDisabled(false);
+                setBkControlsDisabled(bkConfig.enabled === false);
             }
         }
 
@@ -1695,7 +1771,8 @@
             initBkBoardDOM();
             updateBkMultiplierUI();
             document.getElementById('bk-bet-display').innerText = bkFormatDecimal(BK_BET_OPTIONS[bkCurrentBetIndex]);
-            document.getElementById('bk-bal').innerText = bkFormatDecimal(bkBalance);
+            updateSharedBalanceUI();
+            applyBkConfigToUI();
         });
     </script>
 </body>
