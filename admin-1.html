@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gaming Zone - Admin Panel</title>
+<title>Gaming Zone - Admin Panel (No Password)</title>
 
+<!-- Firebase CDNs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -22,169 +23,59 @@
         --red: #e53935;
     }
     * { box-sizing: border-box; margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; }
-    .hidden { display: none !important; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 12px; }
 
-    /* ---------- Login screen ---------- */
-    #login-screen {
-        min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px;
-    }
-    .login-box {
-        width: 100%; max-width: 340px; background: var(--card); border: 1px solid var(--border);
-        border-radius: 16px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    }
-    .login-box h1 { font-size: 1.1rem; margin-bottom: 4px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .login-box p.sub { font-size: 0.72rem; color: var(--dim); margin-bottom: 16px; }
-    .login-box input {
-        width: 100%; padding: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.5);
-        border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-size: 0.9rem; outline: none;
-    }
-    .login-box button {
-        width: 100%; padding: 10px; background: linear-gradient(135deg, var(--accent), var(--accent2));
-        border: none; border-radius: 8px; color: #000; font-weight: 800; cursor: pointer; font-size: 0.85rem;
-    }
-    .msg { font-size: 0.75rem; margin-top: 10px; text-align: center; }
-    .msg.error { color: var(--red); }
-    .msg.ok { color: var(--green); }
-
-    /* ---------- Dashboard ---------- */
-    #dashboard-screen { padding: 12px; max-width: 1100px; margin: 0 auto; }
+    #dashboard-screen { max-width: 1100px; margin: 0 auto; }
     .dash-header {
         display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
         padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px;
     }
-    .dash-header h1 { font-size: 1rem; }
+    .dash-header h1 { font-size: 1rem; color: var(--accent); }
     .dash-header .admin-email { font-size: 0.7rem; color: var(--dim); }
-    .logout-btn { background: #455a64; border: none; color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.75rem; }
 
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 14px; }
     .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
     .stat-card .val { font-size: 1.3rem; font-weight: 900; color: var(--accent); }
     .stat-card .lbl { font-size: 0.65rem; color: var(--dim); margin-top: 2px; }
 
-    .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
-    .tab-btn {
-        background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--dim);
-        padding: 8px 14px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; white-space: nowrap; font-weight: 700;
-    }
-    .tab-btn.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; border-color: transparent; }
-
-    .panel { display: none; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
-    .panel.active { display: block; }
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
 
     table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
     th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.06); white-space: nowrap; }
     th { color: var(--dim); font-size: 0.68rem; text-transform: uppercase; }
     .table-wrap { overflow-x: auto; }
-    .adj-btn { background: var(--accent2); border: none; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.68rem; cursor: pointer; }
-
-    .config-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-    .config-form label { font-size: 0.7rem; color: var(--dim); display: block; margin-bottom: 4px; }
-    .config-form input[type="text"], .config-form input[type="number"] {
-        width: 100%; padding: 8px; background: rgba(0,0,0,0.5); border: 1px solid var(--border);
-        color: var(--text); border-radius: 6px; font-size: 0.85rem;
-    }
-    .toggle-row { display: flex; align-items: center; gap: 8px; }
-    .save-btn {
-        margin-top: 14px; padding: 10px 18px; background: linear-gradient(135deg, var(--green), #1b5e20);
-        border: none; color: white; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.85rem;
-    }
+    
+    .btn-remove { background: var(--red); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.68rem; cursor: pointer; transition: 0.3s; }
+    .btn-remove:hover { background: #b71c1c; }
+    
     .note-box { font-size: 0.68rem; color: var(--dim); background: rgba(255,204,0,0.06); border: 1px dashed var(--border); padding: 8px; border-radius: 8px; margin-bottom: 14px; }
 </style>
 </head>
 <body>
 
-<!-- ================= LOGIN SCREEN ================= -->
-<div id="login-screen">
-    <div class="login-box">
-        <h1>🔒 ADMIN PANEL</h1>
-        <p class="sub">Gaming Zone &mdash; Authorized administrators only</p>
-        <input type="email" id="admin-email" placeholder="Admin Email">
-        <input type="password" id="admin-password" placeholder="Password">
-        <button id="admin-login-btn">Login</button>
-        <div class="msg" id="admin-login-msg"></div>
-    </div>
-</div>
-
-<!-- ================= DASHBOARD SCREEN ================= -->
-<div id="dashboard-screen" class="hidden">
+<div id="dashboard-screen">
     <div class="dash-header">
         <div>
-            <h1>👑 Gaming Zone Admin</h1>
-            <div class="admin-email" id="admin-email-display"></div>
+            <h1>👑 Gaming Zone Admin (Direct Access)</h1>
+            <div class="admin-email">Password login completely removed</div>
         </div>
-        <button class="logout-btn" id="admin-logout-btn">Logout</button>
     </div>
 
     <div class="stats-grid" id="stats-grid"></div>
 
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="users-panel">Users &amp; Balances</button>
-        <button class="tab-btn" data-tab="config-panel">Boxing King Config</button>
-        <button class="tab-btn" data-tab="audit-panel">Audit Log</button>
-    </div>
-
-    <div class="panel active" id="users-panel">
-        <div class="note-box">সব balance হলো Virtual/Demo Coins — কোনো real money নেই। Aviator ও Boxing King একই wallet ব্যবহার করে।</div>
+    <div class="panel" id="users-panel">
+        <div class="note-box">এখানে রিয়েলটাইম ডাটাবেজ থেকে ইউজারদের তালিকা দেখা যাচ্ছে এবং সরাসরি রিমুভ করা যাবে।</div>
         <div class="table-wrap">
             <table>
                 <thead>
                     <tr>
-                        <th>Email</th><th>UID</th><th>Balance</th>
-                        <th>Aviator Games</th><th>Aviator Wins</th>
-                        <th>BK Games</th><th>BK Wins</th><th>Action</th>
+                        <th>Email</th>
+                        <th>UID</th>
+                        <th>Balance</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="users-table-body"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="panel" id="config-panel">
-        <div class="note-box">
-            এই সব setting সম্পূর্ণ transparent এবং global &mdash; সব user-এর জন্য প্রযোজ্য। কোনো নির্দিষ্ট user-কে টার্গেট করে
-            গোপনে হারানো/জেতানোর কোনো ব্যবস্থা এখানে নেই।
-        </div>
-        <div class="config-form">
-            <div class="toggle-row">
-                <input type="checkbox" id="cfg-enabled" style="width:18px;height:18px;">
-                <label for="cfg-enabled" style="margin:0;">Boxing King Enabled</label>
-            </div>
-            <div class="toggle-row">
-                <input type="checkbox" id="cfg-testmode" style="width:18px;height:18px;">
-                <label for="cfg-testmode" style="margin:0;">Test / Practice Mode (spins don't touch balance)</label>
-            </div>
-            <div>
-                <label>Minimum Bet</label>
-                <input type="number" id="cfg-minbet" step="0.01">
-            </div>
-            <div>
-                <label>Maximum Bet</label>
-                <input type="number" id="cfg-maxbet" step="0.01">
-            </div>
-            <div>
-                <label>Available Bet Amounts (comma separated)</label>
-                <input type="text" id="cfg-betoptions" placeholder="1,2,3,5,10">
-            </div>
-            <div>
-                <label>Reel Animation Speed (ms per tick)</label>
-                <input type="number" id="cfg-animspeed" step="1">
-            </div>
-            <div>
-                <label>RTP / Win Multiplier Factor (1.0 = standard, transparent to all users)</label>
-                <input type="number" id="cfg-rtp" step="0.01">
-            </div>
-        </div>
-        <button class="save-btn" id="save-config-btn">Save Configuration</button>
-        <div class="msg" id="config-msg"></div>
-    </div>
-
-    <div class="panel" id="audit-panel">
-        <div class="note-box">প্রতিটি manual balance adjustment এখানে permanent audit record হিসেবে থাকবে।</div>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>Time</th><th>User Email</th><th>Admin</th><th>Previous</th><th>New</th><th>Delta</th><th>Reason</th></tr></thead>
-                <tbody id="audit-table-body"></tbody>
             </table>
         </div>
     </div>
@@ -201,73 +92,9 @@
         appId: "1:816776130875:web:c3e7984e0de53cbd89871e"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.database();
 
-    const loginScreen = document.getElementById('login-screen');
-    const dashboardScreen = document.getElementById('dashboard-screen');
-    const loginMsg = document.getElementById('admin-login-msg');
-
-    let isAdmin = false;
-    let currentAdminUser = null;
-
-    document.getElementById('admin-login-btn').addEventListener('click', function() {
-        const email = document.getElementById('admin-email').value.trim();
-        const password = document.getElementById('admin-password').value.trim();
-        if (!email || !password) { loginMsg.className = 'msg error'; loginMsg.innerText = 'Enter email and password'; return; }
-        loginMsg.className = 'msg'; loginMsg.innerText = 'Checking...';
-        auth.signInWithEmailAndPassword(email, password).catch(err => {
-            loginMsg.className = 'msg error';
-            loginMsg.innerText = err.message;
-        });
-    });
-
-    document.getElementById('admin-logout-btn').addEventListener('click', function() {
-        auth.signOut();
-    });
-
-    auth.onAuthStateChanged(function(user) {
-        if (!user) {
-            isAdmin = false;
-            currentAdminUser = null;
-            loginScreen.classList.remove('hidden');
-            dashboardScreen.classList.add('hidden');
-            return;
-        }
-        // Verify admin flag before showing anything sensitive.
-        db.ref('admins/' + user.uid).get().then(snap => {
-            if (snap.val() === true) {
-                isAdmin = true;
-                currentAdminUser = user;
-                loginScreen.classList.add('hidden');
-                dashboardScreen.classList.remove('hidden');
-                document.getElementById('admin-email-display').innerText = user.email;
-                loadUsers();
-                loadConfig();
-                loadAuditLog();
-            } else {
-                loginMsg.className = 'msg error';
-                loginMsg.innerText = 'এই একাউন্টের Admin অনুমতি নেই।';
-                auth.signOut();
-            }
-        }).catch(err => {
-            loginMsg.className = 'msg error';
-            loginMsg.innerText = 'Access check failed: ' + err.message;
-            auth.signOut();
-        });
-    });
-
-    // ---------------- Tabs ----------------
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById(btn.dataset.tab).classList.add('active');
-        });
-    });
-
-    // ---------------- Users & Stats ----------------
+    // সরাসরি ডাটাবেজ থেকে ইউজার লোড করা এবং রিমুভ করার ব্যবস্থা
     function loadUsers() {
         db.ref('users').on('value', function(snapshot) {
             const data = snapshot.val() || {};
@@ -275,122 +102,42 @@
             tbody.innerHTML = '';
 
             let totalUsers = 0, totalBalance = 0;
-            let avGames = 0, avWins = 0, bkGames = 0, bkWins = 0;
 
             Object.keys(data).forEach(uid => {
                 const u = data[uid];
                 totalUsers++;
                 totalBalance += (u.balance || 0);
-                avGames += (u.games || 0);
-                avWins += (u.wins || 0);
-                bkGames += (u.boxingKingGames || 0);
-                bkWins += (u.boxingKingWins || 0);
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${u.email || '-'}</td>
                     <td style="font-size:0.6rem;color:#8fa0b3;">${uid}</td>
                     <td>🪙 ${(u.balance || 0).toFixed(2)}</td>
-                    <td>${u.games || 0}</td>
-                    <td>${u.wins || 0}</td>
-                    <td>${u.boxingKingGames || 0}</td>
-                    <td>${u.boxingKingWins || 0}</td>
-                    <td><button class="adj-btn" data-uid="${uid}" data-email="${u.email || ''}" data-bal="${u.balance || 0}">Adjust</button></td>
+                    <td><button class="btn-remove" onclick="removeUser('${uid}')"><i class="fa-solid fa-trash"></i> Remove User</button></td>
                 `;
                 tbody.appendChild(row);
             });
 
             document.getElementById('stats-grid').innerHTML = `
                 <div class="stat-card"><div class="val">${totalUsers}</div><div class="lbl">Total Users</div></div>
-                <div class="stat-card"><div class="val">🪙${totalBalance.toFixed(0)}</div><div class="lbl">Total Balance (virtual)</div></div>
-                <div class="stat-card"><div class="val">${avGames}</div><div class="lbl">Aviator Rounds</div></div>
-                <div class="stat-card"><div class="val">${avWins}</div><div class="lbl">Aviator Wins</div></div>
-                <div class="stat-card"><div class="val">${bkGames}</div><div class="lbl">Boxing King Spins</div></div>
-                <div class="stat-card"><div class="val">${bkWins}</div><div class="lbl">Boxing King Wins</div></div>
+                <div class="stat-card"><div class="val">🪙${totalBalance.toFixed(0)}</div><div class="lbl">Total Balance</div></div>
             `;
+        });
+    }
 
-            document.querySelectorAll('.adj-btn').forEach(btn => {
-                btn.onclick = () => adjustBalance(btn.dataset.uid, btn.dataset.email, parseFloat(btn.dataset.bal));
+    // নির্দিষ্ট ইউজারকে ডাটাবেজ থেকে মুছে ফেলার ফাংশন
+    function removeUser(uid) {
+        if (confirm('Are you sure you want to remove this user from database?')) {
+            db.ref('users/' + uid).remove().then(() => {
+                alert('User removed successfully!');
+            }).catch(err => {
+                alert('Failed to remove: ' + err.message);
             });
-        });
+        }
     }
 
-    function adjustBalance(uid, email, currentBal) {
-        if (!isAdmin) return;
-        const input = prompt(`New virtual balance for ${email}\n(current: ${currentBal.toFixed(2)})`, currentBal.toFixed(2));
-        if (input === null) return;
-        const newBal = parseFloat(input);
-        if (isNaN(newBal) || newBal < 0) { alert('Invalid amount'); return; }
-        const reason = prompt('Reason for this adjustment (required for audit record):', '');
-        if (!reason || !reason.trim()) { alert('A reason is required.'); return; }
-
-        db.ref('users/' + uid + '/balance').set(newBal).then(() => {
-            db.ref('balanceAdjustments').push({
-                uid, email,
-                adminUid: currentAdminUser.uid, adminEmail: currentAdminUser.email,
-                previousBalance: currentBal, newBalance: newBal, delta: (newBal - currentBal),
-                reason: reason.trim(), timestamp: Date.now()
-            });
-        }).catch(err => alert('Failed: ' + err.message));
-    }
-
-    // ---------------- Boxing King Config ----------------
-    function loadConfig() {
-        db.ref('config/boxingKing').on('value', snapshot => {
-            const cfg = snapshot.val() || {};
-            document.getElementById('cfg-enabled').checked = cfg.enabled !== false;
-            document.getElementById('cfg-testmode').checked = cfg.testMode === true;
-            document.getElementById('cfg-minbet').value = cfg.minBet != null ? cfg.minBet : 1;
-            document.getElementById('cfg-maxbet').value = cfg.maxBet != null ? cfg.maxBet : 10;
-            document.getElementById('cfg-betoptions').value = Array.isArray(cfg.betOptions) ? cfg.betOptions.join(',') : '1,2,3,5,10';
-            document.getElementById('cfg-animspeed').value = cfg.animationSpeedMs != null ? cfg.animationSpeedMs : 90;
-            document.getElementById('cfg-rtp').value = cfg.rtpFactor != null ? cfg.rtpFactor : 1.0;
-        });
-    }
-
-    document.getElementById('save-config-btn').addEventListener('click', function() {
-        const betOptions = document.getElementById('cfg-betoptions').value
-            .split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n) && n > 0);
-
-        const cfg = {
-            enabled: document.getElementById('cfg-enabled').checked,
-            testMode: document.getElementById('cfg-testmode').checked,
-            minBet: parseFloat(document.getElementById('cfg-minbet').value) || 1,
-            maxBet: parseFloat(document.getElementById('cfg-maxbet').value) || 10,
-            betOptions: betOptions.length ? betOptions : [1, 2, 3, 5, 10],
-            animationSpeedMs: parseInt(document.getElementById('cfg-animspeed').value) || 90,
-            rtpFactor: parseFloat(document.getElementById('cfg-rtp').value) || 1.0
-        };
-
-        db.ref('config/boxingKing').set(cfg).then(() => {
-            const msg = document.getElementById('config-msg');
-            msg.className = 'msg ok'; msg.innerText = 'Configuration saved and is now live for all players.';
-            setTimeout(() => msg.innerText = '', 3000);
-        }).catch(err => {
-            const msg = document.getElementById('config-msg');
-            msg.className = 'msg error'; msg.innerText = 'Save failed: ' + err.message;
-        });
-    });
-
-    // ---------------- Audit Log ----------------
-    function loadAuditLog() {
-        db.ref('balanceAdjustments').limitToLast(100).on('value', snapshot => {
-            const data = snapshot.val() || {};
-            const tbody = document.getElementById('audit-table-body');
-            const rows = Object.values(data).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            tbody.innerHTML = rows.map(r => `
-                <tr>
-                    <td>${new Date(r.timestamp).toLocaleString()}</td>
-                    <td>${r.email || '-'}</td>
-                    <td>${r.adminEmail || '-'}</td>
-                    <td>${(r.previousBalance || 0).toFixed(2)}</td>
-                    <td>${(r.newBalance || 0).toFixed(2)}</td>
-                    <td style="color:${(r.delta || 0) >= 0 ? '#81c784' : '#ef9a9a'}">${(r.delta || 0) >= 0 ? '+' : ''}${(r.delta || 0).toFixed(2)}</td>
-                    <td>${r.reason || ''}</td>
-                </tr>
-            `).join('');
-        });
-    }
+    // পেজ লোড হলেই ইউজার লিস্ট চলে আসবে
+    window.onload = loadUsers;
 </script>
 </body>
 </html>
