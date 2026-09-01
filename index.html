@@ -250,6 +250,27 @@
         }
 
         /* Global user bar: balance / bonus / logout, shown on every screen */
+        /* Live admin announcement banner -- realtime, no redeploy needed */
+        .global-announce-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 99998;
+            background: linear-gradient(90deg, #ff6600, #ffcc00);
+            color: #1a1a1a;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 6px 40px 6px 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        }
+
+        body.announce-visible .page-screen {
+            margin-top: 28px;
+        }
+        body.announce-visible .global-user-bar {
+            top: 36px;
+        }
+
         .global-user-bar {
             position: fixed;
             top: 8px;
@@ -609,6 +630,12 @@
     </button>
 
     <!-- ==========================================
+         GLOBAL ANNOUNCEMENT BANNER (admin sets this live from admin.html,
+         mirrors the exact realtime pattern: adminSettings/{key} + .on('value'))
+    ========================================== -->
+    <div class="global-announce-bar hidden" id="global-announce-bar"></div>
+
+    <!-- ==========================================
          GLOBAL USER BAR (shared virtual wallet, visible on every screen)
     ========================================== -->
     <div class="global-user-bar hidden" id="global-user-bar">
@@ -892,6 +919,23 @@
         const globalUserBar = document.getElementById('global-user-bar');
         const userEmailDisplay = document.getElementById('user-email-display');
         const balDisplay = document.getElementById('bal');
+
+        // Live admin-controlled announcement banner: admin.html writes to
+        // adminSettings/announcement, this listener reflects it instantly for
+        // every connected user with no redeploy -- purely informational, no
+        // payment or transaction meaning attached to it.
+        const announceBar = document.getElementById('global-announce-bar');
+        db.ref('adminSettings/announcement').on('value', function(snapshot) {
+            const text = snapshot.val();
+            if (text && text.trim() !== "") {
+                announceBar.innerText = "📢 " + text;
+                announceBar.classList.remove('hidden');
+                document.body.classList.add('announce-visible');
+            } else {
+                announceBar.classList.add('hidden');
+                document.body.classList.remove('announce-visible');
+            }
+        });
 
         const bonusModal = document.getElementById('bonus-modal');
         const bonusMsg = document.getElementById('bonus-msg');
