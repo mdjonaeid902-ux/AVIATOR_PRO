@@ -22,8 +22,30 @@
         --red: #e53935;
     }
     * { box-sizing: border-box; margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 12px; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; }
     .hidden { display: none !important; }
+
+    /* ---------- Login screen ---------- */
+    #login-screen {
+        min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px;
+    }
+    .login-box {
+        width: 100%; max-width: 340px; background: var(--card); border: 1px solid var(--border);
+        border-radius: 16px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+    .login-box h1 { font-size: 1.1rem; margin-bottom: 4px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .login-box p.sub { font-size: 0.72rem; color: var(--dim); margin-bottom: 16px; }
+    .login-box input {
+        width: 100%; padding: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.5);
+        border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-size: 0.9rem; outline: none;
+    }
+    .login-box button {
+        width: 100%; padding: 10px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+        border: none; border-radius: 8px; color: #000; font-weight: 800; cursor: pointer; font-size: 0.85rem;
+    }
+    .msg { font-size: 0.75rem; margin-top: 10px; text-align: center; }
+    .msg.error { color: var(--red); }
+    .msg.ok { color: var(--green); }
 
     /* ---------- Dashboard ---------- */
     #dashboard-screen { padding: 12px; max-width: 1100px; margin: 0 auto; }
@@ -33,6 +55,7 @@
     }
     .dash-header h1 { font-size: 1rem; }
     .dash-header .admin-email { font-size: 0.7rem; color: var(--dim); }
+    .logout-btn { background: #455a64; border: none; color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.75rem; }
 
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 14px; }
     .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
@@ -66,21 +89,31 @@
         margin-top: 14px; padding: 10px 18px; background: linear-gradient(135deg, var(--green), #1b5e20);
         border: none; color: white; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.85rem;
     }
-    .msg { font-size: 0.75rem; margin-top: 10px; text-align: center; }
-    .msg.error { color: var(--red); }
-    .msg.ok { color: var(--green); }
     .note-box { font-size: 0.68rem; color: var(--dim); background: rgba(255,204,0,0.06); border: 1px dashed var(--border); padding: 8px; border-radius: 8px; margin-bottom: 14px; }
 </style>
 </head>
 <body>
 
+<!-- ================= LOGIN SCREEN ================= -->
+<div id="login-screen">
+    <div class="login-box">
+        <h1>🔒 ADMIN PANEL</h1>
+        <p class="sub">Gaming Zone &mdash; Authorized administrators only</p>
+        <input type="email" id="admin-email" placeholder="Admin Email">
+        <input type="password" id="admin-password" placeholder="Password">
+        <button id="admin-login-btn">Login</button>
+        <div class="msg" id="admin-login-msg"></div>
+    </div>
+</div>
+
 <!-- ================= DASHBOARD SCREEN ================= -->
-<div id="dashboard-screen">
+<div id="dashboard-screen" class="hidden">
     <div class="dash-header">
         <div>
             <h1>👑 Gaming Zone Admin</h1>
-            <div class="admin-email">Direct Access Mode</div>
+            <div class="admin-email" id="admin-email-display"></div>
         </div>
+        <button class="logout-btn" id="admin-logout-btn">Logout</button>
     </div>
 
     <div class="stats-grid" id="stats-grid"></div>
@@ -88,11 +121,12 @@
     <div class="tabs">
         <button class="tab-btn active" data-tab="users-panel">Users &amp; Balances</button>
         <button class="tab-btn" data-tab="config-panel">Boxing King Config</button>
+        <button class="tab-btn" data-tab="announce-panel">Announcement</button>
         <button class="tab-btn" data-tab="audit-panel">Audit Log</button>
     </div>
 
     <div class="panel active" id="users-panel">
-        <div class="note-box">সব balance হলো Virtual/Demo Coins — কোনো real money নেই। Aviator ও Boxing King একই wallet ব্যবহার করে[span_1](start_span)[span_1](end_span).</div>
+        <div class="note-box">সব balance হলো Virtual/Demo Coins — কোনো real money নেই। Aviator ও Boxing King একই wallet ব্যবহার করে।</div>
         <div class="table-wrap">
             <table>
                 <thead>
@@ -110,7 +144,7 @@
     <div class="panel" id="config-panel">
         <div class="note-box">
             এই সব setting সম্পূর্ণ transparent এবং global &mdash; সব user-এর জন্য প্রযোজ্য। কোনো নির্দিষ্ট user-কে টার্গেট করে
-            গোপনে হারানো/জেতানোর কোনো ব্যবস্থা এখানে নেই[span_2](start_span)[span_2](end_span).
+            গোপনে হারানো/জেতানোর কোনো ব্যবস্থা এখানে নেই।
         </div>
         <div class="config-form">
             <div class="toggle-row">
@@ -146,8 +180,25 @@
         <div class="msg" id="config-msg"></div>
     </div>
 
+    <div class="panel" id="announce-panel">
+        <div class="note-box">
+            এখানে যা লিখবেন, সব user-এর screen-এ সঙ্গে সঙ্গে (realtime, কোনো redeploy ছাড়াই) দেখাবে।
+            এটি শুধু একটি তথ্য/ঘোষণা ব্যানার — কোনো payment বা transaction-এর সাথে যুক্ত নয়।
+            খালি রেখে Save করলে ব্যানার সবার জন্য বন্ধ হয়ে যাবে।
+        </div>
+        <div class="config-form">
+            <div style="grid-column: 1 / -1;">
+                <label>Announcement Text</label>
+                <input type="text" id="cfg-announcement" placeholder="e.g. নতুন ফিচার এসেছে! Practice coins claim করুন।">
+            </div>
+        </div>
+        <button class="save-btn" id="save-announce-btn">Save Announcement</button>
+        <button class="adj-btn" id="clear-announce-btn" style="margin-top:14px; margin-left:8px;">Turn Off</button>
+        <div class="msg" id="announce-msg"></div>
+    </div>
+
     <div class="panel" id="audit-panel">
-        <div class="note-box">প্রতিটি manual balance adjustment এখানে permanent audit record হিসেবে থাকবে[span_3](start_span)[span_3](end_span).</div>
+        <div class="note-box">প্রতিটি manual balance adjustment এখানে permanent audit record হিসেবে থাকবে।</div>
         <div class="table-wrap">
             <table>
                 <thead><tr><th>Time</th><th>User Email</th><th>Admin</th><th>Previous</th><th>New</th><th>Delta</th><th>Reason</th></tr></thead>
@@ -168,14 +219,61 @@
         appId: "1:816776130875:web:c3e7984e0de53cbd89871e"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.database();
 
-    // পেজ লোড হওয়ামাত্রই সরাসরি সব ডাটা লোড ফাংশন কল হবে
-    window.onload = function() {
-        loadUsers();
-        loadConfig();
-        loadAuditLog();
-    };
+    const loginScreen = document.getElementById('login-screen');
+    const dashboardScreen = document.getElementById('dashboard-screen');
+    const loginMsg = document.getElementById('admin-login-msg');
+
+    let isAdmin = false;
+    let currentAdminUser = null;
+
+    document.getElementById('admin-login-btn').addEventListener('click', function() {
+        const email = document.getElementById('admin-email').value.trim();
+        const password = document.getElementById('admin-password').value.trim();
+        if (!email || !password) { loginMsg.className = 'msg error'; loginMsg.innerText = 'Enter email and password'; return; }
+        loginMsg.className = 'msg'; loginMsg.innerText = 'Checking...';
+        auth.signInWithEmailAndPassword(email, password).catch(err => {
+            loginMsg.className = 'msg error';
+            loginMsg.innerText = err.message;
+        });
+    });
+
+    document.getElementById('admin-logout-btn').addEventListener('click', function() {
+        auth.signOut();
+    });
+
+    auth.onAuthStateChanged(function(user) {
+        if (!user) {
+            isAdmin = false;
+            currentAdminUser = null;
+            loginScreen.classList.remove('hidden');
+            dashboardScreen.classList.add('hidden');
+            return;
+        }
+        // Verify admin flag before showing anything sensitive.
+        db.ref('admins/' + user.uid).get().then(snap => {
+            if (snap.val() === true) {
+                isAdmin = true;
+                currentAdminUser = user;
+                loginScreen.classList.add('hidden');
+                dashboardScreen.classList.remove('hidden');
+                document.getElementById('admin-email-display').innerText = user.email;
+                loadUsers();
+                loadConfig();
+                loadAuditLog();
+            } else {
+                loginMsg.className = 'msg error';
+                loginMsg.innerText = 'এই একাউন্টের Admin অনুমতি নেই।';
+                auth.signOut();
+            }
+        }).catch(err => {
+            loginMsg.className = 'msg error';
+            loginMsg.innerText = 'Access check failed: ' + err.message;
+            auth.signOut();
+        });
+    });
 
     // ---------------- Tabs ----------------
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -236,6 +334,7 @@
     }
 
     function adjustBalance(uid, email, currentBal) {
+        if (!isAdmin) return;
         const input = prompt(`New virtual balance for ${email}\n(current: ${currentBal.toFixed(2)})`, currentBal.toFixed(2));
         if (input === null) return;
         const newBal = parseFloat(input);
@@ -246,7 +345,7 @@
         db.ref('users/' + uid + '/balance').set(newBal).then(() => {
             db.ref('balanceAdjustments').push({
                 uid, email,
-                adminEmail: "Direct Admin",
+                adminUid: currentAdminUser.uid, adminEmail: currentAdminUser.email,
                 previousBalance: currentBal, newBalance: newBal, delta: (newBal - currentBal),
                 reason: reason.trim(), timestamp: Date.now()
             });
@@ -291,6 +390,33 @@
         });
     });
 
+    // ---------------- Announcement (adminSettings/announcement, realtime, no redeploy) ----------------
+    db.ref('adminSettings/announcement').on('value', snapshot => {
+        document.getElementById('cfg-announcement').value = snapshot.val() || '';
+    });
+
+    document.getElementById('save-announce-btn').addEventListener('click', function() {
+        const text = document.getElementById('cfg-announcement').value.trim();
+        db.ref('adminSettings/announcement').set(text).then(() => {
+            const msg = document.getElementById('announce-msg');
+            msg.className = 'msg ok';
+            msg.innerText = text ? 'Announcement is now live for all users.' : 'Announcement cleared -- banner is off for all users.';
+            setTimeout(() => msg.innerText = '', 3000);
+        }).catch(err => {
+            const msg = document.getElementById('announce-msg');
+            msg.className = 'msg error'; msg.innerText = 'Save failed: ' + err.message;
+        });
+    });
+
+    document.getElementById('clear-announce-btn').addEventListener('click', function() {
+        document.getElementById('cfg-announcement').value = '';
+        db.ref('adminSettings/announcement').set('').then(() => {
+            const msg = document.getElementById('announce-msg');
+            msg.className = 'msg ok'; msg.innerText = 'Announcement turned off for all users.';
+            setTimeout(() => msg.innerText = '', 3000);
+        });
+    });
+
     // ---------------- Audit Log ----------------
     function loadAuditLog() {
         db.ref('balanceAdjustments').limitToLast(100).on('value', snapshot => {
@@ -301,7 +427,7 @@
                 <tr>
                     <td>${new Date(r.timestamp).toLocaleString()}</td>
                     <td>${r.email || '-'}</td>
-                    <td>${r.adminEmail || 'Direct Admin'}</td>
+                    <td>${r.adminEmail || '-'}</td>
                     <td>${(r.previousBalance || 0).toFixed(2)}</td>
                     <td>${(r.newBalance || 0).toFixed(2)}</td>
                     <td style="color:${(r.delta || 0) >= 0 ? '#81c784' : '#ef9a9a'}">${(r.delta || 0) >= 0 ? '+' : ''}${(r.delta || 0).toFixed(2)}</td>
