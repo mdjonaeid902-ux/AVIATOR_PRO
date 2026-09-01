@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gaming Zone - Professional Game Lobby</title>
 
-    <!-- Firebase SDKs for Aviator & Boxing King Game -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -617,9 +617,6 @@
     <div class="av-modal-overlay hidden" id="auth-modal">
         <div class="av-glass-card av-modal">
             <h2 id="auth-title">GAMING ZONE LOGIN</h2>
-            <div style="font-size:0.68rem;color:var(--text-dim);text-align:center;margin-bottom:8px;">
-                🎮 ডেমো কয়েন প্র্যাকটিস মোড — এখানে কোনো রিয়াল মানি বা টাকার লেনদেন হয় না।
-            </div>
             <form id="auth-form" onsubmit="return false;">
                 <div class="form-group"><input type="email" id="auth-email" placeholder="Email" required></div>
                 <div class="form-group"><input type="password" id="auth-password" placeholder="Password" required></div>
@@ -635,7 +632,7 @@
     <!-- DEPOSIT MODAL -->
     <div class="av-modal-overlay hidden" id="deposit-modal">
         <div class="av-glass-card av-modal">
-            <h2>➕ কয়েন ডিপোজিট (ডেমো)</h2>
+            <h2>➕ কয়েন ডিপোজিট</h2>
             <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;" id="admin-deposit-instruction">
                 এডমিন নম্বর: <strong id="admin-bkash-num" style="color:#ffcc00;">লোড হচ্ছে...</strong><br>
                 টাকা পাঠিয়ে নিচের তথ্যগুলো দিন:
@@ -654,7 +651,7 @@
             </div>
             <div class="av-error-msg" id="deposit-msg" style="color:#81c784;"></div>
             <div style="display:flex; gap:6px; margin-top:8px;">
-                <button type="button" class="av-btn av-btn-deposit" id="deposit-confirm-btn" style="flex:1; padding:8px;">কয়েন যোগ করুন</button>
+                <button type="button" class="av-btn av-btn-deposit" id="deposit-confirm-btn" style="flex:1; padding:8px;">রিকোয়েস্ট পাঠান</button>
                 <button type="button" class="av-btn av-btn-logout" id="close-deposit-btn" style="padding:8px;">বন্ধ</button>
             </div>
         </div>
@@ -663,9 +660,9 @@
     <!-- WITHDRAW MODAL -->
     <div class="av-modal-overlay hidden" id="withdraw-modal">
         <div class="av-glass-card av-modal">
-            <h2>📤 কয়েন উইথড্র (ডেমো)</h2>
+            <h2>📤 কয়েন উইথড্র</h2>
             <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;">
-                আপনার ডেমো ব্যালেন্স থেকে কয়েন উইথড্র করুন।
+                আপনার ব্যালেন্স থেকে কয়েন উইথড্র করুন।
             </div>
             <div class="form-group">
                 <select id="withdraw-method">
@@ -677,7 +674,7 @@
                 <input type="number" id="withdraw-amount" placeholder="উইথড্র করার পরিমাণ" min="100">
             </div>
             <div class="form-group">
-                <input type="text" id="withdraw-number" placeholder="রিসিভার নম্বর (যেমন: 017xxxxxxxx)" required>
+                <input type="text" id="withdraw-account" placeholder="একাউন্ট নম্বর (যেমন: 017xxxxxxxx)" required>
             </div>
             <div class="av-error-msg" id="withdraw-msg" style="color:#ef9a9a;"></div>
             <div style="display:flex; gap:6px; margin-top:8px;">
@@ -755,7 +752,7 @@
         <div class="bk-game-container" id="bkGameContainer">
             <div class="bk-game-header">
                 <h1>Boxing King</h1>
-                <span>LEFT TO RIGHT ONLY (DEMO COIN)</span>
+                <span>LEFT TO RIGHT ONLY</span>
             </div>
 
             <div>
@@ -936,6 +933,7 @@
         });
         document.getElementById('close-deposit-btn').onclick = () => depositModal.classList.add('hidden');
 
+        // --- ডিপোজিট রিকোয়েস্ট সাবমিট (এডমিন পেন্ডিং) ---
         document.getElementById('deposit-confirm-btn').addEventListener('click', () => {
             if (!currentUser) return;
             const amt = parseFloat(document.getElementById('deposit-amount').value);
@@ -944,68 +942,104 @@
 
             if (isNaN(amt) || amt <= 0) {
                 depositMsg.style.color = "#ef9a9a";
-                depositMsg.innerText = "সঠিক কয়েন পরিমাণ লিখুন!";
+                depositMsg.innerText = "সঠিক পরিমাণ লিখুন।";
                 return;
             }
             if (!trxId) {
                 depositMsg.style.color = "#ef9a9a";
-                depositMsg.innerText = "ট্রানজেকশন আইডি (TrxID) দিন!";
+                depositMsg.innerText = "ট্রানজেকশন আইডি (TrxID) প্রদান করুন।";
                 return;
             }
 
-            db.ref('users/' + currentUser.uid + '/balance').transaction(cur => (cur || 0) + amt, (err, committed) => {
-                if (committed) {
+            const depositData = {
+                uid: currentUser.uid,
+                email: currentUser.email,
+                amount: amt,
+                method: method,
+                trxId: trxId,
+                status: 'pending',
+                timestamp: Date.now()
+            };
+
+            db.ref('adminRequests/deposits').push(depositData)
+                .then(() => {
                     depositMsg.style.color = "#81c784";
-                    depositMsg.innerText = `(${method.toUpperCase()}) সফলভাবে ${amt} কয়েন যোগ হয়েছে! 🎉`;
-                    setTimeout(() => depositModal.classList.add('hidden'), 1500);
-                } else {
+                    depositMsg.innerText = "ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে।";
+                    setTimeout(() => {
+                        depositModal.classList.add('hidden');
+                        document.getElementById('deposit-amount').value = '500';
+                        document.getElementById('deposit-trxid').value = '';
+                        depositMsg.innerText = '';
+                    }, 2000);
+                })
+                .catch(error => {
                     depositMsg.style.color = "#ef9a9a";
-                    depositMsg.innerText = "ত্রুটি ঘটেছে!";
-                }
-            });
+                    depositMsg.innerText = "ত্রুটি: " + error.message;
+                });
         });
 
         document.getElementById('withdraw-btn').addEventListener('click', () => {
             if (!currentUser) return alert("প্রথমে Login করুন!");
             withdrawMsg.innerText = "";
-            document.getElementById('withdraw-number').value = "";
+            document.getElementById('withdraw-account').value = "";
             withdrawModal.classList.remove('hidden');
         });
         document.getElementById('close-withdraw-btn').onclick = () => withdrawModal.classList.add('hidden');
 
+        // --- উইথড্র রিকোয়েস্ট সাবমিট (এডমিন পেন্ডিং) ---
         document.getElementById('withdraw-confirm-btn').addEventListener('click', () => {
             if (!currentUser) return;
             const amt = parseFloat(document.getElementById('withdraw-amount').value);
             const method = document.getElementById('withdraw-method').value;
-            const wNumber = document.getElementById('withdraw-number').value.trim();
+            const accountNo = document.getElementById('withdraw-account').value.trim();
 
             if (isNaN(amt) || amt <= 0) {
                 withdrawMsg.style.color = "#ef9a9a";
-                withdrawMsg.innerText = "সঠিক পরিমাণ লিখুন!";
+                withdrawMsg.innerText = "সঠিক পরিমাণ লিখুন।";
                 return;
             }
-            if (!wNumber) {
+            if (!accountNo) {
                 withdrawMsg.style.color = "#ef9a9a";
-                withdrawMsg.innerText = "রিসিভার নম্বর দিন!";
-                return;
-            }
-            if (amt > currentBalance) {
-                withdrawMsg.style.color = "#ef9a9a";
-                withdrawMsg.innerText = "পর্যাপ্ত কয়েন ব্যালেন্স নেই!";
+                withdrawMsg.innerText = "একাউন্ট নম্বর প্রদান করুন।";
                 return;
             }
 
-            db.ref('users/' + currentUser.uid + '/balance').transaction(cur => {
-                if ((cur || 0) >= amt) return cur - amt;
-            }, (err, committed) => {
-                if (committed) {
-                    withdrawMsg.style.color = "#81c784";
-                    withdrawMsg.innerText = `${amt} কয়েন উইথড্র (${method.toUpperCase()}) রিকোয়েস্ট সফল হয়েছে! ✅`;
-                    setTimeout(() => withdrawModal.classList.add('hidden'), 1500);
-                } else {
+            db.ref('users/' + currentUser.uid + '/balance').once('value').then(snapshot => {
+                const currentBalance = snapshot.val() || 0;
+                if (currentBalance < amt) {
                     withdrawMsg.style.color = "#ef9a9a";
-                    withdrawMsg.innerText = "পর্যাপ্ত কয়েন ব্যালেন্স নেই!";
+                    withdrawMsg.innerText = "পর্যাপ্ত ব্যালেন্স নেই।";
+                    return;
                 }
+
+                const withdrawData = {
+                    uid: currentUser.uid,
+                    email: currentUser.email,
+                    amount: amt,
+                    method: method,
+                    accountNo: accountNo,
+                    status: 'pending',
+                    timestamp: Date.now()
+                };
+
+                db.ref('users/' + currentUser.uid + '/balance').set(currentBalance - amt)
+                    .then(() => {
+                        return db.ref('adminRequests/withdrawals').push(withdrawData);
+                    })
+                    .then(() => {
+                        withdrawMsg.style.color = "#81c784";
+                        withdrawMsg.innerText = "উইথড্র রিকোয়েস্ট সফলভাবে জমা হয়েছে।";
+                        setTimeout(() => {
+                            withdrawModal.classList.add('hidden');
+                            document.getElementById('withdraw-amount').value = '';
+                            document.getElementById('withdraw-account').value = '';
+                            withdrawMsg.innerText = '';
+                        }, 2000);
+                    })
+                    .catch(error => {
+                        withdrawMsg.style.color = "#ef9a9a";
+                        withdrawMsg.innerText = "ত্রুটি: " + error.message;
+                    });
             });
         });
 
@@ -1417,7 +1451,6 @@
                 betBtn.innerText = "প্রসেসিং...";
                 betBtn.disabled = true;
 
-                // Safety timeout to prevent getting stuck in "processing" state
                 const processingTimeout = setTimeout(() => {
                     if (isProcessingBet) {
                         isProcessingBet = false;
