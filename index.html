@@ -38,7 +38,6 @@
             user-select: none;
         }
 
-        /* ------------------ LOBBY STYLES ------------------ */
         .page-screen {
             display: none;
             width: 100vw;
@@ -54,7 +53,6 @@
             flex-direction: column;
         }
 
-        /* Lobby Header */
         .lobby-header {
             background: rgba(15, 18, 28, 0.95);
             border-bottom: 1px solid var(--lobby-glass-border);
@@ -91,7 +89,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Main Lobby Container */
         .lobby-container {
             flex: 1;
             max-width: 900px;
@@ -121,7 +118,6 @@
             box-shadow: 0 0 10px rgba(255, 102, 0, 0.4);
         }
 
-        /* Responsive Cards Grid (3-column layout based on reference) */
         .games-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -141,7 +137,6 @@
             }
         }
 
-        /* Lobby Game Card UI */
         .game-card {
             background: var(--lobby-card-bg);
             border: 1px solid var(--lobby-glass-border);
@@ -187,7 +182,6 @@
             transform: scale(1.08);
         }
 
-        /* SVG Fallback Visuals if Image loading */
         .card-visual-svg {
             width: 100%;
             height: 100%;
@@ -224,7 +218,6 @@
             border: 0.5px solid rgba(255, 204, 0, 0.3);
         }
 
-        /* Back Floating Button for Games */
         .back-to-lobby-btn {
             position: fixed;
             top: 10px;
@@ -249,8 +242,6 @@
             transform: scale(0.92);
         }
 
-        /* Global user bar: balance / deposit / withdraw / logout, shown on every screen */
-        /* Live admin announcement banner -- realtime, no redeploy needed */
         .global-announce-bar {
             position: fixed;
             top: 0; left: 0; right: 0;
@@ -302,7 +293,7 @@
             .global-user-bar #user-email-display { display: inline; }
         }
 
-        /* ------------------ AVIATOR STYLES ------------------ */
+        /* AVIATOR STYLES */
         :root {
             --bg-color: #0e121b;
             --card-bg: rgba(21, 28, 41, 0.95);
@@ -394,10 +385,10 @@
         .av-modal { width: 90%; max-width: 320px; }
         .av-modal h2 { margin-bottom: 10px; font-size: 0.95rem; }
         .av-modal .form-group { margin-bottom: 8px; }
-        .av-modal .form-group input { width: 100%; padding: 8px; background: rgba(0,0,0,0.6); border: 1px solid var(--glass-border); color: white; border-radius: 6px; font-size: 0.85rem; outline: none; }
+        .av-modal .form-group input, .av-modal .form-group select { width: 100%; padding: 8px; background: rgba(0,0,0,0.6); border: 1px solid var(--glass-border); color: white; border-radius: 6px; font-size: 0.85rem; outline: none; }
         .av-error-msg { color: var(--accent-red); font-size: 0.72rem; margin-top: 4px; text-align: center; }
 
-        /* ------------------ BOXING KING STYLES ------------------ */
+        /* BOXING KING STYLES */
         #boxing-king-screen {
             background: linear-gradient(rgba(13, 1, 26, 0.85), rgba(13, 1, 26, 0.95)), 
                         url('https://images.unsplash.com/photo-1518156677180-95a2893f3e9f?q=80&w=1200&auto=format&fit=crop') no-repeat center center fixed;
@@ -624,35 +615,23 @@
 
 <body>
 
-    <!-- Back Button for active games -->
     <button class="back-to-lobby-btn hidden" id="global-back-btn" onclick="openLobby()">
         ◀ LOBBY
     </button>
 
-    <!-- ==========================================
-         GLOBAL ANNOUNCEMENT BANNER
-    ========================================== -->
     <div class="global-announce-bar hidden" id="global-announce-bar"></div>
 
-    <!-- ==========================================
-         GLOBAL USER BAR (Deposit & Withdraw Added)
-    ========================================== -->
-    <div class="global-user-bar hidden" id="global-user-bar">
+    <div class="global-user-bar hidden" id="global-user-bar" style="display:none;">
         <span id="user-email-display"></span>
-        <div class="av-balance-box">🪙 <span class="av-balance-amount" id="bal">0.00</span></div>
-        <button class="av-btn av-btn-deposit" id="deposit-btn">➕ Deposit</button>
-        <button class="av-btn av-btn-withdraw" id="withdraw-btn">📤 Withdraw</button>
         <button class="av-btn av-btn-logout" id="logout-btn">Exit</button>
     </div>
 
-    <!-- ==========================================
-         GLOBAL AUTH MODAL
-    ========================================== -->
+    <!-- AUTH MODAL -->
     <div class="av-modal-overlay hidden" id="auth-modal">
         <div class="av-glass-card av-modal">
             <h2 id="auth-title">GAMING ZONE LOGIN</h2>
             <div style="font-size:0.68rem;color:var(--text-dim);text-align:center;margin-bottom:8px;">
-                🎮 Practice / Demo Mode &mdash; Virtual Coins Only, No Real Money
+                🎮 ডেমো কয়েন প্র্যাকটিস মোড — এখানে কোনো রিয়াল মানি বা টাকার লেনদেন হয় না।
             </div>
             <form id="auth-form" onsubmit="return false;">
                 <div class="form-group"><input type="email" id="auth-email" placeholder="Email" required></div>
@@ -666,49 +645,56 @@
         </div>
     </div>
 
-    <!-- ==========================================
-         DEPOSIT MODAL
-    ========================================== -->
+    <!-- DEPOSIT MODAL -->
     <div class="av-modal-overlay hidden" id="deposit-modal">
         <div class="av-glass-card av-modal">
-            <h2>➕ Deposit Virtual Coins</h2>
-            <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;">
-                ডেমো ওয়ালেটে প্র্যাকটিসের জন্য কয়েন যোগ করুন।
+            <h2>➕ কয়েন ডিপোজিট (ডেমো)</h2>
+            <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;" id="admin-deposit-instruction">
+                এডমিন নম্বর: <strong id="admin-bkash-num" style="color:#ffcc00;">লোড হচ্ছে...</strong><br>
+                মাধ্যম সিলেক্ট করে কয়েন যোগ করুন:
             </div>
             <div class="form-group">
-                <input type="number" id="deposit-amount" placeholder="Amount (e.g. 500)" value="500" min="100">
+                <select id="deposit-method">
+                    <option value="bkasd">বিকাশ (Bkash)</option>
+                    <option value="nagad">নগদ (Nagad)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="number" id="deposit-amount" placeholder="কয়েন পরিমাণ (যেমন: ৫০০)" value="500" min="100">
             </div>
             <div class="av-error-msg" id="deposit-msg" style="color:#81c784;"></div>
             <div style="display:flex; gap:6px; margin-top:8px;">
-                <button type="button" class="av-btn av-btn-deposit" id="deposit-confirm-btn" style="flex:1; padding:8px;">Add Deposit</button>
-                <button type="button" class="av-btn av-btn-logout" id="close-deposit-btn" style="padding:8px;">Close</button>
+                <button type="button" class="av-btn av-btn-deposit" id="deposit-confirm-btn" style="flex:1; padding:8px;">কয়েন যোগ করুন</button>
+                <button type="button" class="av-btn av-btn-logout" id="close-deposit-btn" style="padding:8px;">বন্ধ</button>
             </div>
         </div>
     </div>
 
-    <!-- ==========================================
-         WITHDRAW MODAL
-    ========================================== -->
+    <!-- WITHDRAW MODAL -->
     <div class="av-modal-overlay hidden" id="withdraw-modal">
         <div class="av-glass-card av-modal">
-            <h2>📤 Withdraw Virtual Coins</h2>
+            <h2>📤 কয়েন উইথড্র (ডেমো)</h2>
             <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;">
                 আপনার ডেমো ব্যালেন্স থেকে কয়েন উইথড্র করুন।
             </div>
             <div class="form-group">
-                <input type="number" id="withdraw-amount" placeholder="Amount to withdraw" min="100">
+                <select id="withdraw-method">
+                    <option value="bkash">বিকাশ (Bkash)</option>
+                    <option value="nagad">নগদ (Nagad)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="number" id="withdraw-amount" placeholder="উইথড্র করার পরিমাণ" min="100">
             </div>
             <div class="av-error-msg" id="withdraw-msg" style="color:#ef9a9a;"></div>
             <div style="display:flex; gap:6px; margin-top:8px;">
-                <button type="button" class="av-btn av-btn-withdraw" id="withdraw-confirm-btn" style="flex:1; padding:8px;">Request Withdraw</button>
-                <button type="button" class="av-btn av-btn-logout" id="close-withdraw-btn" style="padding:8px;">Close</button>
+                <button type="button" class="av-btn av-btn-withdraw" id="withdraw-confirm-btn" style="flex:1; padding:8px;">রিকোয়েস্ট পাঠান</button>
+                <button type="button" class="av-btn av-btn-logout" id="close-withdraw-btn" style="padding:8px;">বন্ধ</button>
             </div>
         </div>
     </div>
 
-    <!-- ==========================================
-         PAGE 1: GAME LOBBY
-    ========================================== -->
+    <!-- PAGE 1: LOBBY -->
     <div class="page-screen active" id="lobby-screen">
         <header class="lobby-header">
             <div class="lobby-brand">
@@ -717,6 +703,12 @@
                     <div class="lobby-brand-subtitle">CHOOSE YOUR GAME</div>
                 </div>
             </div>
+
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <div class="av-balance-box" style="padding: 3px 6px; font-size: 0.7rem;">🪙 <span class="av-balance-amount" id="lobby-bal">0.00</span></div>
+                <button class="av-btn av-btn-deposit" id="deposit-btn" style="padding: 4px 8px; font-size: 0.65rem;">➕ Deposit</button>
+                <button class="av-btn av-btn-withdraw" id="withdraw-btn" style="padding: 4px 8px; font-size: 0.65rem;">📤 Withdraw</button>
+            </div>
         </header>
 
         <main class="lobby-container">
@@ -724,18 +716,14 @@
                 <div class="category-badge">🔥 HOT GAMES</div>
             </div>
 
-            <div class="games-grid" id="lobby-games-grid">
-                <!-- Dynamically Generated Game Cards -->
-            </div>
+            <div class="games-grid" id="lobby-games-grid"></div>
         </main>
     </div>
 
-    <!-- ==========================================
-         PAGE 2: AVIATOR PRO GAME
-    ========================================== -->
+    <!-- PAGE 2: AVIATOR PRO -->
     <div class="page-screen" id="aviator-game-screen">
         <header class="av-header">
-            <div class="av-logo">✈️ AVIATOR PRO</div>
+            <div class="av-logo">✈️ AVIATOR PRO (DEMO COIN)</div>
         </header>
 
         <div class="av-container">
@@ -748,39 +736,37 @@
                 </div>
                 <div class="av-controls-panel">
                     <div class="av-input-group">
-                        <label>Bet Amount (৳)</label>
+                        <label>কয়েন বেট পরিমাণ</label>
                         <input type="number" id="bet-amount" value="10" min="10" step="10">
                     </div>
-                    <button class="av-btn av-btn-action av-btn-bet" id="bet-btn">BET NEXT ROUND</button>
+                    <button class="av-btn av-btn-action av-btn-bet" id="bet-btn">পরবর্তী রাউন্ডে বেট দিন</button>
                 </div>
 
                 <div class="av-live-bets-container">
                     <div class="av-live-bets-header">
                         <span>User</span>
-                        <span>Bet</span>
+                        <span>Coin Bet</span>
                         <span>Status / Win</span>
                     </div>
                     <div class="av-live-bets-list" id="live-bets-list">
-                        <div class="av-no-bet-text">No active bet for this round</div>
+                        <div class="av-no-bet-text">কোনো লাইভ বেট নেই</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ==========================================
-         PAGE 3: BOXING KING GAME
-    ========================================== -->
+    <!-- PAGE 3: BOXING KING -->
     <div class="page-screen" id="boxing-king-screen">
         <div class="bk-game-container" id="bkGameContainer">
             <div class="bk-game-header">
                 <h1>Boxing King</h1>
-                <span>LEFT TO RIGHT ONLY</span>
+                <span>LEFT TO RIGHT ONLY (DEMO COIN)</span>
             </div>
 
             <div>
                 <button class="bk-fullscreen-toggle-btn" id="bkFsBtn" onclick="toggleBkFullScreen()">
-                    📱 Go Full Screen
+                    📱 ফুলস্ক্রিন করুন
                 </button>
             </div>
 
@@ -791,19 +777,17 @@
                 <div class="bk-mult-box" id="bk-m5">5X</div>
             </div>
 
-            <div class="bk-reels-board" id="bk-board">
-                <!-- 25 Cells -->
-            </div>
+            <div class="bk-reels-board" id="bk-board"></div>
 
             <div class="bk-status" id="bk-status">SPIN চাপুন! 🥊</div>
 
             <div class="bk-dashboard">
                 <div class="bk-dash-box">
-                    <span class="bk-dash-label">Win</span>
+                    <span class="bk-dash-label">Win (Coin)</span>
                     <span id="bk-win-display" class="bk-dash-value">0.00</span>
                 </div>
                 <div class="bk-dash-box">
-                    <span class="bk-dash-label">Bet</span>
+                    <span class="bk-dash-label">Bet (Coin)</span>
                     <span id="bk-bet-display" class="bk-dash-value">1.00</span>
                 </div>
                 <div class="bk-dash-box">
@@ -822,9 +806,7 @@
         </div>
     </div>
 
-    <!-- ==========================================
-         JAVASCRIPT LOGIC
-    ========================================== -->
+    <!-- JAVASCRIPT LOGIC -->
     <script>
         const GAME_CONFIGS = [
             {
@@ -927,7 +909,6 @@
 
         const globalUserBar = document.getElementById('global-user-bar');
         const userEmailDisplay = document.getElementById('user-email-display');
-        const balDisplay = document.getElementById('bal');
 
         const announceBar = document.getElementById('global-announce-bar');
         db.ref('adminSettings/announcement').on('value', function(snapshot) {
@@ -942,7 +923,13 @@
             }
         });
 
-        // Deposit & Withdraw Modal elements
+        // Fetching Admin Payment / Agent Number dynamically from Firebase
+        db.ref('adminSettings/paymentNumber').on('value', function(snapshot) {
+            const num = snapshot.val() || "01700000000 (বিকাশ/নগদ)";
+            const numEl = document.getElementById('admin-bkash-num');
+            if(numEl) numEl.innerText = num;
+        });
+
         const depositModal = document.getElementById('deposit-modal');
         const withdrawModal = document.getElementById('withdraw-modal');
         const depositMsg = document.getElementById('deposit-msg');
@@ -958,6 +945,7 @@
         document.getElementById('deposit-confirm-btn').addEventListener('click', () => {
             if (!currentUser) return;
             const amt = parseFloat(document.getElementById('deposit-amount').value);
+            const method = document.getElementById('deposit-method').value;
             if (isNaN(amt) || amt <= 0) {
                 depositMsg.style.color = "#ef9a9a";
                 depositMsg.innerText = "সঠিক পরিমাণ লিখুন!";
@@ -966,7 +954,7 @@
             db.ref('users/' + currentUser.uid + '/balance').transaction(cur => (cur || 0) + amt, (err, committed) => {
                 if (committed) {
                     depositMsg.style.color = "#81c784";
-                    depositMsg.innerText = `সফলভাবে ৳${amt} যোগ হয়েছে! 🎉`;
+                    depositMsg.innerText = `(${method.toUpperCase()}) সফলভাবে ${amt} কয়েন যোগ হয়েছে! 🎉`;
                     setTimeout(() => depositModal.classList.add('hidden'), 1200);
                 } else {
                     depositMsg.style.color = "#ef9a9a";
@@ -985,6 +973,7 @@
         document.getElementById('withdraw-confirm-btn').addEventListener('click', () => {
             if (!currentUser) return;
             const amt = parseFloat(document.getElementById('withdraw-amount').value);
+            const method = document.getElementById('withdraw-method').value;
             if (isNaN(amt) || amt <= 0) {
                 withdrawMsg.style.color = "#ef9a9a";
                 withdrawMsg.innerText = "সঠিক পরিমাণ লিখুন!";
@@ -992,7 +981,7 @@
             }
             if (amt > currentBalance) {
                 withdrawMsg.style.color = "#ef9a9a";
-                withdrawMsg.innerText = "পর্যাপ্ত ব্যালেন্স নেই!";
+                withdrawMsg.innerText = "পর্যাপ্ত কয়েন ব্যালেন্স নেই!";
                 return;
             }
             db.ref('users/' + currentUser.uid + '/balance').transaction(cur => {
@@ -1000,11 +989,11 @@
             }, (err, committed) => {
                 if (committed) {
                     withdrawMsg.style.color = "#81c784";
-                    withdrawMsg.innerText = `৳${amt} উইথড্র সফল হয়েছে! ✅`;
+                    withdrawMsg.innerText = `${amt} কয়েন উইথড্র (${method.toUpperCase()}) রিকোয়েস্ট সফল হয়েছে! ✅`;
                     setTimeout(() => withdrawModal.classList.add('hidden'), 1200);
                 } else {
                     withdrawMsg.style.color = "#ef9a9a";
-                    withdrawMsg.innerText = "পর্যাপ্ত ব্যালেন্স নেই!";
+                    withdrawMsg.innerText = "পর্যাপ্ত কয়েন ব্যালেন্স নেই!";
                 }
             });
         });
@@ -1040,7 +1029,9 @@
         });
 
         function updateSharedBalanceUI() {
-            balDisplay.innerText = currentBalance.toFixed(2);
+            const lobbyBalEl = document.getElementById('lobby-bal');
+            if (lobbyBalEl) lobbyBalEl.innerText = currentBalance.toFixed(2);
+
             const bkBalEl = document.getElementById('bk-bal');
             if (bkBalEl) bkBalEl.innerText = bkFormatDecimal(currentBalance);
         }
@@ -1164,7 +1155,7 @@
         function renderMyLiveBetUI(currentRoundIndex, isCrashed) {
             const hasActiveBetThisRound = (betRoundIndex === currentRoundIndex);
             if (!hasActiveBetThisRound || !currentUser) {
-                liveBetsList.innerHTML = '<div class="av-no-bet-text">No active bet for this round</div>';
+                liveBetsList.innerHTML = '<div class="av-no-bet-text">কোনো লাইভ বেট নেই</div>';
                 return;
             }
 
@@ -1173,20 +1164,20 @@
             let rowClass = "av-live-bet-row";
 
             if (hasCashedOut) {
-                statusText = cashedMultiplier.toFixed(2) + "x (৳" + cashedAmount.toFixed(2) + ")";
+                statusText = cashedMultiplier.toFixed(2) + "x (" + cashedAmount.toFixed(2) + " কয়েন)";
                 rowClass += " cashed";
             } else if (isCrashed) {
-                statusText = "CRASHED (৳0.00)";
+                statusText = "CRASHED (0 কয়েন)";
                 rowClass += " lost";
             } else {
                 let liveWin = (activeBet * currentLocalMult).toFixed(2);
-                statusText = "In Flight (৳" + liveWin + ")";
+                statusText = "In Flight (" + liveWin + " কয়েন)";
             }
 
             liveBetsList.innerHTML = `
                 <div class="${rowClass}">
                     <span>${nameDisplay} (You)</span>
-                    <span>৳${activeBet}</span>
+                    <span>${activeBet} কয়েন</span>
                     <span>${statusText}</span>
                 </div>
             `;
@@ -1320,11 +1311,11 @@
                 renderMyLiveBetUI(currentRoundIndex, false);
 
                 if (isBetActiveForCurrentRound) {
-                    betBtn.innerText = "BET PLACED";
+                    betBtn.innerText = "বেট প্লেসড";
                     betBtn.className = "av-btn av-btn-action av-btn-waiting";
                     betBtn.disabled = true;
                 } else {
-                    betBtn.innerText = isProcessingBet ? "PROCESSING..." : "BET NEXT ROUND";
+                    betBtn.innerText = isProcessing_Process ? "প্রসেসিং..." : "পরবর্তী রাউন্ডে বেট দিন";
                     betBtn.className = "av-btn av-btn-action av-btn-bet";
                     betBtn.disabled = isProcessingBet;
                 }
@@ -1346,7 +1337,7 @@
                     renderMyLiveBetUI(currentRoundIndex, true);
                     drawAviatorFlight(targetCrashPoint, flyElapsed, totalFlightTimeNeeded);
 
-                    betBtn.innerText = "WAITING...";
+                    betBtn.innerText = "অপেক্ষমাণ...";
                     betBtn.className = "av-btn av-btn-action av-btn-waiting";
                     betBtn.disabled = true;
                 } 
@@ -1362,15 +1353,15 @@
 
                     if (isBetActiveForCurrentRound && !hasCashedOut) {
                         const liveWin = (activeBet * currentLocalMult).toFixed(2);
-                        betBtn.innerText = "CASH OUT\n(৳" + liveWin + ")";
+                        betBtn.innerText = "CASH OUT\n(" + liveWin + " কয়েন)";
                         betBtn.className = "av-btn av-btn-action av-btn-cashout";
                         betBtn.disabled = false;
                     } else if (hasCashedOut) {
-                        betBtn.innerText = "CASHED OUT\n(৳" + cashedAmount.toFixed(2) + ")";
+                        betBtn.innerText = "CASHED OUT\n(" + cashedAmount.toFixed(2) + " কয়েন)";
                         betBtn.className = "av-btn av-btn-action av-btn-waiting";
                         betBtn.disabled = true;
                     } else {
-                        betBtn.innerText = "BET NEXT ROUND";
+                        betBtn.innerText = "পরবর্তী রাউন্ডে বেট দিন";
                         betBtn.className = "av-btn av-btn-action av-btn-bet";
                         betBtn.disabled = false;
                     }
@@ -1381,7 +1372,7 @@
         }
 
         betBtn.addEventListener('click', function() {
-            if (!currentUser) return alert("Please Login First!");
+            if (!currentUser) return alert("প্রথমে Login করুন!");
 
             const CYCLE_DURATION = 18000;
             const WAIT_DURATION = 3000;
@@ -1396,11 +1387,11 @@
                 if (isProcessingBet) return;
 
                 const betAmt = parseFloat(betInput.value);
-                if (isNaN(betAmt) || betAmt < 10) return alert("Minimum Bet Amount is ৳10");
-                if (betAmt > currentBalance) return alert("Insufficient Balance!");
+                if (isNaN(betAmt) || betAmt < 10) return alert("সর্বনিম্ন বেট পরিমাণ ১০ কয়েন");
+                if (betAmt > currentBalance) return alert("পর্যাপ্ত কয়েন ব্যালেন্স নেই!");
 
                 isProcessingBet = true;
-                betBtn.innerText = "PROCESSING...";
+                betBtn.innerText = "প্রসেসিং...";
                 betBtn.disabled = true;
 
                 db.ref('users/' + currentUser.uid + '/balance').transaction(current => {
@@ -1412,12 +1403,12 @@
                         betRoundIndex = targetRoundIndex;
                         hasCashedOut = false;
                         
-                        betBtn.innerText = "BET PLACED";
+                        betBtn.innerText = "বেট প্লেসড";
                         betBtn.className = "av-btn av-btn-action av-btn-waiting";
                         betBtn.disabled = true;
                         renderMyLiveBetUI(targetRoundIndex, false);
                     } else {
-                        alert("Transaction failed! Insufficient balance.");
+                        alert("লেনদেন ব্যর্থ হয়েছে! পর্যাপ্ত কয়েন নেই।");
                     }
                 });
             } 
@@ -1432,7 +1423,7 @@
                 cashedMultiplier = currentLocalMult;
                 cashedAmount = activeBet * cashedMultiplier;
 
-                betBtn.innerText = "CASHED OUT\n(৳" + cashedAmount.toFixed(2) + ")";
+                betBtn.innerText = "CASHED OUT\n(" + cashedAmount.toFixed(2) + " কয়েন)";
                 betBtn.className = "av-btn av-btn-action av-btn-waiting";
                 betBtn.disabled = true;
 
@@ -1440,7 +1431,7 @@
                 db.ref('users/' + currentUser.uid + '/wins').transaction(w => (w || 0) + 1);
                 db.ref('users/' + currentUser.uid + '/games').transaction(g => (g || 0) + 1);
 
-                cashoutBannerContainer.innerHTML = '<div class="av-cashout-banner">CASHED OUT ৳' + cashedAmount.toFixed(2) + ' (' + cashedMultiplier.toFixed(2) + 'x)</div>';
+                cashoutBannerContainer.innerHTML = '<div class="av-cashout-banner">CASHED OUT ' + cashedAmount.toFixed(2) + ' কয়েন (' + cashedMultiplier.toFixed(2) + 'x)</div>';
                 renderMyLiveBetUI(currentRoundIndex, false);
             }
         });
@@ -1566,7 +1557,7 @@
             if (spinBtn) {
                 if (!bkConfig.enabled) {
                     spinBtn.disabled = true;
-                    if (statusEl) { statusEl.innerText = "গেমটি বর্তমানে বন্ধ আছে (Admin Disabled) 🚧"; statusEl.style.color = "#ff9900"; }
+                    if (statusEl) { statusEl.innerText = "গেমটি বর্তমানে বন্ধ আছে 🚧"; statusEl.style.color = "#ff9900"; }
                 } else if (!bkIsSpinning) {
                     spinBtn.disabled = false;
                 }
@@ -1595,7 +1586,7 @@
 
             if (!bkConfig.testMode && currentBalance < activeBet) {
                 const statusEl = document.getElementById("bk-status");
-                statusEl.innerText = "পর্যাপ্ত ব্যালেন্স নেই! 😢";
+                statusEl.innerText = "পর্যাপ্ত কয়েন নেই! 😢";
                 statusEl.style.color = "#ff3333";
                 return;
             }
@@ -1615,7 +1606,7 @@
                     bkIsSpinning = false;
                     setBkControlsDisabled(false);
                     const statusEl = document.getElementById("bk-status");
-                    statusEl.innerText = "পর্যাপ্ত ব্যালেন্স নেই! 😢";
+                    statusEl.innerText = "পর্যাপ্ত কয়েন নেই! 😢";
                     statusEl.style.color = "#ff3333";
                     return;
                 }
@@ -1732,7 +1723,7 @@
                 document.getElementById("bk-win-display").innerText = bkFormatDecimal(bkCurrentSpinTotalWin);
                 
                 const statusEl = document.getElementById("bk-status");
-                statusEl.innerText = `💥 চেইন হিট (${currentMultiplier}X)! উইন: +${bkFormatDecimal(stepWin)}`;
+                statusEl.innerText = `💥 চেইন হিট (${currentMultiplier}X)! উইন: +${bkFormatDecimal(stepWin)} কয়েন`;
                 statusEl.style.color = "#00ff00";
 
                 playBkSound('blast');
@@ -1802,7 +1793,7 @@
                     statusEl.innerText = "আবার চেষ্টা করুন ❌";
                     statusEl.style.color = "#ff3333";
                 } else {
-                    statusEl.innerText = `💰 চেইন শেষ! মোট উইন: ${bkFormatDecimal(bkCurrentSpinTotalWin)}`;
+                    statusEl.innerText = `💰 চেইন শেষ! মোট উইন: ${bkFormatDecimal(bkCurrentSpinTotalWin)} কয়েন`;
                     statusEl.style.color = "#ffcc00";
                 }
 
