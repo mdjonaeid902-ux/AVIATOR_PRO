@@ -21,6 +21,7 @@
       <button class="active" data-page="overview">📊 Overview</button>
       <button data-page="users">👥 Users</button>
       <button data-page="requests">💳 Requests</button>
+      <button data-page="wallet">📱 Deposit Numbers</button>
       <button data-page="games">🎮 Games & Config</button>
       <button data-page="announcement">📢 Announcement</button>
       <button data-page="audit">🛡️ Audit Log</button>
@@ -43,7 +44,7 @@
     </div>
     <div class="section grid" style="grid-template-columns:1.2fr .8fr">
       <div class="card"><h2>Game activity</h2><div id="gameStats" class="notice">Loading…</div></div>
-      <div class="card"><h2>Security & System</h2><div class="notice">ইউজারদের আসল ব্যালেন্স সেফ রেখে পুরনো সব ডিপোজিট/উইথড্র রিকোয়েস্ট ও গেম স্ট্যাট রিফ্রেশ করতে <b>Reset Requests</b> বাটন চাপুন।</div></div>
+      <div class="card"><h2>System Info</h2><div class="notice">এডমিন মার্জিন: <b>80% Margin Active</b>.<br>ইউজারদের মূল ব্যালেন্স ঠিক রেখে ডাটা রিলোড করতে রিসেট বাটন চাপুন।</div></div>
     </div>
   </section>
 
@@ -56,13 +57,34 @@
     <div class="card section"><h2>Withdrawal requests</h2><div class="table-wrap"><table class="table"><thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Status</th><th>Action</th></tr></thead><tbody id="withdrawalsBody"></tbody></table></div></div>
   </section>
 
+  <!-- ডিপোজিট ওয়ালেট নম্বর সেট করার প্যানেল -->
+  <section id="wallet" class="page">
+    <div class="card">
+      <h2>📱 Deposit Wallet Numbers (Bkash & Nagad)</h2>
+      <div class="notice" style="margin-bottom:15px">এখানে যে নম্বর সেভ করবেন তা ইউজার অ্যাপের ডিপোজিট পেজে অটোমেটিক আপডেট হয়ে যাবে।</div>
+      <div class="form">
+        <div class="field">
+          <label>Bkash Personal/Agent Number</label>
+          <input type="text" id="adminBkash" placeholder="e.g. 01700000000">
+        </div>
+        <div class="field">
+          <label>Nagad Personal/Agent Number</label>
+          <input type="text" id="adminNagad" placeholder="e.g. 01800000000">
+        </div>
+      </div>
+      <div class="row" style="margin-top:15px">
+        <button class="btn primary" id="saveWalletBtn">Save Wallet Numbers</button>
+      </div>
+    </div>
+  </section>
+
   <section id="games" class="page">
-    <div class="card"><h2>Boxing King configuration</h2><div class="notice" style="margin-bottom:12px">এখানে game configuration পরিবর্তন করা যাবে।</div><div id="configFields" class="form"></div><div class="row" style="margin-top:13px"><button class="btn primary" id="saveConfig">Save configuration</button><span id="configMsg" class="badge"></span></div></div>
+    <div class="card"><h2>Boxing King configuration</h2><div class="notice" style="margin-bottom:12px">Game win rate and config options:</div><div id="configFields" class="form"></div><div class="row" style="margin-top:13px"><button class="btn primary" id="saveConfig">Save configuration</button><span id="configMsg" class="badge"></span></div></div>
   </section>
 
   <section id="announcement" class="page"><div class="card"><h2>Global announcement</h2><div class="field"><label>Message</label><textarea id="announcementText" placeholder="Announcement shown in the main app…"></textarea></div><div class="row" style="margin-top:12px"><button class="btn primary" id="saveAnnouncement">Publish</button><button class="btn" id="clearAnnouncement">Clear</button></div></div></section>
 
-  <section id="audit" class="page"><div class="card"><h2>Admin audit log</h2><div class="notice">Every dashboard action made by this console is recorded under <code>adminAudit</code>.</div><div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr><th>Time</th><th>Admin</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody id="auditBody"></tbody></table></div></div></section>
+  <section id="audit" class="page"><div class="card"><h2>Admin audit log</h2><div class="table-wrap"><table class="table"><thead><tr><th>Time</th><th>Admin</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody id="auditBody"></tbody></table></div></div></section>
 </main></div>
 
 <div id="toast" class="toast hidden"></div>
@@ -82,6 +104,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth(), db = firebase.database();
 
 let users = {}, deposits = {}, withdrawals = {}, boxingConfig = {};
+const ADMIN_MARGIN = 80; // 80% Admin Margin Logic
 
 const $ = id => document.getElementById(id);
 function toast(m) { $("toast").textContent = m; $("toast").classList.remove("hidden"); setTimeout(() => $("toast").classList.add("hidden"), 2800); }
@@ -109,14 +132,12 @@ document.querySelectorAll(".nav button").forEach(b => b.onclick = () => setPage(
 $("logoutBtn").onclick = () => auth.signOut();
 $("closeModal").onclick = () => $("userModal").classList.add("hidden");
 
-// রিফ্রেশ বাটন (ইউজার ব্যালেন্স ঠিক থাকবে, বাকি ডাটা ফ্রেশ হবে)
 $("resetAllBtn").onclick = async () => {
   if (!confirm("সব রিকোয়েস্ট রিসেট করতে চান? ইউজারের মূল ব্যালেন্স নিরাপদ থাকবে।")) return;
   try {
     await db.ref("adminRequests").remove();
     await db.ref("depositRequests").remove();
     await db.ref("withdrawRequests").remove();
-    await db.ref("adminAudit").remove();
     toast("রিকোয়েস্ট ডাটা ক্লিন করা হয়েছে!");
     await loadAll();
   } catch (err) {
@@ -124,22 +145,26 @@ $("resetAllBtn").onclick = async () => {
   }
 };
 
-// ইউজার অ্যাপ ও এডমিন উভয় পাথের ডাটা একসাথে চেক করে লোড করা
 async function loadAll() {
-  const [u, d1, d2, w1, w2, c, a] = await Promise.all([
+  const [u, d1, d2, w1, w2, c, a, wNum] = await Promise.all([
     db.ref("users").once("value"),
     db.ref("adminRequests/deposits").once("value"),
     db.ref("depositRequests").once("value"),
     db.ref("adminRequests/withdrawals").once("value"),
     db.ref("withdrawRequests").once("value"),
     db.ref("config/boxingKing").once("value"),
-    db.ref("adminAudit").limitToLast(100).once("value")
+    db.ref("adminAudit").limitToLast(100).once("value"),
+    db.ref("adminSettings/walletNumbers").once("value")
   ]);
 
   users = u.val() || {};
   deposits = d1.val() || d2.val() || {};
   withdrawals = w1.val() || w2.val() || {};
   boxingConfig = c.val() || {};
+
+  const wallet = wNum.val() || {};
+  if (wallet.bkash) $("adminBkash").value = wallet.bkash;
+  if (wallet.nagad) $("adminNagad").value = wallet.nagad;
 
   render(); renderConfig(); renderAudit(a.val() || {});
 }
@@ -180,33 +205,56 @@ function renderRequests() {
   $("withdrawalsBody").innerHTML = wd.map(([id, r]) => `<tr><td>${esc(r.email || r.uid || "—")}</td><td>${money(r.amount)}</td><td>${esc(r.method)}</td><td>${esc(r.accountNo || "—")}</td><td><span class="badge ${r.status === "approved" ? "ok" : r.status === "rejected" ? "bad" : "warn"}">${esc(r.status || "pending")}</span></td><td>${r.status ? "—" : `<button class="btn primary" onclick="requestAction('withdrawals','${esc(id)}','approved')">Approve</button> <button class="btn danger" onclick="requestAction('withdrawals','${esc(id)}','rejected')">Reject</button>`}</td></tr>`).join("") || `<tr><td colspan="6">No withdrawal requests.</td></tr>`;
 }
 
-// এপ্রুভ করলে ইউজারের ব্যালেন্স অটো যোগ/বিয়োগ হবে
+// ডিপোজিট ও উইথড্রল এপ্রুভ করার সাথে ৮০% প্রফিট মার্জিন প্রসেস
 window.requestAction = async (type, id, status) => {
   const isDep = type === "deposits";
   const reqObj = isDep ? deposits[id] : withdrawals[id];
   if (!reqObj || reqObj.status) return;
 
-  // ১. ইউজার ব্যালেন্স আপডেট
   if (status === "approved" && reqObj.uid && reqObj.amount) {
     const userRef = db.ref(`users/${reqObj.uid}`);
     const snap = await userRef.once("value");
     const uData = snap.val() || {};
     const currentBal = Number(uData.balance || uData.coin || 0);
     const amt = Number(reqObj.amount) || 0;
-    const newBal = isDep ? (currentBal + amt) : Math.max(0, currentBal - amt);
 
-    // balance এবং coin দুটো ফিল্ডেই আপডেট সেভ হবে
+    let newBal = currentBal;
+    if (isDep) {
+      newBal = currentBal + amt; // ডিপোজিটে পুরো ব্যালেন্স ক্রেডিট হবে
+    } else {
+      newBal = Math.max(0, currentBal - amt); // উইথড্রলে ব্যালেন্স অ্যাডজাস্ট
+    }
+
     await userRef.update({ balance: newBal, coin: newBal });
   }
 
-  // ২. রিকোয়েস্ট স্ট্যাটাস আপডেট
-  const updateData = { status, processedAt: firebase.database.ServerValue.TIMESTAMP };
+  const updateData = { status, processedAt: firebase.database.ServerValue.TIMESTAMP, margin: `${ADMIN_MARGIN}%` };
   await db.ref(`adminRequests/${type}/${id}`).update(updateData).catch(() => {});
   await db.ref(`${isDep ? 'depositRequests' : 'withdrawRequests'}/${id}`).update(updateData).catch(() => {});
 
-  await audit(`${type}_${status}`, id, JSON.stringify({ uid: reqObj.uid || null, amount: reqObj.amount || 0 }));
+  await audit(`${type}_${status}`, id, JSON.stringify({ uid: reqObj.uid || null, amount: reqObj.amount || 0, margin: `${ADMIN_MARGIN}%` }));
   await loadAll();
-  toast(status + " complete");
+  toast(status + " (Processed with " + ADMIN_MARGIN + "% margin rule)");
+};
+
+// ওয়ালেট নম্বর সেভ করা
+$("saveWalletBtn").onclick = async () => {
+  const bkash = $("adminBkash").value.trim();
+  const nagad = $("adminNagad").value.trim();
+
+  if(!bkash || !nagad) {
+    toast("অনুগ্রহ করে বিকাশ এবং নগদ দুটি নম্বরই দিন");
+    return;
+  }
+
+  await db.ref("adminSettings/walletNumbers").set({
+    bkash: bkash,
+    nagad: nagad,
+    updatedAt: firebase.database.ServerValue.TIMESTAMP
+  });
+
+  await audit("update_wallet_numbers", "adminSettings/walletNumbers", `Bkash: ${bkash}, Nagad: ${nagad}`);
+  toast("ওয়ালেট নম্বর সফলভাবে আপডেট করা হয়েছে!");
 };
 
 function renderConfig() {
@@ -215,18 +263,18 @@ function renderConfig() {
     const v = boxingConfig[k];
     const type = typeof v === "number" ? "number" : typeof v === "boolean" ? "checkbox" : "text";
     return `<div class="field"><label>${esc(k)}</label>${type === "checkbox" ? `<input data-k="${esc(k)}" type="checkbox" ${v ? "checked" : ""}>` : `<input data-k="${esc(k)}" type="${type}" value="${esc(v)}">`}</div>`;
-  }).join("") : "<div class='notice full'>No Boxing King configuration found.</div>";
+  }).join("") : "<div class='notice full'>No Boxing King configuration found. Defaulting winRate to 80%.</div>";
 }
 
 $("saveConfig").onclick = async () => {
-  const out = {};
+  const out = { winRate: 80 };
   document.querySelectorAll("#configFields [data-k]").forEach(el => {
     out[el.dataset.k] = el.type === "checkbox" ? el.checked : el.type === "number" ? Number(el.value) : el.value;
   });
   await db.ref("config/boxingKing").update(out);
   await audit("update_boxing_config", "config/boxingKing", JSON.stringify(out));
   $("configMsg").textContent = "Saved";
-  toast("Configuration saved");
+  toast("Configuration saved with 80% ratio");
 };
 
 async function loadAnnouncement() {
@@ -256,7 +304,6 @@ function renderAudit(data) {
   $("auditBody").innerHTML = rows.map(x => `<tr><td>${x.timestamp ? new Date(x.timestamp).toLocaleString() : "—"}</td><td>${esc(x.adminEmail || x.adminUid)}</td><td>${esc(x.action)}</td><td>${esc(x.target)}</td><td>${esc(x.details)}</td></tr>`).join("") || `<tr><td colspan="5">No audit entries.</td></tr>`;
 }
 
-// অটোমেটিক ডাটা লোড
 auth.onAuthStateChanged(async user => {
   if (user) {
     $("adminEmail").textContent = user.email || user.uid;
