@@ -7,7 +7,6 @@
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
@@ -25,8 +24,7 @@
     * { box-sizing: border-box; margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100vh; }
 
-    /* ---------- Dashboard ---------- */
-    #dashboard-screen { padding: 16px; max-width: 1100px; margin: 0 auto; }
+    #dashboard-screen { padding: 16px; max-width: 1200px; margin: 0 auto; }
     .dash-header {
         display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
         padding: 14px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px;
@@ -53,7 +51,16 @@
     th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); white-space: nowrap; }
     th { color: var(--dim); font-size: 0.72rem; text-transform: uppercase; }
     .table-wrap { overflow-x: auto; }
+
+    .btn-approve { background: var(--green); border: none; color: white; padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; font-weight: 600; margin-right: 4px; }
+    .btn-reject { background: var(--red); border: none; color: white; padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; font-weight: 600; }
     .adj-btn { background: var(--accent2); border: none; color: white; padding: 5px 12px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; font-weight: 600; }
+
+    .phone-tag { background: rgba(255, 204, 0, 0.15); color: var(--accent); padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+    .badge.pending { background: #ff9800; color: #000; }
+    .badge.approved { background: var(--green); color: #fff; }
+    .badge.rejected { background: var(--red); color: #fff; }
 
     .config-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
     .config-form label { font-size: 0.75rem; color: var(--dim); display: block; margin-bottom: 6px; }
@@ -62,45 +69,66 @@
         color: var(--text); border-radius: 6px; font-size: 0.85rem; outline: none;
     }
     .toggle-row { display: flex; align-items: center; gap: 8px; }
-    .save-btn {
-        margin-top: 16px; padding: 10px 20px; background: linear-gradient(135deg, var(--green), #1b5e20);
-        border: none; color: white; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.85rem;
-    }
+    .save-btn { margin-top: 16px; padding: 10px 20px; background: linear-gradient(135deg, var(--green), #1b5e20); border: none; color: white; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.85rem; }
     .note-box { font-size: 0.72rem; color: var(--dim); background: rgba(255,204,0,0.06); border: 1px dashed var(--border); padding: 10px; border-radius: 8px; margin-bottom: 14px; line-height: 1.4; }
-    .msg { font-size: 0.75rem; margin-top: 10px; text-align: center; }
-    .msg.error { color: var(--red); }
-    .msg.ok { color: var(--green); }
 </style>
 </head>
 <body>
 
-<!-- ================= DASHBOARD SCREEN ================= -->
 <div id="dashboard-screen">
     <div class="dash-header">
         <div>
             <h1>👑 Gaming Zone Admin Console</h1>
-            <div class="admin-email">Direct Access Mode</div>
+            <div class="admin-email">Direct Control Mode</div>
         </div>
     </div>
 
     <div class="stats-grid" id="stats-grid"></div>
 
     <div class="tabs">
-        <button class="tab-btn active" data-tab="users-panel">Users & Balances</button>
+        <button class="tab-btn active" data-tab="deposits-panel">Deposit Requests</button>
+        <button class="tab-btn" data-tab="withdraws-panel">Withdraw Requests</button>
+        <button class="tab-btn" data-tab="users-panel">Users & Balances</button>
         <button class="tab-btn" data-tab="config-panel">Game Configuration</button>
-        <button class="tab-btn" data-tab="audit-panel">Audit Logs</button>
     </div>
 
-    <!-- USERS PANEL -->
-    <div class="panel active" id="users-panel">
-        <div class="note-box">সকল ইউজারের ব্যালেন্স এখানে রিয়েলটাইমে আপডেট হয়। কাস্টম ব্যালেন্স যোগ করতে Adjust বাটনে ক্লিক করুন।</div>
+    <!-- DEPOSIT PANEL -->
+    <div class="panel active" id="deposits-panel">
+        <div class="note-box">ইউজারের পাঠানো ডিপোজিট রিকোয়েস্ট এবং পেমেন্ট নম্বর নিচে দেখা যাচ্ছে। Approve করলে ইউজার ব্যালেন্স যোগ হবে।</div>
         <div class="table-wrap">
             <table>
                 <thead>
                     <tr>
-                        <th>Email</th><th>UID</th><th>Balance</th>
-                        <th>Aviator Games</th><th>Aviator Wins</th>
-                        <th>BK Games</th><th>BK Wins</th><th>Action</th>
+                        <th>Time</th><th>User Email</th><th>Method</th><th>Payment Number</th><th>Trx ID</th><th>Amount</th><th>Status</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="deposits-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- WITHDRAW PANEL -->
+    <div class="panel" id="withdraws-panel">
+        <div class="note-box">ইউজারদের উইথড্র রিকোয়েস্ট। Reject করলে কেটে নেওয়া ব্যালেন্স প্লেয়ারের অ্যাকাউন্টে রিফান্ড হবে।</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th><th>User Email</th><th>Method</th><th>Account/Phone</th><th>Amount</th><th>Status</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="withdraws-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- USERS PANEL -->
+    <div class="panel" id="users-panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Email</th><th>UID</th><th>Balance</th><th>Aviator Games</th><th>Aviator Wins</th><th>BK Games</th><th>BK Wins</th><th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="users-table-body"></tbody>
@@ -110,9 +138,6 @@
 
     <!-- CONFIG PANEL -->
     <div class="panel" id="config-panel">
-        <div class="note-box">
-            এই গ্লোবাল সেটিংটি পুরো প্ল্যাটফর্মের সকল প্লেয়ারের জন্য প্রযোজ্য।
-        </div>
         <div class="config-form">
             <div class="toggle-row">
                 <input type="checkbox" id="cfg-enabled" style="width:18px;height:18px;">
@@ -120,7 +145,7 @@
             </div>
             <div class="toggle-row">
                 <input type="checkbox" id="cfg-testmode" style="width:18px;height:18px;">
-                <label for="cfg-testmode" style="margin:0;">Practice Mode (No Balance Touch)</label>
+                <label for="cfg-testmode" style="margin:0;">Practice Mode</label>
             </div>
             <div>
                 <label>Minimum Bet Amount</label>
@@ -131,31 +156,15 @@
                 <input type="number" id="cfg-maxbet" step="0.01">
             </div>
             <div>
-                <label>Available Bet Options (comma separated)</label>
-                <input type="text" id="cfg-betoptions" placeholder="1,2,3,5,10">
+                <label>Available Bet Options</label>
+                <input type="text" id="cfg-betoptions">
             </div>
             <div>
-                <label>Animation Speed (ms)</label>
-                <input type="number" id="cfg-animspeed" step="1">
-            </div>
-            <div>
-                <label>Global RTP Factor (Standard = 1.0)</label>
+                <label>Global RTP Factor</label>
                 <input type="number" id="cfg-rtp" step="0.01">
             </div>
         </div>
         <button class="save-btn" id="save-config-btn">Save Configuration</button>
-        <div class="msg" id="config-msg"></div>
-    </div>
-
-    <!-- AUDIT LOG PANEL -->
-    <div class="panel" id="audit-panel">
-        <div class="note-box">অ্যাডমিন ড্যাশবোর্ড থেকে কৃত প্রতিটি ম্যানুয়াল পরিবর্তনের রেকর্ড এখানে থাকবে।</div>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>Time</th><th>User Email</th><th>Admin</th><th>Previous</th><th>New</th><th>Delta</th><th>Reason</th></tr></thead>
-                <tbody id="audit-table-body"></tbody>
-            </table>
-        </div>
     </div>
 </div>
 
@@ -172,12 +181,12 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Direct Load Options
+    loadDeposits();
+    loadWithdraws();
     loadUsers();
     loadConfig();
-    loadAuditLog();
 
-    // Navigation Tabs
+    // Tabs
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -187,24 +196,95 @@
         });
     });
 
-    // Realtime User Data Fetching
+    // 1. Load Deposits (Including Sender Phone Number)
+    function loadDeposits() {
+        db.ref('deposits').on('value', snapshot => {
+            const data = snapshot.val() || {};
+            const tbody = document.getElementById('deposits-table-body');
+            const items = Object.keys(data).map(k => ({id: k, ...data[k]})).sort((a,b) => (b.timestamp||0)-(a.timestamp||0));
+
+            tbody.innerHTML = items.map(d => `
+                <tr>
+                    <td>${d.timestamp ? new Date(d.timestamp).toLocaleString() : '-'}</td>
+                    <td>${d.email || d.userEmail || '-'}</td>
+                    <td><b>${d.method || 'Bkash'}</b></td>
+                    <td><span class="phone-tag">${d.senderNumber || d.phone || d.accountNumber || 'N/A'}</span></td>
+                    <td><code>${d.trxId || d.transactionId || '-'}</code></td>
+                    <td>🪙 ${(Number(d.amount)||0).toFixed(2)}</td>
+                    <td><span class="badge ${d.status || 'pending'}">${d.status || 'pending'}</span></td>
+                    <td>
+                        ${(d.status === 'pending' || !d.status) ? `
+                            <button class="btn-approve" onclick="approveDeposit('${d.id}', '${d.uid}', ${d.amount})">Approve</button>
+                            <button class="btn-reject" onclick="rejectDeposit('${d.id}')">Reject</button>
+                        ` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        });
+    }
+
+    function approveDeposit(reqId, uid, amount) {
+        if(!confirm(`Approve 🪙${amount} deposit for user?`)) return;
+        db.ref('users/' + uid + '/balance').transaction(b => (b || 0) + Number(amount)).then(() => {
+            db.ref('deposits/' + reqId + '/status').set('approved');
+        }).catch(err => alert(err.message));
+    }
+
+    function rejectDeposit(reqId) {
+        if(!confirm("Reject this deposit request?")) return;
+        db.ref('deposits/' + reqId + '/status').set('rejected');
+    }
+
+    // 2. Load Withdraws
+    function loadWithdraws() {
+        db.ref('withdraws').on('value', snapshot => {
+            const data = snapshot.val() || {};
+            const tbody = document.getElementById('withdraws-table-body');
+            const items = Object.keys(data).map(k => ({id: k, ...data[k]})).sort((a,b) => (b.timestamp||0)-(a.timestamp||0));
+
+            tbody.innerHTML = items.map(w => `
+                <tr>
+                    <td>${w.timestamp ? new Date(w.timestamp).toLocaleString() : '-'}</td>
+                    <td>${w.email || w.userEmail || '-'}</td>
+                    <td><b>${w.method || '-'}</b></td>
+                    <td><span class="phone-tag">${w.accountNumber || w.phone || 'N/A'}</span></td>
+                    <td>🪙 ${(Number(w.amount)||0).toFixed(2)}</td>
+                    <td><span class="badge ${w.status || 'pending'}">${w.status || 'pending'}</span></td>
+                    <td>
+                        ${(w.status === 'pending' || !w.status) ? `
+                            <button class="btn-approve" onclick="approveWithdraw('${w.id}')">Approve</button>
+                            <button class="btn-reject" onclick="rejectWithdraw('${w.id}', '${w.uid}', ${w.amount})">Reject & Refund</button>
+                        ` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        });
+    }
+
+    function approveWithdraw(reqId) {
+        if(!confirm("Mark this withdrawal as Paid/Approved?")) return;
+        db.ref('withdraws/' + reqId + '/status').set('approved');
+    }
+
+    function rejectWithdraw(reqId, uid, amount) {
+        if(!confirm(`Reject request and REFUND 🪙${amount} back to user balance?`)) return;
+        db.ref('users/' + uid + '/balance').transaction(b => (b || 0) + Number(amount)).then(() => {
+            db.ref('withdraws/' + reqId + '/status').set('rejected');
+        }).catch(err => alert(err.message));
+    }
+
+    // 3. Load Users
     function loadUsers() {
         db.ref('users').on('value', snapshot => {
             const data = snapshot.val() || {};
             const tbody = document.getElementById('users-table-body');
             tbody.innerHTML = '';
-
             let totalUsers = 0, totalBalance = 0;
-            let avGames = 0, avWins = 0, bkGames = 0, bkWins = 0;
 
             Object.keys(data).forEach(uid => {
                 const u = data[uid];
                 totalUsers++;
                 totalBalance += Number(u.balance || 0);
-                avGames += Number(u.games || 0);
-                avWins += Number(u.wins || 0);
-                bkGames += Number(u.boxingKingGames || 0);
-                bkWins += Number(u.boxingKingWins || 0);
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -215,7 +295,7 @@
                     <td>${u.wins || 0}</td>
                     <td>${u.boxingKingGames || 0}</td>
                     <td>${u.boxingKingWins || 0}</td>
-                    <td><button class="adj-btn" data-uid="${uid}" data-email="${u.email || ''}" data-bal="${u.balance || 0}">Adjust</button></td>
+                    <td><button class="adj-btn" onclick="adjustBalance('${uid}', '${u.email||''}', ${u.balance||0})">Adjust</button></td>
                 `;
                 tbody.appendChild(row);
             });
@@ -223,96 +303,42 @@
             document.getElementById('stats-grid').innerHTML = `
                 <div class="stat-card"><div class="val">${totalUsers}</div><div class="lbl">Total Players</div></div>
                 <div class="stat-card"><div class="val">🪙${totalBalance.toFixed(0)}</div><div class="lbl">Total Balance</div></div>
-                <div class="stat-card"><div class="val">${avGames}</div><div class="lbl">Aviator Rounds</div></div>
-                <div class="stat-card"><div class="val">${avWins}</div><div class="lbl">Aviator Wins</div></div>
-                <div class="stat-card"><div class="val">${bkGames}</div><div class="lbl">Boxing King Spins</div></div>
-                <div class="stat-card"><div class="val">${bkWins}</div><div class="lbl">Boxing King Wins</div></div>
             `;
-
-            document.querySelectorAll('.adj-btn').forEach(btn => {
-                btn.onclick = () => adjustBalance(btn.dataset.uid, btn.dataset.email, parseFloat(btn.dataset.bal));
-            });
         });
     }
 
-    // Direct Balance Adjustment
     function adjustBalance(uid, email, currentBal) {
-        const input = prompt(`Enter new balance for ${email}\n(Current: ${currentBal.toFixed(2)})`, currentBal.toFixed(2));
+        const input = prompt(`Enter new balance for ${email}:`, currentBal.toFixed(2));
         if (input === null) return;
         const newBal = parseFloat(input);
-        if (isNaN(newBal) || newBal < 0) { alert('Invalid numeric amount'); return; }
-        const reason = prompt('Enter a reason for this adjustment (Required):', '');
-        if (!reason || !reason.trim()) { alert('Adjustment reason is required for audit.'); return; }
-
-        db.ref('users/' + uid + '/balance').transaction(current => newBal).then(res => {
-            if (res.committed) {
-                db.ref('balanceAdjustments').push({
-                    uid, email,
-                    adminUid: "direct_access_admin", adminEmail: "direct_admin",
-                    previousBalance: currentBal, newBalance: newBal, delta: (newBal - currentBal),
-                    reason: reason.trim(), timestamp: Date.now()
-                });
-            }
-        }).catch(err => alert('Failed: ' + err.message));
+        if (isNaN(newBal) || newBal < 0) return;
+        db.ref('users/' + uid + '/balance').set(newBal);
     }
 
-    // Config Management
+    // 4. Load Config
     function loadConfig() {
         db.ref('config/boxingKing').on('value', snapshot => {
             const cfg = snapshot.val() || {};
             document.getElementById('cfg-enabled').checked = cfg.enabled !== false;
             document.getElementById('cfg-testmode').checked = cfg.testMode === true;
-            document.getElementById('cfg-minbet').value = cfg.minBet != null ? cfg.minBet : 1;
-            document.getElementById('cfg-maxbet').value = cfg.maxBet != null ? cfg.maxBet : 10;
+            document.getElementById('cfg-minbet').value = cfg.minBet || 1;
+            document.getElementById('cfg-maxbet').value = cfg.maxBet || 10;
             document.getElementById('cfg-betoptions').value = Array.isArray(cfg.betOptions) ? cfg.betOptions.join(',') : '1,2,3,5,10';
-            document.getElementById('cfg-animspeed').value = cfg.animationSpeedMs != null ? cfg.animationSpeedMs : 90;
-            document.getElementById('cfg-rtp').value = cfg.rtpFactor != null ? cfg.rtpFactor : 1.0;
+            document.getElementById('cfg-rtp').value = cfg.rtpFactor || 1.0;
         });
     }
 
     document.getElementById('save-config-btn').addEventListener('click', function() {
-        const betOptions = document.getElementById('cfg-betoptions').value
-            .split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n) && n > 0);
-
-        const cfg = {
+        const betOptions = document.getElementById('cfg-betoptions').value.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+        db.ref('config/boxingKing').set({
             enabled: document.getElementById('cfg-enabled').checked,
             testMode: document.getElementById('cfg-testmode').checked,
             minBet: parseFloat(document.getElementById('cfg-minbet').value) || 1,
             maxBet: parseFloat(document.getElementById('cfg-maxbet').value) || 10,
-            betOptions: betOptions.length ? betOptions : [1, 2, 3, 5, 10],
-            animationSpeedMs: parseInt(document.getElementById('cfg-animspeed').value) || 90,
+            betOptions: betOptions,
             rtpFactor: parseFloat(document.getElementById('cfg-rtp').value) || 1.0
-        };
-
-        db.ref('config/boxingKing').set(cfg).then(() => {
-            const msg = document.getElementById('config-msg');
-            msg.className = 'msg ok'; msg.innerText = 'Configuration successfully updated.';
-            setTimeout(() => msg.innerText = '', 3000);
-        }).catch(err => {
-            const msg = document.getElementById('config-msg');
-            msg.className = 'msg error'; msg.innerText = 'Save error: ' + err.message;
-        });
+        }).then(() => alert('Config Saved!'));
     });
-
-    // Realtime Audit Fetching
-    function loadAuditLog() {
-        db.ref('balanceAdjustments').limitToLast(100).on('value', snapshot => {
-            const data = snapshot.val() || {};
-            const tbody = document.getElementById('audit-table-body');
-            const rows = Object.values(data).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            tbody.innerHTML = rows.map(r => `
-                <tr>
-                    <td>${new Date(r.timestamp).toLocaleString()}</td>
-                    <td>${r.email || '-'}</td>
-                    <td>${r.adminEmail || '-'}</td>
-                    <td>${(r.previousBalance || 0).toFixed(2)}</td>
-                    <td>${(r.newBalance || 0).toFixed(2)}</td>
-                    <td style="color:${(r.delta || 0) >= 0 ? '#43a047' : '#e53935'};font-weight:bold;">${(r.delta || 0) >= 0 ? '+' : ''}${(r.delta || 0).toFixed(2)}</td>
-                    <td>${r.reason || ''}</td>
-                </tr>
-            `).join('');
-        });
-    }
 </script>
 </body>
 </html>
