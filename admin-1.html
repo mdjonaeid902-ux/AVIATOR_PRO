@@ -20,12 +20,15 @@
     <div class="brand">GAMING ZONE <small>ADMIN PANEL</small></div>
     <div class="nav">
       <button class="active" data-page="overview">📊 Overview</button>
-      <button data-page="requests">💳 Requests & Approve</button>
-      <button data-page="users">👥 Users List</button>
+      <button data-page="users">👥 Users</button>
+      <button data-page="requests">💳 Requests</button>
       <button data-page="wallet">📱 Deposit Numbers</button>
+      <button data-page="games">🎮 Config</button>
+      <button data-page="announcement">📢 Notice</button>
     </div>
   </div>
-  <div style="margin-top:20px;">
+  <div style="display:grid;gap:8px;margin-top:20px;">
+    <button id="resetAllBtn" class="btn warn" style="width:100%">🔄 Reset Requests</button>
     <button id="logoutBtn" class="btn danger" style="width:100%">Logout</button>
   </div>
 </aside>
@@ -36,89 +39,78 @@
       <h1 id="pageTitle">Overview</h1>
       <div id="adminEmail" style="color:var(--muted);font-size:12px"></div>
     </div>
-    <span class="pill">● ADMIN SYSTEM ACTIVE</span>
+    <span class="pill">● ADMIN ONLINE</span>
   </div>
 
-  <!-- Overview Page -->
   <section id="overview" class="page active">
     <div class="grid">
       <div class="card stat"><div class="label">Total Users</div><div id="sUsers" class="num">0</div></div>
-      <div class="card stat"><div class="label">Total User Balance</div><div id="sBalance" class="num">0</div></div>
-      <div class="card stat"><div class="label">Total Deposits</div><div id="sDeposits" class="num">0</div></div>
-      <div class="card stat"><div class="label">Total Withdrawals</div><div id="sWithdrawals" class="num">0</div></div>
+      <div class="card stat"><div class="label">Total Balance</div><div id="sBalance" class="num">0</div></div>
+      <div class="card stat"><div class="label">Deposits</div><div id="sDeposits" class="num">0</div></div>
+      <div class="card stat"><div class="label">Withdrawals</div><div id="sWithdrawals" class="num">0</div></div>
     </div>
   </section>
 
-  <!-- Deposit & Withdrawal Requests Page -->
-  <section id="requests" class="page">
-    <div class="card">
-      <h2>📥 Deposit Requests</h2>
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Amount</th>
-              <th>Method</th>
-              <th>TrxID / Phone</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="depositsBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card section">
-      <h2>📤 Withdrawal Requests</h2>
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Amount</th>
-              <th>Method</th>
-              <th>Account No</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="withdrawalsBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- Users Page -->
   <section id="users" class="page">
     <div class="card">
-      <h2>👥 All Registered Users</h2>
+      <input id="userSearch" class="search" placeholder="Search by email/UID...">
       <div class="table-wrap">
         <table class="table">
-          <thead>
-            <tr>
-              <th>Email/User</th>
-              <th>UID</th>
-              <th>Current Balance</th>
-            </tr>
-          </thead>
+          <thead><tr><th>User</th><th>Balance</th><th>Action</th></tr></thead>
           <tbody id="usersBody"></tbody>
         </table>
       </div>
     </div>
   </section>
 
-  <!-- Wallet Numbers Page -->
+  <section id="requests" class="page">
+    <div class="card">
+      <h2>📥 Deposits</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Trx/Phone</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="depositsBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card section">
+      <h2>📤 Withdrawals</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="withdrawalsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <section id="wallet" class="page">
     <div class="card">
-      <h2>📱 Deposit Numbers Configuration</h2>
-      <p style="color:var(--muted);font-size:13px;">এখানে সেট করা বিকাশ ও নগদ নম্বর ইউজার অ্যাপে অটোমেটিক দেখাবে।</p>
+      <h2>📱 Deposit Numbers</h2>
       <div class="form" style="margin-top:15px;">
-        <div class="field"><label>Bkash Personal/Agent Number</label><input type="text" id="adminBkash" placeholder="01700000000"></div>
-        <div class="field"><label>Nagad Personal/Agent Number</label><input type="text" id="adminNagad" placeholder="01800000000"></div>
+        <div class="field"><label>Bkash Number</label><input type="text" id="adminBkash" placeholder="01700000000"></div>
+        <div class="field"><label>Nagad Number</label><input type="text" id="adminNagad" placeholder="01800000000"></div>
       </div>
       <button class="btn primary" id="saveWalletBtn" style="margin-top:15px">Save Wallet Numbers</button>
+    </div>
+  </section>
+
+  <section id="games" class="page">
+    <div class="card">
+      <h2>🎮 Game Config</h2>
+      <div id="configFields" class="form">
+        <div class="field"><label>Win Rate (%)</label><input type="number" id="cfgWinRate" value="80"></div>
+        <div class="field"><label>Min Deposit</label><input type="number" id="cfgMinDep" value="100"></div>
+      </div>
+      <button class="btn primary" id="saveConfig" style="margin-top:15px">Save Config</button>
+    </div>
+  </section>
+
+  <section id="announcement" class="page">
+    <div class="card">
+      <h2>📢 Global Announcement</h2>
+      <div class="field"><textarea id="announcementText" rows="4"></textarea></div>
+      <button class="btn primary" id="saveAnnouncement" style="margin-top:12px">Publish Notice</button>
     </div>
   </section>
 </main>
@@ -145,233 +137,205 @@ const $ = id => document.getElementById(id);
 function showToast(msg) { 
   $("toast").textContent = msg; 
   $("toast").classList.remove("hidden"); 
-  setTimeout(() => $("toast").classList.add("hidden"), 3000); 
+  setTimeout(() => $("toast").classList.add("hidden"), 2800); 
 }
 
-// Sidebar Menu Switcher
 document.querySelectorAll(".nav button").forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
     $(btn.dataset.page).classList.add("active");
     document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    $("pageTitle").textContent = btn.textContent.trim();
+    $("pageTitle").textContent = btn.textContent.replace(/[^a-zA-Z]/g, '').trim();
   }
 });
 
 $("logoutBtn").onclick = () => auth.signOut();
 
-// Load Realtime Firebase Data
-function listenData() {
-  // 1. Users Data
-  db.ref("users").on("value", snap => {
-    users = snap.val() || {};
-    renderUsers();
-    renderStats();
+// রিয়েলটাইম লিসেনার
+function listenAll() {
+  db.ref("users").on("value", snap => { users = snap.val() || {}; renderUsers(); renderStats(); });
+  
+  // ডিপোজিট ডাটা ২ পাথের যেকোনোটি থেকে সাপোর্ট করবে
+  db.ref("adminRequests/deposits").on("value", snap => { 
+    deposits = snap.val() || {}; 
+    renderDeposits(); 
+    renderStats(); 
+  });
+  
+  db.ref("adminRequests/withdrawals").on("value", snap => { 
+    withdrawals = snap.val() || {}; 
+    renderWithdrawals(); 
+    renderStats(); 
   });
 
-  // 2. Deposit Requests
-  db.ref("adminRequests/deposits").on("value", snap => {
-    deposits = snap.val() || {};
-    renderDeposits();
-    renderStats();
-  });
-
-  // 3. Withdrawal Requests
-  db.ref("adminRequests/withdrawals").on("value", snap => {
-    withdrawals = snap.val() || {};
-    renderWithdrawals();
-    renderStats();
-  });
-
-  // 4. Wallet Numbers
   db.ref("walletNumbers").on("value", snap => {
-    const data = snap.val() || {};
-    if (data.bkash) $("adminBkash").value = data.bkash;
-    if (data.nagad) $("adminNagad").value = data.nagad;
+    const w = snap.val() || {};
+    if (w.bkash) $("adminBkash").value = w.bkash;
+    if (w.nagad) $("adminNagad").value = w.nagad;
+  });
+
+  db.ref("adminSettings/announcement").on("value", snap => {
+    if (snap.exists()) $("announcementText").value = snap.val();
   });
 }
 
 function renderStats() {
-  const userArr = Object.entries(users);
-  $("sUsers").textContent = userArr.length;
-  const totalBal = userArr.reduce((sum, [, u]) => sum + Number(u.balance || u.coin || 0), 0);
-  $("sBalance").textContent = totalBal.toFixed(2) + " ৳";
+  const arr = Object.entries(users);
+  $("sUsers").textContent = arr.length;
+  $("sBalance").textContent = arr.reduce((s, [, u]) => s + Number(u.balance || u.coin || 0), 0).toFixed(2);
   $("sDeposits").textContent = Object.keys(deposits).length;
   $("sWithdrawals").textContent = Object.keys(withdrawals).length;
 }
 
 function renderUsers() {
-  $("usersBody").innerHTML = Object.entries(users).map(([uid, u]) => `
+  const search = $("userSearch").value.toLowerCase();
+  const arr = Object.entries(users).filter(([uid, u]) => {
+    const em = (u.email || u.username || '').toLowerCase();
+    return em.includes(search) || uid.toLowerCase().includes(search);
+  });
+
+  $("usersBody").innerHTML = arr.map(([uid, u]) => `
     <tr>
-      <td><b>${u.email || u.username || 'N/A'}</b></td>
-      <td><small style="color:var(--muted)">${uid}</small></td>
-      <td style="color:var(--accent);font-weight:bold">${Number(u.balance || u.coin || 0).toFixed(2)} ৳</td>
+      <td><b>${u.email || u.username || uid}</b></td>
+      <td>${Number(u.balance || u.coin || 0).toFixed(2)}</td>
+      <td>Active</td>
     </tr>
   `).join("");
 }
 
+$("userSearch").oninput = renderUsers;
+
 function renderDeposits() {
   const entries = Object.entries(deposits).reverse();
-  if (entries.length === 0) {
-    $("depositsBody").innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted)">কোন ডিপোজিট রিকোয়েস্ট নেই</td></tr>`;
+  if (!entries.length) {
+    $("depositsBody").innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted)">কোন ডিপোজিট নেই</td></tr>`;
     return;
   }
 
-  $("depositsBody").innerHTML = entries.map(([id, req]) => {
-    const status = req.status || "pending";
-    let statusBadge = `<span class="badge pending">Pending</span>`;
-    let actionButtons = `
-      <button class="btn primary" onclick="handleDeposit('${id}', 'approve')">Approve</button>
-      <button class="btn danger" onclick="handleDeposit('${id}', 'reject')">Reject</button>
-    `;
+  $("depositsBody").innerHTML = entries.map(([id, r]) => {
+    const st = r.status || "pending";
+    let btnHtml = `<div style="display:flex;gap:5px;">
+      <button class="btn primary" onclick="handleReq('deposits','${id}','approve')">Approve</button>
+      <button class="btn danger" onclick="handleReq('deposits','${id}','reject')">Reject</button>
+    </div>`;
 
-    if (status === "approved") {
-      statusBadge = `<span class="badge approved">Approved</span>`;
-      actionButtons = `—`;
-    } else if (status === "rejected") {
-      statusBadge = `<span class="badge rejected">Rejected</span>`;
-      actionButtons = `—`;
-    }
+    if (st === "approved") btnHtml = `<span class="badge approved">Approved</span>`;
+    if (st === "rejected") btnHtml = `<span class="badge rejected">Rejected</span>`;
 
-    return `
-      <tr>
-        <td><b>${req.email || req.uid}</b></td>
-        <td style="color:var(--accent);font-weight:bold">${req.amount} ৳</td>
-        <td><b style="color:var(--warn)">${req.method}</b></td>
-        <td>${req.trxId || req.phone || "N/A"}</td>
-        <td>${statusBadge}</td>
-        <td><div style="display:flex;gap:6px">${actionButtons}</div></td>
-      </tr>
-    `;
+    return `<tr>
+      <td>${r.email || r.uid}</td>
+      <td style="color:var(--accent);font-weight:bold">${r.amount}</td>
+      <td>${r.method || 'Bkash'}</td>
+      <td>${r.trxId || r.phone || '—'}</td>
+      <td><span class="badge ${st}">${st}</span></td>
+      <td>${btnHtml}</td>
+    </tr>`;
   }).join("");
 }
 
 function renderWithdrawals() {
   const entries = Object.entries(withdrawals).reverse();
-  if (entries.length === 0) {
-    $("withdrawalsBody").innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted)">কোন উইথড্র রিকোয়েস্ট নেই</td></tr>`;
+  if (!entries.length) {
+    $("withdrawalsBody").innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted)">কোন উইথড্র নেই</td></tr>`;
     return;
   }
 
-  $("withdrawalsBody").innerHTML = entries.map(([id, req]) => {
-    const status = req.status || "pending";
-    let statusBadge = `<span class="badge pending">Pending</span>`;
-    let actionButtons = `
-      <button class="btn primary" onclick="handleWithdrawal('${id}', 'approve')">Approve</button>
-      <button class="btn danger" onclick="handleWithdrawal('${id}', 'reject')">Reject</button>
-    `;
+  $("withdrawalsBody").innerHTML = entries.map(([id, r]) => {
+    const st = r.status || "pending";
+    let btnHtml = `<div style="display:flex;gap:5px;">
+      <button class="btn primary" onclick="handleReq('withdrawals','${id}','approve')">Approve</button>
+      <button class="btn danger" onclick="handleReq('withdrawals','${id}','reject')">Reject</button>
+    </div>`;
 
-    if (status === "approved") {
-      statusBadge = `<span class="badge approved">Approved</span>`;
-      actionButtons = `—`;
-    } else if (status === "rejected") {
-      statusBadge = `<span class="badge rejected">Rejected</span>`;
-      actionButtons = `—`;
-    }
+    if (st === "approved") btnHtml = `<span class="badge approved">Approved</span>`;
+    if (st === "rejected") btnHtml = `<span class="badge rejected">Rejected</span>`;
 
-    return `
-      <tr>
-        <td><b>${req.email || req.uid}</b></td>
-        <td style="color:var(--danger);font-weight:bold">${req.amount} ৳</td>
-        <td><b style="color:var(--warn)">${req.method}</b></td>
-        <td>${req.accountNo || "N/A"}</td>
-        <td>${statusBadge}</td>
-        <td><div style="display:flex;gap:6px">${actionButtons}</div></td>
-      </tr>
-    `;
+    return `<tr>
+      <td>${r.email || r.uid}</td>
+      <td style="color:var(--danger);font-weight:bold">${r.amount}</td>
+      <td>${r.method || 'Bkash'}</td>
+      <td>${r.accountNo || '—'}</td>
+      <td><span class="badge ${st}">${st}</span></td>
+      <td>${btnHtml}</td>
+    </tr>`;
   }).join("");
 }
 
-// Deposit Handle Logic
-window.handleDeposit = async (reqId, action) => {
-  const req = deposits[reqId];
+// Approve & Reject Action
+window.handleReq = async (type, id, action) => {
+  const isDep = type === "deposits";
+  const reqMap = isDep ? deposits : withdrawals;
+  const req = reqMap[id];
   if (!req) return;
 
   if (action === "approve") {
-    // ইউজারের ব্যালেন্সে টাকা যোগ হবে
-    if (req.uid && req.amount) {
-      const userRef = db.ref(`users/${req.uid}`);
-      const snap = await userRef.once("value");
-      const userData = snap.val() || {};
-      
-      const currentBal = Number(userData.balance || userData.coin || 0);
-      const addAmount = Number(req.amount);
-      const newBal = currentBal + addAmount;
-
-      await userRef.update({
-        balance: newBal,
-        coin: newBal
-      });
+    if (isDep && req.uid) {
+      const uRef = db.ref(`users/${req.uid}`);
+      const snap = await uRef.once("value");
+      const uData = snap.val() || {};
+      const curBal = Number(uData.balance || uData.coin || 0);
+      const newBal = curBal + Number(req.amount || 0);
+      await uRef.update({ balance: newBal, coin: newBal });
     }
-    await db.ref(`adminRequests/deposits/${reqId}`).update({ status: "approved" });
-    await db.ref(`depositRequests/${reqId}`).update({ status: "approved" });
-    showToast("✅ ডিপোজিট এপ্রুভ করা হয়েছে এবং টাকা যোগ হয়েছে!");
-  } 
-  else if (action === "reject") {
-    // টাকা যোগ হবে না, খালি রিজেক্ট হবে
-    await db.ref(`adminRequests/deposits/${reqId}`).update({ status: "rejected" });
-    await db.ref(`depositRequests/${reqId}`).update({ status: "rejected" });
-    showToast("❌ ডিপোজিট রিজেক্ট করা হয়েছে!");
+    await db.ref(`adminRequests/${type}/${id}`).update({ status: "approved" });
+    await db.ref(`${isDep?'depositRequests':'withdrawRequests'}/${id}`).update({ status: "approved" });
+    showToast("✅ Approved!");
+  } else {
+    if (!isDep && req.uid) { // উইথড্র রিজেক্ট করলে টাকা ফেরত
+      const uRef = db.ref(`users/${req.uid}`);
+      const snap = await uRef.once("value");
+      const uData = snap.val() || {};
+      const curBal = Number(uData.balance || uData.coin || 0);
+      const newBal = curBal + Number(req.amount || 0);
+      await uRef.update({ balance: newBal, coin: newBal });
+    }
+    await db.ref(`adminRequests/${type}/${id}`).update({ status: "rejected" });
+    await db.ref(`${isDep?'depositRequests':'withdrawRequests'}/${id}`).update({ status: "rejected" });
+    showToast("❌ Rejected!");
   }
 };
 
-// Withdrawal Handle Logic
-window.handleWithdrawal = async (reqId, action) => {
-  const req = withdrawals[reqId];
-  if (!req) return;
-
-  if (action === "approve") {
-    await db.ref(`adminRequests/withdrawals/${reqId}`).update({ status: "approved" });
-    await db.ref(`withdrawRequests/${reqId}`).update({ status: "approved" });
-    showToast("✅ উইথড্র এপ্রুভ করা হয়েছে!");
-  } 
-  else if (action === "reject") {
-    // রিজেক্ট করলে কাটা ব্যালেন্স ফেরত দেওয়া
-    if (req.uid && req.amount) {
-      const userRef = db.ref(`users/${req.uid}`);
-      const snap = await userRef.once("value");
-      const userData = snap.val() || {};
-      
-      const currentBal = Number(userData.balance || userData.coin || 0);
-      const returnAmount = Number(req.amount);
-      const newBal = currentBal + returnAmount;
-
-      await userRef.update({
-        balance: newBal,
-        coin: newBal
-      });
-    }
-    await db.ref(`adminRequests/withdrawals/${reqId}`).update({ status: "rejected" });
-    await db.ref(`withdrawRequests/${reqId}`).update({ status: "rejected" });
-    showToast("❌ উইথড্র রিজেক্ট করে টাকা ফেরত দেওয়া হয়েছে!");
-  }
-};
-
-// Wallet Numbers Save Logic
+// ওয়ালেট সেভ (উভয় পাথে সেভ হবে যাতে ইউজার অ্যাপ মিস না করে)
 $("saveWalletBtn").onclick = async () => {
-  const bkash = $("adminBkash").value.trim();
-  const nagad = $("adminNagad").value.trim();
-
-  if (!bkash || !nagad) {
-    alert("দয়া করে বিকাশ এবং নগদ দুটি নাম্বারই দিন");
-    return;
-  }
-
-  const walletData = { bkash, nagad };
-  
-  // ২টি পাথেই সেভ করা হচ্ছে
-  await db.ref("walletNumbers").set(walletData);
-  await db.ref("adminSettings/walletNumbers").set(walletData);
-
-  showToast("📱 বিকাশ ও নগদ নাম্বার সেভ করা হয়েছে!");
+  const data = {
+    bkash: $("adminBkash").value.trim(),
+    nagad: $("adminNagad").value.trim()
+  };
+  await db.ref("walletNumbers").set(data);
+  await db.ref("adminSettings/walletNumbers").set(data);
+  showToast("📱 Wallet Numbers Saved!");
 };
 
-// Init
+// গেম কনফিগ সেভ
+$("saveConfig").onclick = async () => {
+  await db.ref("adminSettings/config").set({
+    winRate: $("cfgWinRate").value,
+    minDeposit: $("cfgMinDep").value
+  });
+  showToast("🎮 Config Saved!");
+};
+
+// অ্যানাউন্সমেন্ট সেভ
+$("saveAnnouncement").onclick = async () => {
+  await db.ref("adminSettings/announcement").set($("announcementText").value);
+  showToast("📢 Notice Published!");
+};
+
+// রিসেট বাটন
+$("resetAllBtn").onclick = async () => {
+  if (confirm("সব রিকোয়েস্ট মুছে ফেলতে চান?")) {
+    await db.ref("adminRequests").remove();
+    await db.ref("depositRequests").remove();
+    await db.ref("withdrawRequests").remove();
+    showToast("🔄 Cleared All Requests!");
+  }
+};
+
 auth.onAuthStateChanged(user => {
   if (user) {
     $("adminEmail").textContent = user.email;
-    listenData();
+    listenAll();
   }
 });
 </script>
