@@ -1,14 +1,14 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Gaming Zone — Admin Dashboard</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-:root{--bg:#071018;--panel:#0d1a24;--panel2:#102331;--line:#1e3949;--text:#edf6fb;--muted:#91a8b6;--accent:#54e0a7;--warn:#ffbd5a;--danger:#ff6f7d;--blue:#67a8ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#102a39 0,#071018 48%,#050b10 100%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}.app{min-height:100vh;display:grid;grid-template-columns:250px 1fr}.side{padding:22px 16px;border-right:1px solid var(--line);background:rgba(5,12,17,.86);backdrop-filter:blur(14px);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;justify-content:space-between}.brand{font-weight:900;font-size:20px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.nav{margin-top:28px;display:grid;gap:8px}.nav button{border:1px solid transparent;background:transparent;color:var(--muted);padding:12px 13px;border-radius:12px;text-align:left;font-weight:600}.nav button.active,.nav button:hover{background:var(--panel2);border-color:var(--line);color:var(--text)}.main{padding:24px;min-width:0}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:22px}.top h1{margin:0;font-size:25px}.pill{padding:7px 10px;border-radius:999px;background:#10261f;color:var(--accent);font-size:12px;font-weight:bold}.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px}.btn.primary{background:var(--accent);color:#062016;border-color:var(--accent);font-weight:800}.btn.danger{background:#32151a;color:#ff9aa4;border-color:#64232b;font-weight:800}.btn.warn{background:#302515;color:var(--warn);border-color:#644e23}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:linear-gradient(145deg,rgba(16,35,49,.92),rgba(10,22,31,.92));border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:0 12px 30px rgba(0,0,0,.16)}.stat .label{color:var(--muted);font-size:12px}.stat .num{font-size:26px;font-weight:900;margin-top:7px}.section{margin-top:18px}.section h2{font-size:16px;margin:0 0 11px;color:var(--accent)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}.table{width:100%;border-collapse:collapse;min-width:720px}.table th,.table td{padding:12px 11px;border-bottom:1px solid rgba(30,57,73,.65);text-align:left;font-size:13px}.table th{color:var(--muted);font-weight:600;background:#0b1821}.badge{font-size:11px;border-radius:999px;padding:4px 8px;font-weight:bold;display:inline-block}.badge.approved{background:#102b22;color:var(--accent)}.badge.rejected{background:#35171c;color:#ff9aa4}.badge.pending{background:#302515;color:var(--warn)}.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.field label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.field input,.field textarea{width:100%;border:1px solid var(--line);background:#08141d;color:var(--text);border-radius:10px;padding:10px}.search{width:100%;border:1px solid var(--line);background:#08141d;color:var(--text);padding:11px;border-radius:10px;margin-bottom:11px}.page{display:none}.page.active{display:block}.toast{position:fixed;right:18px;bottom:18px;background:var(--accent);color:#062016;padding:12px 18px;border-radius:10px;font-weight:bold;z-index:99;box-shadow:0 10px 20px rgba(0,0,0,0.5)}
+:root{--bg:#071018;--panel:#0d1a24;--panel2:#102331;--line:#1e3949;--text:#edf6fb;--muted:#91a8b6;--accent:#54e0a7;--warn:#ffbd5a;--danger:#ff6f7d;--blue:#67a8ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#102a39 0,#071018 48%,#050b10 100%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}.app{min-height:100vh;display:grid;grid-template-columns:250px 1fr}.side{padding:22px 16px;border-right:1px solid var(--line);background:rgba(5,12,17,.86);backdrop-filter:blur(14px);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;justify-style:space-between}.brand{font-weight:900;font-size:20px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.nav{margin-top:28px;display:grid;gap:8px}.nav button{border:1px solid transparent;background:transparent;color:var(--muted);padding:12px 13px;border-radius:12px;text-align:left;font-weight:600}.nav button.active,.nav button:hover{background:var(--panel2);border-color:var(--line);color:var(--text)}.main{padding:24px;min-width:0}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:22px}.top h1{margin:0;font-size:25px}.pill{padding:7px 10px;border-radius:999px;background:#10261f;color:var(--accent);font-size:12px;font-weight:bold}.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px}.btn.primary{background:var(--accent);color:#062016;border-color:var(--accent);font-weight:800}.btn.danger{background:#32151a;color:#ff9aa4;border-color:#64232b;font-weight:800}.btn.warn{background:#302515;color:var(--warn);border-color:#644e23}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:linear-gradient(145deg,rgba(16,35,49,.92),rgba(10,22,31,.92));border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:0 12px 30px rgba(0,0,0,.16)}.stat .label{color:var(--muted);font-size:12px}.stat .num{font-size:26px;font-weight:900;margin-top:7px}.section{margin-top:18px}.section h2{font-size:16px;margin:0 0 11px;color:var(--accent)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}.table{width:100%;border-collapse:collapse;min-width:720px}.table th,.table td{padding:12px 11px;border-bottom:1px solid rgba(30,57,73,.65);text-align:left;font-size:13px}.table th{color:var(--muted);font-weight:600;background:#0b1821}.badge{font-size:11px;border-radius:999px;padding:4px 8px;font-weight:bold;display:inline-block}.badge.approved{background:#102b22;color:var(--accent)}.badge.rejected{background:#35171c;color:#ff9aa4}.badge.pending{background:#302515;color:var(--warn)}.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.field label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.field input,.field textarea{width:100%;border:1px solid var(--line);background:#08141d;color:var(--text);border-radius:10px;padding:10px}.search{width:100%;border:1px solid var(--line);background:#08141d;color:var(--text);padding:11px;border-radius:10px;margin-bottom:11px}.page{display:none}.page.active{display:block}.toast{position:fixed;right:18px;bottom:18px;background:var(--accent);color:#062016;padding:12px 18px;border-radius:10px;font-weight:bold;z-index:99;box-shadow:0 10px 20px rgba(0,0,0,0.5)}
 @media(max-width:900px){.app{grid-template-columns:1fr}.side{position:static;height:auto;border-bottom:1px solid var(--line);padding:14px}.nav{display:flex;overflow:auto}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.form{grid-template-columns:1fr}}
 </style>
 </head>
@@ -56,7 +56,7 @@
       <input id="userSearch" class="search" placeholder="Search by email/UID...">
       <div class="table-wrap">
         <table class="table">
-          <thead><tr><th>User</th><th>Balance</th><th>Action</th></tr></thead>
+          <thead><tr><th>User</th><th>Balance</th><th>Games Played</th></tr></thead>
           <tbody id="usersBody"></tbody>
         </table>
       </div>
@@ -68,7 +68,7 @@
       <h2>📥 Deposits</h2>
       <div class="table-wrap">
         <table class="table">
-          <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Trx/Phone</th><th>Status</th><th>Action</th></tr></thead>
+          <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Trx ID</th><th>Status</th><th>Action</th></tr></thead>
           <tbody id="depositsBody"></tbody>
         </table>
       </div>
@@ -88,19 +88,23 @@
     <div class="card">
       <h2>📱 Deposit Numbers</h2>
       <div class="form" style="margin-top:15px;">
-        <div class="field"><label>Bkash Number</label><input type="text" id="adminBkash" placeholder="01700000000"></div>
-        <div class="field"><label>Nagad Number</label><input type="text" id="adminNagad" placeholder="01800000000"></div>
+        <div class="field"><label>Admin Bkash / Nagad Number Display</label><input type="text" id="adminPaymentNum" placeholder="01700000000 (বিকাশ/নগদ)"></div>
       </div>
-      <button class="btn primary" id="saveWalletBtn" style="margin-top:15px">Save Wallet Numbers</button>
+      <button class="btn primary" id="saveWalletBtn" style="margin-top:15px">Save Wallet Number</button>
     </div>
   </section>
 
   <section id="games" class="page">
     <div class="card">
-      <h2>🎮 Game Config</h2>
+      <h2>🎮 Boxing King Config</h2>
       <div id="configFields" class="form">
-        <div class="field"><label>Win Rate (%)</label><input type="number" id="cfgWinRate" value="80"></div>
-        <div class="field"><label>Min Deposit</label><input type="number" id="cfgMinDep" value="100"></div>
+        <div class="field"><label>Enable Game</label>
+          <select id="cfgBkEnabled" style="width:100%;padding:10px;background:#08141d;color:var(--text);border:1px solid var(--line);border-radius:10px;">
+            <option value="true">Active (চালু)</option>
+            <option value="false">Disabled (বন্ধ)</option>
+          </select>
+        </div>
+        <div class="field"><label>RTP Factor</label><input type="number" id="cfgBkRtp" step="0.1" value="1.0"></div>
       </div>
       <button class="btn primary" id="saveConfig" style="margin-top:15px">Save Config</button>
     </div>
@@ -109,7 +113,7 @@
   <section id="announcement" class="page">
     <div class="card">
       <h2>📢 Global Announcement</h2>
-      <div class="field"><textarea id="announcementText" rows="4"></textarea></div>
+      <div class="field"><textarea id="announcementText" rows="4" placeholder="নোটিশ এখানে লিখুন..."></textarea></div>
       <button class="btn primary" id="saveAnnouncement" style="margin-top:12px">Publish Notice</button>
     </div>
   </section>
@@ -152,11 +156,10 @@ document.querySelectorAll(".nav button").forEach(btn => {
 
 $("logoutBtn").onclick = () => auth.signOut();
 
-// রিয়েলটাইম লিসেনার
+// রিয়েলটাইম ডাটাবেস লিসেনার
 function listenAll() {
   db.ref("users").on("value", snap => { users = snap.val() || {}; renderUsers(); renderStats(); });
   
-  // ডিপোজিট ডাটা ২ পাথের যেকোনোটি থেকে সাপোর্ট করবে
   db.ref("adminRequests/deposits").on("value", snap => { 
     deposits = snap.val() || {}; 
     renderDeposits(); 
@@ -169,21 +172,26 @@ function listenAll() {
     renderStats(); 
   });
 
-  db.ref("walletNumbers").on("value", snap => {
-    const w = snap.val() || {};
-    if (w.bkash) $("adminBkash").value = w.bkash;
-    if (w.nagad) $("adminNagad").value = w.nagad;
+  // ইউজার অ্যাপে থাকা adminSettings/paymentNumber এর সাথে সিঙ্ক
+  db.ref("adminSettings/paymentNumber").on("value", snap => {
+    if (snap.exists()) $("adminPaymentNum").value = snap.val();
   });
 
   db.ref("adminSettings/announcement").on("value", snap => {
     if (snap.exists()) $("announcementText").value = snap.val();
+  });
+
+  db.ref("config/boxingKing").on("value", snap => {
+    const cfg = snap.val() || {};
+    if (cfg.enabled !== undefined) $("cfgBkEnabled").value = cfg.enabled ? "true" : "false";
+    if (cfg.rtpFactor !== undefined) $("cfgBkRtp").value = cfg.rtpFactor;
   });
 }
 
 function renderStats() {
   const arr = Object.entries(users);
   $("sUsers").textContent = arr.length;
-  $("sBalance").textContent = arr.reduce((s, [, u]) => s + Number(u.balance || u.coin || 0), 0).toFixed(2);
+  $("sBalance").textContent = arr.reduce((s, [, u]) => s + Number(u.balance || 0), 0).toFixed(2);
   $("sDeposits").textContent = Object.keys(deposits).length;
   $("sWithdrawals").textContent = Object.keys(withdrawals).length;
 }
@@ -191,15 +199,15 @@ function renderStats() {
 function renderUsers() {
   const search = $("userSearch").value.toLowerCase();
   const arr = Object.entries(users).filter(([uid, u]) => {
-    const em = (u.email || u.username || '').toLowerCase();
+    const em = (u.email || '').toLowerCase();
     return em.includes(search) || uid.toLowerCase().includes(search);
   });
 
   $("usersBody").innerHTML = arr.map(([uid, u]) => `
     <tr>
-      <td><b>${u.email || u.username || uid}</b></td>
-      <td>${Number(u.balance || u.coin || 0).toFixed(2)}</td>
-      <td>Active</td>
+      <td><b>${u.email || uid}</b></td>
+      <td>🪙 ${Number(u.balance || 0).toFixed(2)}</td>
+      <td>Aviator: ${u.games || 0} | BK: ${u.boxingKingGames || 0}</td>
     </tr>
   `).join("");
 }
@@ -209,7 +217,7 @@ $("userSearch").oninput = renderUsers;
 function renderDeposits() {
   const entries = Object.entries(deposits).reverse();
   if (!entries.length) {
-    $("depositsBody").innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted)">কোন ডিপোজিট নেই</td></tr>`;
+    $("depositsBody").innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted)">কোন ডিপোজিট রিকোয়েস্ট নেই</td></tr>`;
     return;
   }
 
@@ -226,8 +234,8 @@ function renderDeposits() {
     return `<tr>
       <td>${r.email || r.uid}</td>
       <td style="color:var(--accent);font-weight:bold">${r.amount}</td>
-      <td>${r.method || 'Bkash'}</td>
-      <td>${r.trxId || r.phone || '—'}</td>
+      <td>${(r.method || 'bkash').toUpperCase()}</td>
+      <td>${r.trxId || '—'}</td>
       <td><span class="badge ${st}">${st}</span></td>
       <td>${btnHtml}</td>
     </tr>`;
@@ -237,7 +245,7 @@ function renderDeposits() {
 function renderWithdrawals() {
   const entries = Object.entries(withdrawals).reverse();
   if (!entries.length) {
-    $("withdrawalsBody").innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted)">কোন উইথড্র নেই</td></tr>`;
+    $("withdrawalsBody").innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted)">কোন উইথড্র রিকোয়েস্ট নেই</td></tr>`;
     return;
   }
 
@@ -254,7 +262,7 @@ function renderWithdrawals() {
     return `<tr>
       <td>${r.email || r.uid}</td>
       <td style="color:var(--danger);font-weight:bold">${r.amount}</td>
-      <td>${r.method || 'Bkash'}</td>
+      <td>${(r.method || 'bkash').toUpperCase()}</td>
       <td>${r.accountNo || '—'}</td>
       <td><span class="badge ${st}">${st}</span></td>
       <td>${btnHtml}</td>
@@ -262,61 +270,51 @@ function renderWithdrawals() {
   }).join("");
 }
 
-// Approve & Reject Action
+// Approve & Reject Action Handler
 window.handleReq = async (type, id, action) => {
   const isDep = type === "deposits";
   const reqMap = isDep ? deposits : withdrawals;
   const req = reqMap[id];
-  if (!req) return;
+  if (!req || req.status !== "pending") return;
 
   if (action === "approve") {
-    if (isDep && req.uid) {
-      const uRef = db.ref(`users/${req.uid}`);
+    if (isDep && req.uid) { // ডিপোজিট এপ্রুভ করলে ইউজারের ব্যালেন্স যোগ হবে
+      const uRef = db.ref(`users/${req.uid}/balance`);
       const snap = await uRef.once("value");
-      const uData = snap.val() || {};
-      const curBal = Number(uData.balance || uData.coin || 0);
-      const newBal = curBal + Number(req.amount || 0);
-      await uRef.update({ balance: newBal, coin: newBal });
+      const curBal = Number(snap.val() || 0);
+      await uRef.set(curBal + Number(req.amount || 0));
     }
     await db.ref(`adminRequests/${type}/${id}`).update({ status: "approved" });
-    await db.ref(`${isDep?'depositRequests':'withdrawRequests'}/${id}`).update({ status: "approved" });
     showToast("✅ Approved!");
   } else {
-    if (!isDep && req.uid) { // উইথড্র রিজেক্ট করলে টাকা ফেরত
-      const uRef = db.ref(`users/${req.uid}`);
+    if (!isDep && req.uid) { // উইথড্র রিজেক্ট করলে ইউজারের পূর্বে কেটে নেওয়া টাকা ফেরত দেওয়া হবে
+      const uRef = db.ref(`users/${req.uid}/balance`);
       const snap = await uRef.once("value");
-      const uData = snap.val() || {};
-      const curBal = Number(uData.balance || uData.coin || 0);
-      const newBal = curBal + Number(req.amount || 0);
-      await uRef.update({ balance: newBal, coin: newBal });
+      const curBal = Number(snap.val() || 0);
+      await uRef.set(curBal + Number(req.amount || 0));
     }
     await db.ref(`adminRequests/${type}/${id}`).update({ status: "rejected" });
-    await db.ref(`${isDep?'depositRequests':'withdrawRequests'}/${id}`).update({ status: "rejected" });
     showToast("❌ Rejected!");
   }
 };
 
-// ওয়ালেট সেভ (উভয় পাথে সেভ হবে যাতে ইউজার অ্যাপ মিস না করে)
+// নম্বর সেভ (ইউজার প্যানেলে সরাসরি আপডেট হবে)
 $("saveWalletBtn").onclick = async () => {
-  const data = {
-    bkash: $("adminBkash").value.trim(),
-    nagad: $("adminNagad").value.trim()
-  };
-  await db.ref("walletNumbers").set(data);
-  await db.ref("adminSettings/walletNumbers").set(data);
-  showToast("📱 Wallet Numbers Saved!");
+  const num = $("adminPaymentNum").value.trim();
+  await db.ref("adminSettings/paymentNumber").set(num);
+  showToast("📱 Wallet Number Saved!");
 };
 
 // গেম কনফিগ সেভ
 $("saveConfig").onclick = async () => {
-  await db.ref("adminSettings/config").set({
-    winRate: $("cfgWinRate").value,
-    minDeposit: $("cfgMinDep").value
+  await db.ref("config/boxingKing").update({
+    enabled: $("cfgBkEnabled").value === "true",
+    rtpFactor: parseFloat($("cfgBkRtp").value) || 1.0
   });
   showToast("🎮 Config Saved!");
 };
 
-// অ্যানাউন্সমেন্ট সেভ
+// নোটিশ সেভ
 $("saveAnnouncement").onclick = async () => {
   await db.ref("adminSettings/announcement").set($("announcementText").value);
   showToast("📢 Notice Published!");
@@ -326,8 +324,6 @@ $("saveAnnouncement").onclick = async () => {
 $("resetAllBtn").onclick = async () => {
   if (confirm("সব রিকোয়েস্ট মুছে ফেলতে চান?")) {
     await db.ref("adminRequests").remove();
-    await db.ref("depositRequests").remove();
-    await db.ref("withdrawRequests").remove();
     showToast("🔄 Cleared All Requests!");
   }
 };
