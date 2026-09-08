@@ -37,7 +37,7 @@
 
 
     .bk-grid-2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-    .bk-input, #bkRtpFactor { width:100%; padding:10px; background:rgba(0,0,0,.35); color:var(--text); border:1px solid var(--border); border-radius:8px; }
+    .bk-input, #bkRtpFactor { width:100%; padding:10px; background:rgba(0,0,0,.35); color:var(--text); border:1px solid var(--line); border-radius:8px; }
     @media (max-width:600px){ .bk-grid-2{grid-template-columns:1fr;} }
 </style>
 </head>
@@ -63,22 +63,21 @@
 
   <div class="top"><div><h1 id="pageTitle">Overview</h1>
 
-<!-- Reset: ONLY in Overview -->
-<div id="globalResetCard" class="card" style="margin:14px 0;">
-  <h3 style="margin:0 0 6px;">♻️ Reset Data</h3>
-  <p style="margin:0 0 10px;opacity:.8;">
-    User balance অপরিবর্তিত রেখে admin/request/config/statistics data reset করা হবে।
-  </p>
-  <button id="resetAllBtn" type="button"
-    style="padding:11px 16px;border:0;border-radius:8px;cursor:pointer;">
-    ♻️ Reset Everything (Keep User Balance)
-  </button>
-  <div id="resetAllStatus" style="margin-top:8px;"></div>
-</div>
 
 <div id="adminEmail" style="color:var(--muted);font-size:12px;margin-top:4px"></div></div><span class="pill">● ADMIN SESSION</span></div>
 
   <section id="overview" class="page active">
+    <div id="globalResetCard" class="card" style="margin:0 0 18px;">
+      <h3 style="margin:0 0 6px;">♻️ Reset Data</h3>
+      <p style="margin:0 0 10px;opacity:.8;">
+        User balance অপরিবর্তিত রেখে admin/request/config/statistics data reset করা হবে।
+      </p>
+      <button id="resetAllBtn" type="button"
+        style="padding:11px 16px;border:0;border-radius:8px;cursor:pointer;">
+        ♻️ Reset Everything (Keep User Balance)
+      </button>
+      <div id="resetAllStatus" style="margin-top:8px;"></div>
+    </div>
     <div class="grid">
       <div class="card stat"><div class="label">Total users</div><div id="sUsers" class="num">—</div></div>
       <div class="card stat"><div class="label">Total balance</div><div id="sBalance" class="num">—</div></div>
@@ -192,16 +191,20 @@ function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.re
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
 $("closeModal").onclick=()=>$("userModal").classList.add("hidden");
 async function loadAll(){
- const [u,cr,c,a]=await Promise.all([db.ref("users").once("value"),db.ref("coinRequests").once("value"),db.ref("config/boxingKing").once("value"),db.ref("adminAudit").limitToLast(100).once("value")]);
+ const [u,dep,wd,c,a]=await Promise.all([
+   db.ref("users").once("value"),
+   db.ref("adminRequests/deposits").once("value"),
+   db.ref("adminRequests/withdrawals").once("value"),
+   db.ref("config/boxingKing").once("value"),
+   db.ref("adminAudit").limitToLast(100).once("value")
+ ]);
  users=u.val()||{};
- const requests=cr.val()||{};
- deposits={}; withdrawals={};
- Object.entries(requests).forEach(([id,r])=>{
-   if(!r)return;
-   if(r.type==="deposit") deposits[id]=r;
-   else if(r.type==="withdraw"||r.type==="withdrawal") withdrawals[id]=r;
- });
- boxingConfig=c.val()||{};render();renderConfig();renderAudit(a.val()||{});
+ deposits=dep.val()||{};
+ withdrawals=wd.val()||{};
+ boxingConfig=c.val()||{};
+ render();
+ renderConfig();
+ renderAudit(a.val()||{});
 }
 
 function populateBonusUsers(){
@@ -277,48 +280,77 @@ $("removeInactiveBtn").onclick=async()=>{
 };
 window.viewUser=uid=>{const u=users[uid]||{};$("userDetails").innerHTML=`<div class="notice"><b>${esc(u.email||"—")}</b><br>UID: ${esc(uid)}<br>Balance: ${money(u.balance)}<br>Aviator: ${u.wins||0} wins / ${u.games||0} games<br>Boxing King: ${u.boxingKingWins||0} wins / ${u.boxingKingGames||0} games</div>`;$("userModal").classList.remove("hidden")};
 function renderRequests(){
- const dep=Object.entries(deposits).reverse();$("depositsBody").innerHTML=dep.map(([id,r])=>`<tr><td>${esc(r.email||r.uid||"—")}</td><td>${money(r.amount)}</td><td>${esc(r.method)}</td><td>${esc(r.trxId||"—")}</td><td><span class="badge ${r.status==="approved"?"ok":r.status==="rejected"?"bad":"warn"}">${esc(r.status||"pending")}</span></td><td>${(r.status && r.status!=="pending")?"—":`<button class="btn primary" onclick="requestAction('deposits','${esc(id)}','approved')">Approve</button> <button class="btn danger" onclick="requestAction('deposits','${esc(id)}','rejected')">Reject</button>`}</td></tr>`).join("")||`<tr><td colspan="6">No deposit requests.</td></tr>`;
- const wd=Object.entries(withdrawals).reverse();$("withdrawalsBody").innerHTML=wd.map(([id,r])=>`<tr><td>${esc(r.email||r.uid||"—")}</td><td>${money(r.amount)}</td><td>${esc(r.method)}</td><td>${esc(r.accountNo||"—")}</td><td><span class="badge ${r.status==="approved"?"ok":r.status==="rejected"?"bad":"warn"}">${esc(r.status||"pending")}</span></td><td>${(r.status && r.status!=="pending")?"—":`<button class="btn primary" onclick="requestAction('withdrawals','${esc(id)}','approved')">Approve</button> <button class="btn danger" onclick="requestAction('withdrawals','${esc(id)}','rejected')">Reject</button>`}</td></tr>`).join("")||`<tr><td colspan="6">No withdrawal requests.</td></tr>`;
+ const dep=Object.entries(deposits).reverse();$("depositsBody").innerHTML=dep.map(([id,r])=>`<tr><td>${esc(r.email||r.uid||"—")}</td><td>${money(r.amount)}</td><td>${esc(r.method)}</td><td>${esc(r.trxId||"—")}</td><td><span class="badge ${r.status==="approved"?"ok":r.status==="rejected"?"bad":"warn"}">${esc(r.status||"pending")}</span></td><td>${(r.status && r.status!=="pending")?"—":`<button class="btn primary" data-request-id="${esc(id)}" onclick="requestAction('deposits','${esc(id)}','approved')">Approve</button> <button class="btn danger" data-request-id="${esc(id)}" onclick="requestAction('deposits','${esc(id)}','rejected')">Reject</button>`}</td></tr>`).join("")||`<tr><td colspan="6">No deposit requests.</td></tr>`;
+ const wd=Object.entries(withdrawals).reverse();$("withdrawalsBody").innerHTML=wd.map(([id,r])=>`<tr><td>${esc(r.email||r.uid||"—")}</td><td>${money(r.amount)}</td><td>${esc(r.method)}</td><td>${esc(r.accountNo||"—")}</td><td><span class="badge ${r.status==="approved"?"ok":r.status==="rejected"?"bad":"warn"}">${esc(r.status||"pending")}</span></td><td>${(r.status && r.status!=="pending")?"—":`<button class="btn primary" data-request-id="${esc(id)}" onclick="requestAction('withdrawals','${esc(id)}','approved')">Approve</button> <button class="btn danger" data-request-id="${esc(id)}" onclick="requestAction('withdrawals','${esc(id)}','rejected')">Reject</button>`}</td></tr>`).join("")||`<tr><td colspan="6">No withdrawal requests.</td></tr>`;
 }
 window.requestAction=async(type,id,status)=>{
-  const path=`coinRequests/${id}`;
+  if(status!=="approved" && status!=="rejected"){toast("Invalid request action");return}
+  const path=`adminRequests/${type}/${id}`;
+  const actionButtons=document.querySelectorAll(`button[data-request-id="${CSS.escape(id)}"]`);
+  actionButtons.forEach(b=>b.disabled=true);
+
   try{
     const snap=await db.ref(path).once("value");
     const r=snap.val();
-    const expectedType=type==="deposits"?"deposit":"withdraw";
-    if(!r || (r.type!==expectedType && !(expectedType==="withdraw" && r.type==="withdrawal")) || (r.status && r.status!=="pending")){
+    if(!r){
       toast("Request already processed or missing");
+      await loadAll();
+      return;
+    }
+    if(r.status && r.status!=="pending"){
+      toast("Request already processed");
+      await loadAll();
       return;
     }
 
-    // Approve/reject the request atomically first so two admin clicks cannot process it twice.
+    // Claim the request atomically. This prevents two admin clicks/tabs
+    // from approving the same pending request twice.
     const claim=await db.ref(path).transaction(req=>{
       if(!req || (req.status && req.status!=="pending")) return;
-      req.status=status;
+      req.status="processing";
       req.reviewedAt=Date.now();
       req.reviewedBy=auth.currentUser?.uid||"direct-dashboard";
+      req.reviewAction=status;
       return req;
     });
+
     const processed=claim.snapshot.val();
     if(!claim.committed || !processed){
       toast("Request was already processed");
+      await loadAll();
       return;
     }
 
-    if(status==="approved" && expectedType==="deposit"){
-      const uid=processed.uid;
-      const amount=Number(processed.amount||0);
-      if(!uid || !Number.isFinite(amount) || amount<=0) throw new Error("Invalid deposit request");
-      await db.ref(`users/${uid}/balance`).transaction(v=>Number(v||0)+amount);
+    if(status==="approved" && type==="deposits"){
+      const uid=String(processed.uid||"");
+      const amount=Number(processed.amount);
+      if(!uid || !Number.isFinite(amount) || amount<=0){
+        await db.ref(path).update({status:"pending",reviewedAt:null,reviewedBy:null,reviewAction:null});
+        throw new Error("Invalid deposit request");
+      }
+
+      // Add the approved deposit atomically to the user's current balance.
+      const balanceResult=await db.ref(`users/${uid}/balance`).transaction(v=>Number(v||0)+amount);
+      if(!balanceResult.committed){
+        await db.ref(path).update({status:"pending",reviewedAt:null,reviewedBy:null,reviewAction:null});
+        throw new Error("Balance update was not committed");
+      }
+
+      await db.ref(path).update({balanceCredited:true});
     }
 
-    // Once approved or rejected, remove the request from the pending list.
+    // Processed requests are intentionally removed from the request queue.
     await db.ref(path).remove();
-    await audit(`${type}_${status}`,id,JSON.stringify({uid:processed.uid||null,amount:processed.amount||0}));
+    await audit(`${type}_${status}`,id,JSON.stringify({
+      uid:processed.uid||null,
+      amount:Number(processed.amount||0),
+      method:processed.method||null
+    }));
     await loadAll();
     toast(status==="approved"?"Approved and processed":"Rejected and removed");
   }catch(e){
     toast("Request update failed: "+(e.message||e));
+    await loadAll().catch(()=>{});
   }
 };
 
@@ -348,9 +380,23 @@ async function loadAnnouncement(){const s=await db.ref("adminSettings/announceme
 function renderAudit(data){const rows=Object.values(data).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));$("auditBody").innerHTML=rows.map(x=>`<tr><td>${x.timestamp?new Date(x.timestamp).toLocaleString():"—"}</td><td>${esc(x.adminEmail||x.adminUid)}</td><td>${esc(x.action)}</td><td>${esc(x.target)}</td><td>${esc(x.details)}</td></tr>`).join("")||`<tr><td colspan="5">No audit entries.</td></tr>`}
 
 
+let requestListenersStarted=false;
+function startRequestListeners(){
+  if(requestListenersStarted) return;
+  requestListenersStarted=true;
+  db.ref("adminRequests/deposits").on("value",snap=>{
+    deposits=snap.val()||{};
+    if(typeof render === "function") render();
+  });
+  db.ref("adminRequests/withdrawals").on("value",snap=>{
+    withdrawals=snap.val()||{};
+    if(typeof render === "function") render();
+  });
+}
+
 auth.onAuthStateChanged(async user=>{
   $("adminEmail").textContent=user?(user.email||user.uid):"Direct dashboard access";
-  try{await loadAll();await loadAnnouncement()}catch(e){toast(e.message)}
+  try{await loadAll();startRequestListeners();await loadAnnouncement()}catch(e){toast(e.message)}
 });
 
 
@@ -418,7 +464,7 @@ auth.onAuthStateChanged(async user=>{
       const updates = {};
 
       // Never delete users/{uid}/balance.
-      ["coinRequests", "adminRequests", "adminSettings", "adminAudit", "auditLogs", "config"].forEach(function (path) {
+      ["adminRequests", "adminSettings", "adminAudit", "auditLogs", "config"].forEach(function (path) {
         if (root[path] !== undefined) updates[path] = null;
       });
 
