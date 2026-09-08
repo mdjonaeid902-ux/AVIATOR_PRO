@@ -255,26 +255,53 @@
 
     // ---------------- Payment Numbers & Notice Box Config ----------------
     function loadPaymentMethods() {
+        // Multi-path checking to ensure data fetches correctly
         db.ref('config/paymentMethods').on('value', snapshot => {
             const pm = snapshot.val() || {};
-            document.getElementById('pm-bkash').value = pm.bkash || '';
-            document.getElementById('pm-nagad').value = pm.nagad || '';
-            document.getElementById('pm-rocket').value = pm.rocket || '';
-            document.getElementById('pm-instruction').value = pm.instruction || '';
+            if(pm.bkash || pm.nagad || pm.rocket) {
+                fillPaymentFields(pm);
+            } else {
+                db.ref('paymentMethods').once('value', snap2 => {
+                    const pm2 = snap2.val() || {};
+                    fillPaymentFields(pm2);
+                });
+            }
         });
     }
 
+    function fillPaymentFields(pm) {
+        document.getElementById('pm-bkash').value = pm.bkash || pm.bkashNumber || '';
+        document.getElementById('pm-nagad').value = pm.nagad || pm.nagadNumber || '';
+        document.getElementById('pm-rocket').value = pm.rocket || pm.rocketNumber || '';
+        document.getElementById('pm-instruction').value = pm.instruction || pm.notice || '';
+    }
+
     document.getElementById('save-payment-methods-btn').addEventListener('click', function() {
+        const bkash = document.getElementById('pm-bkash').value.trim();
+        const nagad = document.getElementById('pm-nagad').value.trim();
+        const rocket = document.getElementById('pm-rocket').value.trim();
+        const instruction = document.getElementById('pm-instruction').value.trim();
+
+        // Object structure covering all possible naming formats
         const pmData = {
-            bkash: document.getElementById('pm-bkash').value.trim(),
-            nagad: document.getElementById('pm-nagad').value.trim(),
-            rocket: document.getElementById('pm-rocket').value.trim(),
-            instruction: document.getElementById('pm-instruction').value.trim()
+            bkash: bkash,
+            nagad: nagad,
+            rocket: rocket,
+            bkashNumber: bkash,
+            nagadNumber: nagad,
+            rocketNumber: rocket,
+            instruction: instruction,
+            notice: instruction
         };
 
-        db.ref('config/paymentMethods').set(pmData).then(() => {
+        // Multi-path saving (Saves to all standard structures so player side receives updates)
+        Promise.all([
+            db.ref('config/paymentMethods').set(pmData),
+            db.ref('paymentMethods').set(pmData),
+            db.ref('settings/payment').set(pmData)
+        ]).then(() => {
             const msg = document.getElementById('payment-msg');
-            msg.className = 'msg ok'; msg.innerText = 'Payment numbers & Notice updated successfully!';
+            msg.className = 'msg ok'; msg.innerText = 'Payment numbers & Notice updated successfully in all paths!';
             setTimeout(() => msg.innerText = '', 3000);
         }).catch(err => {
             const msg = document.getElementById('payment-msg');
