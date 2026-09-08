@@ -1,1 +1,498 @@
-1329-530034
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gaming Zone - Ultimate Race Board</title>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --lobby-bg: #090b10;
+            --lobby-card-bg: rgba(18, 22, 33, 0.85);
+            --lobby-accent: #ffcc00;
+            --lobby-accent-orange: #ff6600;
+            --lobby-glass-border: rgba(255, 204, 0, 0.15);
+            --lobby-text: #ffffff;
+            --lobby-text-dim: #a0aec0;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow-x: hidden;
+            background-color: var(--lobby-bg);
+            color: var(--lobby-text);
+            user-select: none;
+        }
+
+        .page-screen {
+            display: none;
+            width: 100vw;
+            min-height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .page-screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lobby-header {
+            background: rgba(15, 18, 28, 0.95);
+            border-bottom: 1px solid var(--lobby-glass-border);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .lobby-brand-title {
+            font-size: 1.25rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffcc00, #ff6600);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .lobby-container {
+            flex: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 16px;
+        }
+
+        .category-badge {
+            background: linear-gradient(135deg, #ff6600, #e53935);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .games-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .game-card {
+            background: var(--lobby-card-bg);
+            border: 1px solid var(--lobby-glass-border);
+            border-radius: 18px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .game-card:active { transform: scale(0.95); }
+
+        .card-image-box {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 45px;
+            background: linear-gradient(135deg, #1b020b, #4a0817);
+        }
+
+        .game-title {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #fff;
+            text-align: center;
+        }
+
+        .back-to-lobby-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 99999;
+            background: linear-gradient(135deg, #ff3333, #990000);
+            color: white;
+            border: 1.5px solid #ffffff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .global-user-bar {
+            position: fixed;
+            top: 8px;
+            right: 8px;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(15, 18, 28, 0.92);
+            border: 1px solid rgba(255, 204, 0, 0.25);
+            border-radius: 20px;
+            padding: 6px 8px;
+        }
+
+        /* RACE BOARD STYLES */
+        #race-board-screen {
+            background: #0d1117;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        .race-container {
+            max-width: 800px;
+            margin: 40px auto 0 auto;
+            background: rgba(22, 27, 34, 0.95);
+            border: 2px solid var(--lobby-accent);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.2);
+        }
+
+        .race-track-container {
+            background: #161b22;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .race-lane {
+            position: relative;
+            height: 45px;
+            background: #21262d;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-right: 4px dashed #ff3333;
+            display: flex;
+            align-items: center;
+        }
+
+        .racer {
+            position: absolute;
+            left: 0;
+            font-size: 24px;
+            transition: left 0.2s ease-out;
+            z-index: 2;
+        }
+
+        .racer-label {
+            position: absolute;
+            left: 8px;
+            font-size: 0.7rem;
+            color: #8b949e;
+            font-weight: bold;
+        }
+
+        .race-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+            background: #0d1117;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .race-btn {
+            background: linear-gradient(135deg, #2ea44f, #238636);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .race-btn:disabled {
+            background: #30363d;
+            cursor: not-allowed;
+        }
+
+        .leaderboard {
+            margin-top: 15px;
+            background: #0d1117;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .leaderboard h3 {
+            font-size: 0.9rem;
+            color: var(--lobby-accent);
+            margin-bottom: 8px;
+        }
+
+        .rank-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .av-btn { background: #1e88e5; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.72rem; }
+        .av-btn-deposit { background: #43a047; }
+        .av-btn-withdraw { background: #fb8c00; }
+        .av-btn-logout { background: #455a64; }
+
+        .hidden { display: none !important; }
+        .av-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 200000; }
+        .av-modal { width: 90%; max-width: 320px; background: #161b22; padding: 15px; border-radius: 10px; border: 1px solid var(--glass-border); }
+        .form-group { margin-bottom: 8px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; background: rgba(0,0,0,0.6); border: 1px solid var(--glass-border); color: white; border-radius: 6px; font-size: 0.85rem; outline: none; }
+    </style>
+</head>
+
+<body>
+
+    <button class="back-to-lobby-btn hidden" id="global-back-btn" onclick="openLobby()">◀ LOBBY</button>
+
+    <div class="global-user-bar hidden" id="global-user-bar">
+        <span id="user-email-display" style="font-size:0.7rem;"></span>
+        <button class="av-btn av-btn-logout" id="logout-btn">Exit</button>
+    </div>
+
+    <!-- AUTH MODAL -->
+    <div class="av-modal-overlay hidden" id="auth-modal">
+        <div class="av-modal">
+            <h2 id="auth-title" style="font-size: 1rem; margin-bottom: 10px; text-align: center;">GAMING ZONE LOGIN</h2>
+            <form id="auth-form" onsubmit="return false;">
+                <div class="form-group"><input type="email" id="auth-email" placeholder="Email" required></div>
+                <div class="form-group"><input type="password" id="auth-password" placeholder="Password" required></div>
+                <button type="button" class="av-btn av-btn-deposit" style="width: 100%; padding: 8px;" id="auth-submit-btn">Login</button>
+                <div style="margin-top: 8px; font-size: 0.72rem; text-align: center;">
+                    <a href="#" id="toggle-auth-mode" style="color: #64b5f6; text-decoration: none;">Create Account</a>
+                </div>
+                <div id="auth-error" style="color: #e53935; font-size: 0.7rem; text-align: center; margin-top: 4px;"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LOBBY SCREEN -->
+    <div class="page-screen active" id="lobby-screen">
+        <header class="lobby-header">
+            <div class="lobby-brand-title">👑 GAMING ZONE</div>
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <div style="font-size:0.75rem;">🪙 <span id="lobby-bal" style="color:#81c784; font-weight:bold;">0.00</span></div>
+            </div>
+        </header>
+
+        <main class="lobby-container">
+            <div class="category-badge">🏎️ LIVE RACING ZONE</div>
+            <div class="games-grid">
+                <div class="game-card" onclick="openGameScreen('race-board-screen')">
+                    <div class="card-image-box">🏎️</div>
+                    <div class="game-title">আল্টিমেট রেস বোর্ড</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- RACE BOARD SCREEN -->
+    <div class="page-screen" id="race-board-screen">
+        <div class="race-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 style="font-size: 1.1rem; color: var(--lobby-accent);">🏎️ স্পিড রেস ট্র্যাকার</h2>
+                <button class="av-btn" onclick="toggleFullScreen()">📱 ফুলস্ক্রিন</button>
+            </div>
+
+            <div class="race-track-container">
+                <div class="race-lane">
+                    <span class="racer-label">LANE 1 (রেড ফক্স)</span>
+                    <div class="racer" id="racer1">🏎️</div>
+                </div>
+                <div class="race-lane">
+                    <span class="racer-label">LANE 2 (ব্লু থান্ডার)</span>
+                    <div class="racer" id="racer2">🏎️</div>
+                </div>
+                <div class="race-lane">
+                    <span class="racer-label">LANE 3 (গ্রিন শ্যাডো)</span>
+                    <div class="racer" id="racer3">🏎️</div>
+                </div>
+            </div>
+
+            <div class="race-controls">
+                <div>
+                    <span style="font-size: 0.75rem; color: #8b949e;">বেট সিলেকশন:</span>
+                    <select id="racer-select" style="background:#161b22; color:white; border:1px solid #30363d; padding:4px; border-radius:4px; font-size:0.75rem;">
+                        <option value="1">LANE 1 (রেড)</option>
+                        <option value="2">LANE 2 (ব্লু)</option>
+                        <option value="3">LANE 3 (গ্রিন)</option>
+                    </select>
+                </div>
+                <button class="race-btn" id="start-race-btn" onclick="startRace()">রেস শুরু করুন (৫০ কয়েন)</button>
+            </div>
+
+            <div class="leaderboard">
+                <h3>🏆 সাম্প্রতিক বিজয়ী রেসারগণ</h3>
+                <div id="leaderboard-list">
+                    <div class="rank-item"><span>১. কোনো রেস রেজাল্ট নেই</span><span>-</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyTOnCm5IuPcB-yvGjFl3KbwRVxNrcNSY",
+            authDomain: "ff-to-gaming-4ea1b.firebaseapp.com",
+            databaseURL: "https://ff-to-gaming-4ea1b-default-rtdb.firebaseio.com",
+            projectId: "ff-to-gaming-4ea1b",
+            storageBucket: "ff-to-gaming-4ea1b.appspot.com",
+            messagingSenderId: "816776130875",
+            appId: "1:816776130875:web:c3e7984e0de53cbd89871e"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        let currentUser = null;
+        let currentBalance = 0;
+        let isRacing = false;
+
+        // Auth handling
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-modal').classList.add('hidden');
+                document.getElementById('global-user-bar').classList.remove('hidden');
+                document.getElementById('user-email-display').innerText = user.email;
+
+                db.ref('users/' + user.uid + '/balance').on('value', snap => {
+                    currentBalance = snap.val() || 0;
+                    document.getElementById('lobby-bal').innerText = currentBalance.toFixed(2);
+                });
+            } else {
+                document.getElementById('auth-modal').classList.remove('hidden');
+                document.getElementById('global-user-bar').classList.add('hidden');
+            }
+        });
+
+        // Simple Login Script
+        document.getElementById('auth-submit-btn').onclick = () => {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            auth.signInWithEmailAndPassword(email, pass).catch(err => {
+                auth.createUserWithEmailAndPassword(email, pass).then(cred => {
+                    db.ref('users/' + cred.user.uid).set({ balance: 1000 });
+                });
+            });
+        };
+
+        document.getElementById('logout-btn').onclick = () => auth.signOut();
+
+        function openGameScreen(id) {
+            document.querySelectorAll('.page-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('global-back-btn').classList.remove('hidden');
+        }
+
+        function openLobby() {
+            document.querySelectorAll('.page-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('lobby-screen').classList.add('active');
+            document.getElementById('global-back-btn').classList.add('hidden');
+        }
+
+        // RACE LOGIC
+        function startRace() {
+            if (isRacing) return;
+            if (currentBalance < 50) return alert("রেসে যোগ দিতে অন্তত ৫০ কয়েন ব্যালেন্স দরকার!");
+
+            isRacing = true;
+            document.getElementById('start-race-btn').disabled = true;
+
+            // Balance Deduct
+            db.ref('users/' + currentUser.uid + '/balance').set(currentBalance - 50);
+
+            let p1 = 0, p2 = 0, p3 = 0;
+            const r1 = document.getElementById('racer1');
+            const r2 = document.getElementById('racer2');
+            const r3 = document.getElementById('racer3');
+
+            const interval = setInterval(() => {
+                p1 += Math.random() * 4;
+                p2 += Math.random() * 4;
+                p3 += Math.random() * 4;
+
+                r1.style.left = Math.min(p1, 85) + '%';
+                r2.style.left = Math.min(p2, 85) + '%';
+                r3.style.left = Math.min(p3, 85) + '%';
+
+                if (p1 >= 85 || p2 >= 85 || p3 >= 85) {
+                    clearInterval(interval);
+                    isRacing = false;
+                    document.getElementById('start-race-btn').disabled = false;
+
+                    let winner = 1;
+                    if (p2 > p1 && p2 > p3) winner = 2;
+                    if (p3 > p1 && p3 > p2) winner = 3;
+
+                    const selected = parseInt(document.getElementById('racer-select').value);
+                    if (selected === winner) {
+                        alert(`🎉 অভিনন্দন! LANE ${winner} জিতেছে। আপনি ১০০ কয়েন পুরস্কার পেয়েছেন!`);
+                        db.ref('users/' + currentUser.uid + '/balance').set(currentBalance + 100);
+                    } else {
+                        alert(`❌ LANE ${winner} জিতেছে। আপনি হেরেছেন!`);
+                    }
+
+                    // Reset Position
+                    setTimeout(() => {
+                        r1.style.left = '0%';
+                        r2.style.left = '0%';
+                        r3.style.left = '0%';
+                    }, 1500);
+                }
+            }, 50);
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+    </script>
+</body>
+</html>
