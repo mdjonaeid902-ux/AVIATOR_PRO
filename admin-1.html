@@ -192,8 +192,16 @@ function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.re
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
 $("closeModal").onclick=()=>$("userModal").classList.add("hidden");
 async function loadAll(){
- const [u,d,w,c,a]=await Promise.all([db.ref("users").once("value"),db.ref("adminRequests/deposits").once("value"),db.ref("adminRequests/withdrawals").once("value"),db.ref("config/boxingKing").once("value"),db.ref("adminAudit").limitToLast(100).once("value")]);
- users=u.val()||{};deposits=d.val()||{};withdrawals=w.val()||{};boxingConfig=c.val()||{};render();renderConfig();renderAudit(a.val()||{});
+ const [u,cr,c,a]=await Promise.all([db.ref("users").once("value"),db.ref("coinRequests").once("value"),db.ref("config/boxingKing").once("value"),db.ref("adminAudit").limitToLast(100).once("value")]);
+ users=u.val()||{};
+ const requests=cr.val()||{};
+ deposits={}; withdrawals={};
+ Object.entries(requests).forEach(([id,r])=>{
+   if(!r)return;
+   if(r.type==="deposit") deposits[id]=r;
+   else if(r.type==="withdraw"||r.type==="withdrawal") withdrawals[id]=r;
+ });
+ boxingConfig=c.val()||{};render();renderConfig();renderAudit(a.val()||{});
 }
 
 function populateBonusUsers(){
@@ -273,24 +281,47 @@ function renderRequests(){
  const wd=Object.entries(withdrawals).reverse();$("withdrawalsBody").innerHTML=wd.map(([id,r])=>`<tr><td>${esc(r.email||r.uid||"—")}</td><td>${money(r.amount)}</td><td>${esc(r.method)}</td><td>${esc(r.accountNo||"—")}</td><td><span class="badge ${r.status==="approved"?"ok":r.status==="rejected"?"bad":"warn"}">${esc(r.status||"pending")}</span></td><td>${(r.status && r.status!=="pending")?"—":`<button class="btn primary" onclick="requestAction('withdrawals','${esc(id)}','approved')">Approve</button> <button class="btn danger" onclick="requestAction('withdrawals','${esc(id)}','rejected')">Reject</button>`}</td></tr>`).join("")||`<tr><td colspan="6">No withdrawal requests.</td></tr>`;
 }
 window.requestAction=async(type,id,status)=>{
-  const path=`adminRequests/${type}/${id}`;
-  const snap=await db.ref(path).once("value");
-  const r=snap.val();
-  if(!r||r.status){toast("Request already processed or missing");return}
-  if(status==="approved"&&type==="deposits"){
-    const uid=r.uid;
-    const amount=Number(r.amount||0);
-    if(!uid||!Number.isFinite(amount)||amount<=0){toast("Invalid deposit request");return}
-    const balRef=db.ref(`users/${uid}/balance`);
-    await balRef.transaction(v=>Number(v||0)+amount);
-    await db.ref(path).update({status,processedAt:firebase.database.ServerValue.TIMESTAMP,processedBy:auth.currentUser?.uid||"direct-dashboard",balanceCredited:true});
-  }else{
-    await db.ref(path).update({status,processedAt:firebase.database.ServerValue.TIMESTAMP,processedBy:auth.currentUser?.uid||"direct-dashboard"});
+  const path=`coinRequests/${id}`;
+  try{
+    const snap=await db.ref(path).once("value");
+    const r=snap.val();
+    const expectedType=type==="deposits"?"deposit":"withdraw";
+    if(!r || (r.type!==expectedType && !(expectedType==="withdraw" && r.type==="withdrawal")) || (r.status && r.status!=="pending")){
+      toast("Request already processed or missing");
+      return;
+    }
+
+    // Approve/reject the request atomically first so two admin clicks cannot process it twice.
+    const claim=await db.ref(path).transaction(req=>{
+      if(!req || (req.status && req.status!=="pending")) return;
+      req.status=status;
+      req.reviewedAt=Date.now();
+      req.reviewedBy=auth.currentUser?.uid||"direct-dashboard";
+      return req;
+    });
+    const processed=claim.snapshot.val();
+    if(!claim.committed || !processed){
+      toast("Request was already processed");
+      return;
+    }
+
+    if(status==="approved" && expectedType==="deposit"){
+      const uid=processed.uid;
+      const amount=Number(processed.amount||0);
+      if(!uid || !Number.isFinite(amount) || amount<=0) throw new Error("Invalid deposit request");
+      await db.ref(`users/${uid}/balance`).transaction(v=>Number(v||0)+amount);
+    }
+
+    // Once approved or rejected, remove the request from the pending list.
+    await db.ref(path).remove();
+    await audit(`${type}_${status}`,id,JSON.stringify({uid:processed.uid||null,amount:processed.amount||0}));
+    await loadAll();
+    toast(status==="approved"?"Approved and processed":"Rejected and removed");
+  }catch(e){
+    toast("Request update failed: "+(e.message||e));
   }
-  await audit(`${type}_${status}`,id,JSON.stringify({uid:r.uid||null,amount:r.amount||0}));
-  await loadAll();
-  toast(status+" complete")
 };
+
 function renderConfig(){
   const c=boxingConfig||{};
   $("bkEnabled").checked=c.enabled!==false;
@@ -387,7 +418,7 @@ auth.onAuthStateChanged(async user=>{
       const updates = {};
 
       // Never delete users/{uid}/balance.
-      ["adminRequests", "adminSettings", "adminAudit", "auditLogs", "config"].forEach(function (path) {
+      ["coinRequests", "adminRequests", "adminSettings", "adminAudit", "auditLogs", "config"].forEach(function (path) {
         if (root[path] !== undefined) updates[path] = null;
       });
 
