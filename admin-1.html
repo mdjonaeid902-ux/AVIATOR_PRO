@@ -1,514 +1,175 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gaming Zone - Admin Panel</title>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Gaming Zone — Admin Dashboard</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <style>
-    :root {
-        --bg: #0b0d13;
-        --card: rgba(20, 24, 36, 0.9);
-        --border: rgba(255, 204, 0, 0.18);
-        --accent: #ffcc00;
-        --accent2: #ff6600;
-        --text: #ffffff;
-        --dim: #8fa0b3;
-        --green: #43a047;
-        --red: #e53935;
-    }
-    * { box-sizing: border-box; margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; }
+:root{--bg:#071018;--panel:#0d1a24;--panel2:#102331;--line:#1e3949;--text:#edf6fb;--muted:#91a8b6;--accent:#54e0a7;--warn:#ffbd5a;--danger:#ff6f7d;--blue:#67a8ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#102a39 0,#071018 48%,#050b10 100%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans Bengali,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}.app{min-height:100vh;display:grid;grid-template-columns:250px 1fr}.side{padding:22px 16px;border-right:1px solid var(--line);background:rgba(5,12,17,.86);backdrop-filter:blur(14px);position:sticky;top:0;height:100vh}.brand{font-weight:900;font-size:20px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.nav{margin-top:28px;display:grid;gap:8px}.nav button{border:1px solid transparent;background:transparent;color:var(--muted);padding:12px 13px;border-radius:12px;text-align:left}.nav button.active,.nav button:hover{background:var(--panel2);border-color:var(--line);color:var(--text)}.main{padding:24px;min-width:0}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:22px}.top h1{margin:0;font-size:25px}.pill{padding:7px 10px;border-radius:999px;background:#10261f;color:var(--accent);font-size:12px}.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:10px 13px;border-radius:10px}.btn.primary{background:var(--accent);color:#062016;border-color:var(--accent);font-weight:800}.btn.danger{background:#32151a;color:#ff9aa4;border-color:#64232b}.btn:disabled{opacity:.45;cursor:not-allowed}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:linear-gradient(145deg,rgba(16,35,49,.92),rgba(10,22,31,.92));border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:0 12px 30px rgba(0,0,0,.16)}.stat .label{color:var(--muted);font-size:12px}.stat .num{font-size:26px;font-weight:900;margin-top:7px}.section{margin-top:18px}.section h2{font-size:16px;margin:0 0 11px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}.table{width:100%;border-collapse:collapse;min-width:720px}.table th,.table td{padding:12px 11px;border-bottom:1px solid rgba(30,57,73,.65);text-align:left;font-size:13px}.table th{color:var(--muted);font-weight:600;background:#0b1821}.table tr:last-child td{border-bottom:0}.badge{font-size:11px;border-radius:999px;padding:5px 8px;background:#162b38;color:#b9d1df}.badge.ok{background:#102b22;color:var(--accent)}.badge.warn{background:#302515;color:var(--warn)}.badge.bad{background:#35171c;color:#ff9aa4}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.field label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);background:#08141d;color:var(--text);border-radius:10px;padding:10px}.field textarea{min-height:90px;resize:vertical}.full{grid-column:1/-1}.notice{padding:11px 12px;border-radius:11px;background:#0d202b;color:var(--muted);font-size:12px;line-height:1.55}.search{width:100%;border:1px solid var(--line);background:#08141d;color:var(--text);padding:11px;border-radius:10px;margin-bottom:11px}.page{display:none}.page.active{display:block}.toast{position:fixed;right:18px;bottom:18px;background:#102431;border:1px solid var(--line);padding:12px 14px;border-radius:12px;max-width:340px;z-index:20}.modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:grid;place-items:center;padding:18px;z-index:10}.modal .card{width:min(520px,100%)}
+@media(max-width:900px){.app{grid-template-columns:1fr}.side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:14px}.nav{display:flex;overflow:auto;margin-top:12px}.nav button{white-space:nowrap}.main{padding:16px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.form{grid-template-columns:1fr}}
 
-    /* ---------- Dashboard ---------- */
-    #dashboard-screen { padding: 12px; max-width: 1100px; margin: 0 auto; }
-    .dash-header {
-        display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
-        padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px;
-    }
-    .dash-header h1 { font-size: 1rem; }
-
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 14px; }
-    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
-    .stat-card .val { font-size: 1.3rem; font-weight: 900; color: var(--accent); }
-    .stat-card .lbl { font-size: 0.65rem; color: var(--dim); margin-top: 2px; }
-
-    .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
-    .tab-btn {
-        background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--dim);
-        padding: 8px 14px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; white-space: nowrap; font-weight: 700;
-    }
-    .tab-btn.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; border-color: transparent; }
-
-    .panel { display: none; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
-    .panel.active { display: block; }
-
-    table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
-    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.06); white-space: nowrap; }
-    th { color: var(--dim); font-size: 0.68rem; text-transform: uppercase; }
-    .table-wrap { overflow-x: auto; }
-
-    .adj-btn { background: var(--accent2); border: none; color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.68rem; cursor: pointer; }
-    .btn-approve { background: var(--green); border: none; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.68rem; cursor: pointer; font-weight: bold; margin-right: 4px; }
-    .btn-reject { background: var(--red); border: none; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.68rem; cursor: pointer; font-weight: bold; }
-
-    .phone-tag { background: rgba(255, 204, 0, 0.15); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-    .badge { padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase; }
-    .badge.pending { background: #ff9800; color: #000; }
-    .badge.approved { background: var(--green); color: #fff; }
-    .badge.rejected { background: var(--red); color: #fff; }
-
-    .config-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-    .config-form label { font-size: 0.7rem; color: var(--dim); display: block; margin-bottom: 4px; }
-    .config-form input[type="text"], .config-form input[type="number"] {
-        width: 100%; padding: 8px; background: rgba(0,0,0,0.5); border: 1px solid var(--border);
-        color: var(--text); border-radius: 6px; font-size: 0.85rem; outline: none;
-    }
-    .toggle-row { display: flex; align-items: center; gap: 8px; }
-    .save-btn {
-        margin-top: 14px; padding: 10px 18px; background: linear-gradient(135deg, var(--green), #1b5e20);
-        border: none; color: white; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.85rem;
-    }
-    .note-box { font-size: 0.68rem; color: var(--dim); background: rgba(255,204,0,0.06); border: 1px dashed var(--border); padding: 8px; border-radius: 8px; margin-bottom: 14px; }
-    .msg { font-size: 0.75rem; margin-top: 10px; }
-    .msg.error { color: var(--red); }
-    .msg.ok { color: var(--green); }
 </style>
 </head>
 <body>
 
-<!-- ================= DASHBOARD SCREEN ================= -->
-<div id="dashboard-screen">
-    <div class="dash-header">
-        <div>
-            <h1>👑 Gaming Zone Admin Console</h1>
-        </div>
-    </div>
+<div id="app" class="app">
+<aside class="side">
+  <div class="brand">GAMING ZONE <small>ADMIN CONTROL CENTER</small></div>
+  <div class="nav">
+    <button class="active" data-page="overview">📊 Overview</button>
+    <button data-page="users">👥 Users</button>
+    <button data-page="requests">💳 Requests</button>
+    <button data-page="games">🎮 Games & Config</button>
+    <button data-page="announcement">📢 Announcement</button>
+    <button data-page="audit">🛡️ Audit Log</button>
+  </div>
+  
+</aside>
+<main class="main">
+  <div class="top"><div><h1 id="pageTitle">Overview</h1><div id="adminEmail" style="color:var(--muted);font-size:12px;margin-top:4px"></div></div><span class="pill">● ADMIN SESSION</span></div>
 
-    <div class="stats-grid" id="stats-grid"></div>
-
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="payment-methods-panel">Payment & Notice</button>
-        <button class="tab-btn" data-tab="deposits-panel">Deposit Requests</button>
-        <button class="tab-btn" data-tab="withdraws-panel">Withdraw Requests</button>
-        <button class="tab-btn" data-tab="users-panel">Users &amp; Balances</button>
-        <button class="tab-btn" data-tab="config-panel">Boxing King Config</button>
-        <button class="tab-btn" data-tab="audit-panel">Audit Log</button>
+  <section id="overview" class="page active">
+    <div class="grid">
+      <div class="card stat"><div class="label">Total users</div><div id="sUsers" class="num">—</div></div>
+      <div class="card stat"><div class="label">Total balance</div><div id="sBalance" class="num">—</div></div>
+      <div class="card stat"><div class="label">Deposit requests</div><div id="sDeposits" class="num">—</div></div>
+      <div class="card stat"><div class="label">Withdrawal requests</div><div id="sWithdrawals" class="num">—</div></div>
     </div>
-
-    <!-- 1. PAYMENT METHODS & NOTICE BOX PANEL -->
-    <div class="panel active" id="payment-methods-panel">
-        <div class="note-box">এখানে বিকাশ, নগদ ও রকেট নম্বর সেভ করুন এবং প্লেয়ারদের জন্য নোটিশ বক্সে বার্তা লিখুন।</div>
-        <div class="config-form">
-            <div>
-                <label>bKash Personal / Agent Number</label>
-                <input type="text" id="pm-bkash" placeholder="01700000000">
-            </div>
-            <div>
-                <label>Nagad Personal / Agent Number</label>
-                <input type="text" id="pm-nagad" placeholder="01800000000">
-            </div>
-            <div>
-                <label>Rocket Personal / Agent Number</label>
-                <input type="text" id="pm-rocket" placeholder="01900000000">
-            </div>
-            <div style="grid-column: 1 / -1;">
-                <label>Notice / Payment Instruction (প্লেয়ারদের দেখানো হবে)</label>
-                <input type="text" id="pm-instruction" placeholder="ক্যাশ আউট বা সেন্ড মানি করে ট্রানজ্যাকশন আইডি দিন।">
-            </div>
-        </div>
-        <button class="save-btn" id="save-payment-methods-btn">Save Numbers & Notice</button>
-        <div class="msg" id="payment-msg"></div>
+    <div class="section grid" style="grid-template-columns:1.2fr .8fr">
+      <div class="card"><h2>Game activity</h2><div id="gameStats" class="notice">Loading…</div></div>
+      <div class="card"><h2>Security</h2><div class="notice">Outcome manipulation controls are intentionally not included. Use this console for transparent account management, configuration, requests and auditing.</div></div>
     </div>
+  </section>
 
-    <!-- 2. DEPOSITS PANEL -->
-    <div class="panel" id="deposits-panel">
-        <div class="note-box">ইউজারদের ডিপোজিট রিকোয়েস্ট চেক করে Approve বা Reject করুন।</div>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Time</th><th>User Email</th><th>Method</th><th>Phone</th><th>Trx ID</th><th>Amount</th><th>Status</th><th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="deposits-table-body"></tbody>
-            </table>
-        </div>
+  <section id="users" class="page">
+    <div class="card">
+      <h2>Extra Bonus Coins</h2>
+      <div class="notice" style="margin-bottom:12px">নির্দিষ্ট user-কে transparent bonus হিসেবে coins যোগ করা যাবে। এটি Boxing King-এর winning probability বা game outcome পরিবর্তন করে না।</div>
+      <div class="form">
+        <div class="field"><label>Select user</label><select id="bonusUser"><option value="">Select a user…</option></select></div>
+        <div class="field"><label>Bonus coins</label><input id="bonusAmount" type="number" min="1" step="1" placeholder="e.g. 500"></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button id="giveBonusBtn" class="btn primary">Give Bonus</button>
+        <button id="giveAllBonusBtn" class="btn">Give Same Bonus to All Users</button>
+      </div>
     </div>
+    <div class="card section"><input id="userSearch" class="search" placeholder="Search by email or UID…"><div class="table-wrap"><table class="table"><thead><tr><th>User</th><th>Balance</th><th>Games</th><th>Wins</th><th>Boxing</th><th>Action</th></tr></thead><tbody id="usersBody"></tbody></table></div></div>
+  </section>
 
-    <!-- 3. WITHDRAWS PANEL -->
-    <div class="panel" id="withdraws-panel">
-        <div class="note-box">ইউজারদের ক্যাশ-আউট রিকোয়েস্ট। Reject করলে কয়েন পুনরায় রিফান্ড হবে।</div>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Time</th><th>User Email</th><th>Method</th><th>Account</th><th>Amount</th><th>Status</th><th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="withdraws-table-body"></tbody>
-            </table>
-        </div>
-    </div>
+  <section id="requests" class="page">
+    <div class="card"><h2>Deposit requests</h2><div class="table-wrap"><table class="table"><thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Trx/Account</th><th>Status</th><th>Action</th></tr></thead><tbody id="depositsBody"></tbody></table></div></div>
+    <div class="card section"><h2>Withdrawal requests</h2><div class="table-wrap"><table class="table"><thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Status</th><th>Action</th></tr></thead><tbody id="withdrawalsBody"></tbody></table></div></div>
+  </section>
 
-    <!-- 4. USERS PANEL -->
-    <div class="panel" id="users-panel">
-        <div class="note-box">সকল ইউজারের কয়েন ব্যালেন্স ও হিস্ট্রি।</div>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Email</th><th>UID</th><th>Balance</th>
-                        <th>Aviator Games</th><th>Aviator Wins</th>
-                        <th>BK Games</th><th>BK Wins</th><th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="users-table-body"></tbody>
-            </table>
-        </div>
-    </div>
+  <section id="games" class="page">
+    <div class="card"><h2>Boxing King configuration</h2><div class="notice" style="margin-bottom:12px">এখানে game configuration দেখা/পরিবর্তন করা যাবে। কোনো নির্দিষ্ট user-এর জয়-পরাজয় গোপনে নিয়ন্ত্রণ করার option নেই।</div><div id="configFields" class="form"></div><div class="row" style="margin-top:13px"><button class="btn primary" id="saveConfig">Save configuration</button><span id="configMsg" class="badge"></span></div></div>
+  </section>
 
-    <!-- 5. CONFIG PANEL -->
-    <div class="panel" id="config-panel">
-        <div class="note-box">Boxing King গেম সেটিংস।</div>
-        <div class="config-form">
-            <div class="toggle-row">
-                <input type="checkbox" id="cfg-enabled" style="width:18px;height:18px;">
-                <label for="cfg-enabled" style="margin:0;">Boxing King Enabled</label>
-            </div>
-            <div class="toggle-row">
-                <input type="checkbox" id="cfg-testmode" style="width:18px;height:18px;">
-                <label for="cfg-testmode" style="margin:0;">Test / Practice Mode</label>
-            </div>
-            <div>
-                <label>Minimum Bet</label>
-                <input type="number" id="cfg-minbet" step="0.01">
-            </div>
-            <div>
-                <label>Maximum Bet</label>
-                <input type="number" id="cfg-maxbet" step="0.01">
-            </div>
-            <div>
-                <label>Available Bet Options</label>
-                <input type="text" id="cfg-betoptions" placeholder="1,2,3,5,10">
-            </div>
-            <div>
-                <label>Animation Speed (ms)</label>
-                <input type="number" id="cfg-animspeed" step="1">
-            </div>
-            <div>
-                <label>RTP Multiplier</label>
-                <input type="number" id="cfg-rtp" step="0.01">
-            </div>
-        </div>
-        <button class="save-btn" id="save-config-btn">Save Configuration</button>
-        <div class="msg" id="config-msg"></div>
-    </div>
+  <section id="announcement" class="page"><div class="card"><h2>Global announcement</h2><div class="field"><label>Message</label><textarea id="announcementText" placeholder="Announcement shown in the main app…"></textarea></div><div class="row" style="margin-top:12px"><button class="btn primary" id="saveAnnouncement">Publish</button><button class="btn" id="clearAnnouncement">Clear</button></div></div></section>
 
-    <!-- 6. AUDIT LOG PANEL -->
-    <div class="panel" id="audit-panel">
-        <div class="note-box">ব্যালেন্স এডজাস্টমেন্ট হিস্ট্রি।</div>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>Time</th><th>User Email</th><th>Admin</th><th>Previous</th><th>New</th><th>Delta</th><th>Reason</th></tr></thead>
-                <tbody id="audit-table-body"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
+  <section id="audit" class="page"><div class="card"><h2>Admin audit log</h2><div class="notice">Every dashboard action made by this console is recorded under <code>adminAudit</code>.</div><div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr><th>Time</th><th>Admin</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody id="auditBody"></tbody></table></div></div></section>
+</main></div>
+<div id="toast" class="toast hidden"></div>
+<div id="userModal" class="modal hidden"><div class="card"><h2>User details</h2><div id="userDetails"></div><div class="row" style="margin-top:14px"><button class="btn" id="closeModal">Close</button></div></div></div>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAyTOnCm5IuPcB-yvGjFl3KbwRVxNrcNSY",
-        authDomain: "ff-to-gaming-4ea1b.firebaseapp.com",
-        databaseURL: "https://ff-to-gaming-4ea1b-default-rtdb.firebaseio.com",
-        projectId: "ff-to-gaming-4ea1b",
-        storageBucket: "ff-to-gaming-4ea1b.appspot.com",
-        messagingSenderId: "816776130875",
-        appId: "1:816776130875:web:c3e7984e0de53cbd89871e"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+const firebaseConfig={apiKey:"AIzaSyAyTOnCm5IuPcB-yvGjFl3KbwRVxNrcNSY",authDomain:"ff-to-gaming-4ea1b.firebaseapp.com",databaseURL:"https://ff-to-gaming-4ea1b-default-rtdb.firebaseio.com",projectId:"ff-to-gaming-4ea1b",storageBucket:"ff-to-gaming-4ea1b.appspot.com",messagingSenderId:"816776130875",appId:"1:816776130875:web:c3e7984e0de53cbd89871e"};
+firebase.initializeApp(firebaseConfig);const auth=firebase.auth(),db=firebase.database();
+let users={},deposits={},withdrawals={},boxingConfig={};
+const $=id=>document.getElementById(id);
+function toast(m){$("toast").textContent=m;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),2800)}
+function esc(v){return String(v??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function money(n){return Number(n||0).toFixed(2)}
+async function audit(action,target,details){if(!auth.currentUser)return;await db.ref("adminAudit").push({adminUid:auth.currentUser.uid,adminEmail:auth.currentUser.email||"",action,target:target||"",details:details||"",timestamp:firebase.database.ServerValue.TIMESTAMP})}
+function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));$("pageTitle").textContent=p[0].toUpperCase()+p.slice(1)}
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
+$("closeModal").onclick=()=>$("userModal").classList.add("hidden");
+async function loadAll(){
+ const [u,d,w,c,a]=await Promise.all([db.ref("users").once("value"),db.ref("adminRequests/deposits").once("value"),db.ref("adminRequests/withdrawals").once("value"),db.ref("config/boxingKing").once("value"),db.ref("adminAudit").limitToLast(100).once("value")]);
+ users=u.val()||{};deposits=d.val()||{};withdrawals=w.val()||{};boxingConfig=c.val()||{};render();renderConfig();renderAudit(a.val()||{});
+}
 
-    // Load data directly on page startup
-    window.addEventListener('DOMContentLoaded', () => {
-        loadPaymentMethods();
-        loadDeposits();
-        loadWithdraws();
-        loadUsers();
-        loadConfig();
-        loadAuditLog();
-    });
+function populateBonusUsers(){
+  const sel=$("bonusUser");
+  if(!sel)return;
+  const current=sel.value;
+  sel.innerHTML='<option value="">Select a user…</option>'+Object.entries(users)
+    .sort((a,b)=>String(a[1].email||"").localeCompare(String(b[1].email||"")))
+    .map(([uid,u])=>`<option value="${esc(uid)}">${esc(u.email||uid)} — ${money(u.balance)} coins</option>`).join("");
+  if(users[current])sel.value=current;
+}
+async function giveBonus(uid, amount){
+  const n=Number(amount);
+  if(!uid||!Number.isFinite(n)||n<=0){toast("Valid user and positive bonus amount required");return}
+  const ref=db.ref("users/"+uid+"/balance");
+  await ref.transaction(v=>Number(v||0)+n);
+  const u=users[uid]||{};
+  await audit("give_extra_bonus",uid,JSON.stringify({amount:n,previousBalance:Number(u.balance||0),newBalance:Number(u.balance||0)+n}));
+  await loadAll();
+  toast("Bonus added successfully");
+}
+$("giveBonusBtn").onclick=async()=>{
+  try{await giveBonus($("bonusUser").value,$("bonusAmount").value)}
+  catch(e){toast(e.message)}
+};
+$("giveAllBonusBtn").onclick=async()=>{
+  const n=Number($("bonusAmount").value);
+  if(!Number.isFinite(n)||n<=0){toast("Enter a positive bonus amount");return}
+  const entries=Object.keys(users);
+  if(!entries.length){toast("No users found");return}
+  if(!confirm(`Give ${n} bonus coins to all ${entries.length} users?`))return;
+  const updates={};
+  entries.forEach(uid=>updates["users/"+uid+"/balance"] = Number(users[uid].balance||0)+n);
+  await db.ref().update(updates);
+  await audit("give_extra_bonus_all","all_users",JSON.stringify({amount:n,userCount:entries.length}));
+  await loadAll();
+  toast("Bonus added to all users");
+};
 
-    // ---------------- Tabs ----------------
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById(btn.dataset.tab).classList.add('active');
-        });
-    });
-
-    // ---------------- Payment Numbers & Notice Box Config ----------------
-    function loadPaymentMethods() {
-        // Multi-path checking to ensure data fetches correctly
-        db.ref('config/paymentMethods').on('value', snapshot => {
-            const pm = snapshot.val() || {};
-            if(pm.bkash || pm.nagad || pm.rocket) {
-                fillPaymentFields(pm);
-            } else {
-                db.ref('paymentMethods').once('value', snap2 => {
-                    const pm2 = snap2.val() || {};
-                    fillPaymentFields(pm2);
-                });
-            }
-        });
-    }
-
-    function fillPaymentFields(pm) {
-        document.getElementById('pm-bkash').value = pm.bkash || pm.bkashNumber || '';
-        document.getElementById('pm-nagad').value = pm.nagad || pm.nagadNumber || '';
-        document.getElementById('pm-rocket').value = pm.rocket || pm.rocketNumber || '';
-        document.getElementById('pm-instruction').value = pm.instruction || pm.notice || '';
-    }
-
-    document.getElementById('save-payment-methods-btn').addEventListener('click', function() {
-        const bkash = document.getElementById('pm-bkash').value.trim();
-        const nagad = document.getElementById('pm-nagad').value.trim();
-        const rocket = document.getElementById('pm-rocket').value.trim();
-        const instruction = document.getElementById('pm-instruction').value.trim();
-
-        // Object structure covering all possible naming formats
-        const pmData = {
-            bkash: bkash,
-            nagad: nagad,
-            rocket: rocket,
-            bkashNumber: bkash,
-            nagadNumber: nagad,
-            rocketNumber: rocket,
-            instruction: instruction,
-            notice: instruction
-        };
-
-        // Multi-path saving (Saves to all standard structures so player side receives updates)
-        Promise.all([
-            db.ref('config/paymentMethods').set(pmData),
-            db.ref('paymentMethods').set(pmData),
-            db.ref('settings/payment').set(pmData)
-        ]).then(() => {
-            const msg = document.getElementById('payment-msg');
-            msg.className = 'msg ok'; msg.innerText = 'Payment numbers & Notice updated successfully in all paths!';
-            setTimeout(() => msg.innerText = '', 3000);
-        }).catch(err => {
-            const msg = document.getElementById('payment-msg');
-            msg.className = 'msg error'; msg.innerText = 'Failed: ' + err.message;
-        });
-    });
-
-    // ---------------- Deposit Management ----------------
-    function loadDeposits() {
-        db.ref('deposits').on('value', snapshot => {
-            const data = snapshot.val() || {};
-            const tbody = document.getElementById('deposits-table-body');
-            const items = Object.keys(data).map(k => ({id: k, ...data[k]})).sort((a,b) => (b.timestamp||0)-(a.timestamp||0));
-
-            tbody.innerHTML = items.map(d => `
-                <tr>
-                    <td>${d.timestamp ? new Date(d.timestamp).toLocaleString() : '-'}</td>
-                    <td>${d.email || d.userEmail || '-'}</td>
-                    <td><b>${d.method || 'Bkash'}</b></td>
-                    <td><span class="phone-tag">${d.senderNumber || d.phone || d.accountNumber || 'N/A'}</span></td>
-                    <td><code>${d.trxId || d.transactionId || '-'}</code></td>
-                    <td>🪙 ${(Number(d.amount)||0).toFixed(2)}</td>
-                    <td><span class="badge ${d.status || 'pending'}">${d.status || 'pending'}</span></td>
-                    <td>
-                        ${(d.status === 'pending' || !d.status) ? `
-                            <button class="btn-approve" onclick="approveDeposit('${d.id}', '${d.uid}', ${d.amount})">Approve</button>
-                            <button class="btn-reject" onclick="rejectDeposit('${d.id}')">Reject</button>
-                        ` : '-'}
-                    </td>
-                </tr>
-            `).join('');
-        });
-    }
-
-    function approveDeposit(reqId, uid, amount) {
-        if(!confirm(`Approve 🪙${amount} deposit for user?`)) return;
-        db.ref('users/' + uid + '/balance').transaction(b => (b || 0) + Number(amount)).then(() => {
-            db.ref('deposits/' + reqId + '/status').set('approved');
-        }).catch(err => alert(err.message));
-    }
-
-    function rejectDeposit(reqId) {
-        if(!confirm("Reject this deposit request?")) return;
-        db.ref('deposits/' + reqId + '/status').set('rejected');
-    }
-
-    // ---------------- Withdraw Management ----------------
-    function loadWithdraws() {
-        db.ref('withdraws').on('value', snapshot => {
-            const data = snapshot.val() || {};
-            const tbody = document.getElementById('withdraws-table-body');
-            const items = Object.keys(data).map(k => ({id: k, ...data[k]})).sort((a,b) => (b.timestamp||0)-(a.timestamp||0));
-
-            tbody.innerHTML = items.map(w => `
-                <tr>
-                    <td>${w.timestamp ? new Date(w.timestamp).toLocaleString() : '-'}</td>
-                    <td>${w.email || w.userEmail || '-'}</td>
-                    <td><b>${w.method || '-'}</b></td>
-                    <td><span class="phone-tag">${w.accountNumber || w.phone || 'N/A'}</span></td>
-                    <td>🪙 ${(Number(w.amount)||0).toFixed(2)}</td>
-                    <td><span class="badge ${w.status || 'pending'}">${w.status || 'pending'}</span></td>
-                    <td>
-                        ${(w.status === 'pending' || !w.status) ? `
-                            <button class="btn-approve" onclick="approveWithdraw('${w.id}')">Approve</button>
-                            <button class="btn-reject" onclick="rejectWithdraw('${w.id}', '${w.uid}', ${w.amount})">Reject & Refund</button>
-                        ` : '-'}
-                    </td>
-                </tr>
-            `).join('');
-        });
-    }
-
-    function approveWithdraw(reqId) {
-        if(!confirm("Mark this withdrawal as Paid/Approved?")) return;
-        db.ref('withdraws/' + reqId + '/status').set('approved');
-    }
-
-    function rejectWithdraw(reqId, uid, amount) {
-        if(!confirm(`Reject request and REFUND 🪙${amount} back to user balance?`)) return;
-        db.ref('users/' + uid + '/balance').transaction(b => (b || 0) + Number(amount)).then(() => {
-            db.ref('withdraws/' + reqId + '/status').set('rejected');
-        }).catch(err => alert(err.message));
-    }
-
-    // ---------------- Users & Stats ----------------
-    function loadUsers() {
-        db.ref('users').on('value', function(snapshot) {
-            const data = snapshot.val() || {};
-            const tbody = document.getElementById('users-table-body');
-            tbody.innerHTML = '';
-
-            let totalUsers = 0, totalBalance = 0;
-            let avGames = 0, avWins = 0, bkGames = 0, bkWins = 0;
-
-            Object.keys(data).forEach(uid => {
-                const u = data[uid];
-                totalUsers++;
-                totalBalance += (u.balance || 0);
-                avGames += (u.games || 0);
-                avWins += (u.wins || 0);
-                bkGames += (u.boxingKingGames || 0);
-                bkWins += (u.boxingKingWins || 0);
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${u.email || '-'}</td>
-                    <td style="font-size:0.6rem;color:#8fa0b3;">${uid}</td>
-                    <td>🪙 ${(u.balance || 0).toFixed(2)}</td>
-                    <td>${u.games || 0}</td>
-                    <td>${u.wins || 0}</td>
-                    <td>${u.boxingKingGames || 0}</td>
-                    <td>${u.boxingKingWins || 0}</td>
-                    <td><button class="adj-btn" data-uid="${uid}" data-email="${u.email || ''}" data-bal="${u.balance || 0}">Adjust</button></td>
-                `;
-                tbody.appendChild(row);
-            });
-
-            document.getElementById('stats-grid').innerHTML = `
-                <div class="stat-card"><div class="val">${totalUsers}</div><div class="lbl">Total Users</div></div>
-                <div class="stat-card"><div class="val">🪙${totalBalance.toFixed(0)}</div><div class="lbl">Total Balance (virtual)</div></div>
-                <div class="stat-card"><div class="val">${avGames}</div><div class="lbl">Aviator Rounds</div></div>
-                <div class="stat-card"><div class="val">${avWins}</div><div class="lbl">Aviator Wins</div></div>
-                <div class="stat-card"><div class="val">${bkGames}</div><div class="lbl">Boxing King Spins</div></div>
-                <div class="stat-card"><div class="val">${bkWins}</div><div class="lbl">Boxing King Wins</div></div>
-            `;
-
-            document.querySelectorAll('.adj-btn').forEach(btn => {
-                btn.onclick = () => adjustBalance(btn.dataset.uid, btn.dataset.email, parseFloat(btn.dataset.bal));
-            });
-        });
-    }
-
-    function adjustBalance(uid, email, currentBal) {
-        const input = prompt(`New virtual balance for ${email}\n(current: ${currentBal.toFixed(2)})`, currentBal.toFixed(2));
-        if (input === null) return;
-        const newBal = parseFloat(input);
-        if (isNaN(newBal) || newBal < 0) { alert('Invalid amount'); return; }
-        const reason = prompt('Reason for this adjustment (required for audit record):', '');
-        if (!reason || !reason.trim()) { alert('A reason is required.'); return; }
-
-        db.ref('users/' + uid + '/balance').set(newBal).then(() => {
-            db.ref('balanceAdjustments').push({
-                uid, email,
-                adminEmail: "Direct Admin Access",
-                previousBalance: currentBal, newBalance: newBal, delta: (newBal - currentBal),
-                reason: reason.trim(), timestamp: Date.now()
-            });
-        }).catch(err => alert('Failed: ' + err.message));
-    }
-
-    // ---------------- Boxing King Config ----------------
-    function loadConfig() {
-        db.ref('config/boxingKing').on('value', snapshot => {
-            const cfg = snapshot.val() || {};
-            document.getElementById('cfg-enabled').checked = cfg.enabled !== false;
-            document.getElementById('cfg-testmode').checked = cfg.testMode === true;
-            document.getElementById('cfg-minbet').value = cfg.minBet != null ? cfg.minBet : 1;
-            document.getElementById('cfg-maxbet').value = cfg.maxBet != null ? cfg.maxBet : 10;
-            document.getElementById('cfg-betoptions').value = Array.isArray(cfg.betOptions) ? cfg.betOptions.join(',') : '1,2,3,5,10';
-            document.getElementById('cfg-animspeed').value = cfg.animationSpeedMs != null ? cfg.animationSpeedMs : 90;
-            document.getElementById('cfg-rtp').value = cfg.rtpFactor != null ? cfg.rtpFactor : 1.0;
-        });
-    }
-
-    document.getElementById('save-config-btn').addEventListener('click', function() {
-        const betOptions = document.getElementById('cfg-betoptions').value
-            .split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n) && n > 0);
-
-        const cfg = {
-            enabled: document.getElementById('cfg-enabled').checked,
-            testMode: document.getElementById('cfg-testmode').checked,
-            minBet: parseFloat(document.getElementById('cfg-minbet').value) || 1,
-            maxBet: parseFloat(document.getElementById('cfg-maxbet').value) || 10,
-            betOptions: betOptions.length ? betOptions : [1, 2, 3, 5, 10],
-            animationSpeedMs: parseInt(document.getElementById('cfg-animspeed').value) || 90,
-            rtpFactor: parseFloat(document.getElementById('cfg-rtp').value) || 1.0
-        };
-
-        db.ref('config/boxingKing').set(cfg).then(() => {
-            const msg = document.getElementById('config-msg');
-            msg.className = 'msg ok'; msg.innerText = 'Configuration saved and is now live for all players.';
-            setTimeout(() => msg.innerText = '', 3000);
-        }).catch(err => {
-            const msg = document.getElementById('config-msg');
-            msg.className = 'msg error'; msg.innerText = 'Save failed: ' + err.message;
-        });
-    });
-
-    // ---------------- Audit Log ----------------
-    function loadAuditLog() {
-        db.ref('balanceAdjustments').limitToLast(100).on('value', snapshot => {
-            const data = snapshot.val() || {};
-            const tbody = document.getElementById('audit-table-body');
-            const rows = Object.values(data).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            tbody.innerHTML = rows.map(r => `
-                <tr>
-                    <td>${new Date(r.timestamp).toLocaleString()}</td>
-                    <td>${r.email || '-'}</td>
-                    <td>${r.adminEmail || '-'}</td>
-                    <td>${(r.previousBalance || 0).toFixed(2)}</td>
-                    <td>${(r.newBalance || 0).toFixed(2)}</td>
-                    <td style="color:${(r.delta || 0) >= 0 ? '#81c784' : '#ef9a9a'}">${(r.delta || 0) >= 0 ? '+' : ''}${(r.delta || 0).toFixed(2)}</td>
-                    <td>${r.reason || ''}</td>
-                </tr>
-            `).join('');
-        });
-    }
+function render(){
+ populateBonusUsers();
+ const arr=Object.entries(users);$("sUsers").textContent=arr.length;$("sBalance").textContent=arr.reduce((s,[,u])=>s+Number(u.balance||0),0).toFixed(2);$("sDeposits").textContent=Object.keys(deposits).length;$("sWithdrawals").textContent=Object.keys(withdrawals).length;
+ const games=arr.reduce((s,[,u])=>s+Number(u.games||0),0),wins=arr.reduce((s,[,u])=>s+Number(u.wins||0),0),bg=arr.reduce((s,[,u])=>s+Number(u.boxingKingGames||0),0),bw=arr.reduce((s,[,u])=>s+Number(u.boxingKingWins||0),0);$("gameStats").innerHTML=`Aviator games: <b>${games}</b> · wins: <b>${wins}</b><br>Boxing King games: <b>${bg}</b> · wins: <b>${bw}</b>`;
+ const q=$("userSearch").value.toLowerCase();$("usersBody").innerHTML=arr.filter(([uid,u])=>(uid+" "+(u.email||"")).toLowerCase().includes(q)).map(([uid,u])=>`<tr><td><b>${esc(u.email||"—")}</b><br><small>${esc(uid)}</small></td><td>${money(u.balance)}</td><td>${u.games||0}</td><td>${u.wins||0}</td><td>${u.boxingKingWins||0}/${u.boxingKingGames||0}</td><td><button class="btn" onclick="viewUser('${esc(uid)}')">View</button></td></tr>`).join("")||`<tr><td colspan="6">No users found.</td></tr>`;
+ renderRequests();
+}
+$("userSearch").oninput=render;
+window.viewUser=uid=>{const u=users[uid]||{};$("userDetails").innerHTML=`<div class="notice"><b>${esc(u.email||"—")}</b><br>UID: ${esc(uid)}<br>Balance: ${money(u.balance)}<br>Aviator: ${u.wins||0} wins / ${u.games||0} games<br>Boxing King: ${u.boxingKingWins||0} wins / ${u.boxingKingGames||0} games</div>`;$("userModal").classList.remove("hidden")};
+function renderRequests(){
+ const dep=Object.entries(deposits).reverse();$("depositsBody").innerHTML=dep.map(([id,r])=>`<tr><td>${esc(r.email||r.uid||"—")}</td><td>${money(r.amount)}</td><td>${esc(r.method)}</td><td>${esc(r.trxId||"—")}</td><td><span class="badge ${r.status==="approved"?"ok":r.status==="rejected"?"bad":"warn"}">${esc(r.status||"pending")}</span></td><td>${r.status?"—":`<button class="btn primary" onclick="requestAction('deposits','${esc(id)}','approved')">Approve</button> <button class="btn danger" onclick="requestAction('deposits','${esc(id)}','rejected')">Reject</button>`}</td></tr>`).join("")||`<tr><td colspan="6">No deposit requests.</td></tr>`;
+ const wd=Object.entries(withdrawals).reverse();$("withdrawalsBody").innerHTML=wd.map(([id,r])=>`<tr><td>${esc(r.email||r.uid||"—")}</td><td>${money(r.amount)}</td><td>${esc(r.method)}</td><td>${esc(r.accountNo||"—")}</td><td><span class="badge ${r.status==="approved"?"ok":r.status==="rejected"?"bad":"warn"}">${esc(r.status||"pending")}</span></td><td>${r.status?"—":`<button class="btn primary" onclick="requestAction('withdrawals','${esc(id)}','approved')">Approve</button> <button class="btn danger" onclick="requestAction('withdrawals','${esc(id)}','rejected')">Reject</button>`}</td></tr>`).join("")||`<tr><td colspan="6">No withdrawal requests.</td></tr>`;
+}
+window.requestAction=async(type,id,status)=>{
+  const path=`adminRequests/${type}/${id}`;
+  const snap=await db.ref(path).once("value");
+  const r=snap.val();
+  if(!r||r.status){toast("Request already processed or missing");return}
+  if(status==="approved"&&type==="deposits"){
+    const uid=r.uid;
+    const amount=Number(r.amount||0);
+    if(!uid||!Number.isFinite(amount)||amount<=0){toast("Invalid deposit request");return}
+    const balRef=db.ref(`users/${uid}/balance`);
+    await balRef.transaction(v=>Number(v||0)+amount);
+    await db.ref(path).update({status,processedAt:firebase.database.ServerValue.TIMESTAMP,processedBy:auth.currentUser?.uid||"direct-dashboard",balanceCredited:true});
+  }else{
+    await db.ref(path).update({status,processedAt:firebase.database.ServerValue.TIMESTAMP,processedBy:auth.currentUser?.uid||"direct-dashboard"});
+  }
+  await audit(`${type}_${status}`,id,JSON.stringify({uid:r.uid||null,amount:r.amount||0}));
+  await loadAll();
+  toast(status+" complete")
+};
+function renderConfig(){const keys=Object.keys(boxingConfig);$("configFields").innerHTML=keys.length?keys.map(k=>{const v=boxingConfig[k];const type=typeof v==="number"?"number":typeof v==="boolean"?"checkbox":"text";return `<div class="field"><label>${esc(k)}</label>${type==="checkbox"?`<input data-k="${esc(k)}" type="checkbox" ${v?"checked":""}>`:`<input data-k="${esc(k)}" type="${type}" value="${esc(v)}">`}</div>`}).join(""):"<div class='notice full'>No Boxing King configuration found.</div>"}
+$("saveConfig").onclick=async()=>{const out={};document.querySelectorAll("#configFields [data-k]").forEach(el=>{out[el.dataset.k]=el.type==="checkbox"?el.checked:el.type==="number"?Number(el.value):el.value});await db.ref("config/boxingKing").update(out);await audit("update_boxing_config","config/boxingKing",JSON.stringify(out));$("configMsg").textContent="Saved";toast("Configuration saved")};
+async function loadAnnouncement(){const s=await db.ref("adminSettings/announcement").once("value");$("announcementText").value=s.val()||""}$("saveAnnouncement").onclick=async()=>{await db.ref("adminSettings/announcement").set($("announcementText").value);await audit("update_announcement","adminSettings/announcement",$("announcementText").value);toast("Announcement published")};$("clearAnnouncement").onclick=async()=>{await db.ref("adminSettings/announcement").set("");$("announcementText").value="";await audit("clear_announcement","adminSettings/announcement","");toast("Announcement cleared")};
+function renderAudit(data){const rows=Object.values(data).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));$("auditBody").innerHTML=rows.map(x=>`<tr><td>${x.timestamp?new Date(x.timestamp).toLocaleString():"—"}</td><td>${esc(x.adminEmail||x.adminUid)}</td><td>${esc(x.action)}</td><td>${esc(x.target)}</td><td>${esc(x.details)}</td></tr>`).join("")||`<tr><td colspan="5">No audit entries.</td></tr>`}
+auth.onAuthStateChanged(async user=>{
+  $("adminEmail").textContent=user?(user.email||user.uid):"Direct dashboard access";
+  try{await loadAll();await loadAnnouncement()}catch(e){toast(e.message)}
+});
 </script>
 </body>
 </html>
