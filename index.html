@@ -634,7 +634,7 @@
         <div class="av-glass-card av-modal">
             <h2>➕ কয়েন ডিপোজিট</h2>
             <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;" id="admin-deposit-instruction">
-                এডমিন নম্বর: <strong id="admin-bkash-num" style="color:#ffcc00;">লোড হচ্ছে...</strong><br>
+                <span id="admin-deposit-method-label">বিকাশ</span> নম্বর: <strong id="admin-bkash-num" style="color:#ffcc00;">লোড হচ্ছে...</strong><br>
                 টাকা পাঠিয়ে নিচের তথ্যগুলো দিন:
             </div>
             <div class="form-group">
@@ -914,11 +914,34 @@
             }
         });
 
-        db.ref('adminSettings/paymentNumber').on('value', function(snapshot) {
-            const num = snapshot.val() || "01700000000 (বিকাশ/নগদ)";
-            const numEl = document.getElementById('admin-bkash-num');
-            if(numEl) numEl.innerText = num;
-        });
+        let depositPaymentNumbers = { bkash: "", nagad: "" };
+        const depositMethodEl = document.getElementById('deposit-method');
+        const depositNumberEl = document.getElementById('admin-bkash-num');
+        const depositMethodLabelEl = document.getElementById('admin-deposit-method-label');
+        const depositConfirmBtn = document.getElementById('deposit-confirm-btn');
+
+        function updateDepositPaymentUI() {
+            const method = depositMethodEl ? depositMethodEl.value : 'bkash';
+            const num = (depositPaymentNumbers[method] || '').trim();
+            if (depositNumberEl) {
+                depositNumberEl.innerText = num || 'এই পেমেন্ট পদ্ধতি বর্তমানে বন্ধ';
+                depositNumberEl.style.color = num ? '#ffcc00' : '#e53935';
+            }
+            if (depositMethodLabelEl) {
+                depositMethodLabelEl.innerText = method === 'nagad' ? 'নগদ' : 'বিকাশ';
+            }
+            if (depositConfirmBtn) depositConfirmBtn.disabled = !num;
+        }
+
+        function watchDepositPaymentNumber(path, key) {
+            db.ref(path).on('value', function(snapshot) {
+                depositPaymentNumbers[key] = String(snapshot.val() || '');
+                updateDepositPaymentUI();
+            });
+        }
+        watchDepositPaymentNumber('adminSettings/paymentNumberBkash', 'bkash');
+        watchDepositPaymentNumber('adminSettings/paymentNumberNagad', 'nagad');
+        if (depositMethodEl) depositMethodEl.addEventListener('change', updateDepositPaymentUI);
 
         const depositModal = document.getElementById('deposit-modal');
         const withdrawModal = document.getElementById('withdraw-modal');
@@ -939,6 +962,13 @@
             const amt = parseFloat(document.getElementById('deposit-amount').value);
             const method = document.getElementById('deposit-method').value;
             const trxId = document.getElementById('deposit-trxid').value.trim();
+            const paymentNumber = (depositPaymentNumbers[method] || '').trim();
+
+            if (!paymentNumber) {
+                depositMsg.style.color = "#ef9a9a";
+                depositMsg.innerText = method === 'nagad' ? "নগদ ডিপোজিট বর্তমানে বন্ধ আছে।" : "বিকাশ ডিপোজিট বর্তমানে বন্ধ আছে।";
+                return;
+            }
 
             if (isNaN(amt) || amt <= 0) {
                 depositMsg.style.color = "#ef9a9a";
@@ -1059,7 +1089,20 @@
             rtpFactor: 1.0,
             testMode: false
         };
-        db.ref('config/boxingKing').on('value', function(snapshot) {
+        let bkUserRtpFactor = null;
+let bkUserRtpUid = null;
+function loadBkUserRtp(uid) {
+    bkUserRtpUid = uid || null;
+    bkUserRtpFactor = null;
+    if (!uid) return Promise.resolve();
+    return db.ref('config/boxingKingUserRtp/' + uid).once('value').then(function(snapshot) {
+        const cfg = snapshot.val();
+        const n = cfg && Number(cfg.rtpFactor);
+        bkUserRtpFactor = Number.isFinite(n) && n > 0 ? n : null;
+    });
+}
+
+db.ref('config/boxingKing').on('value', function(snapshot) {
             const cfg = snapshot.val();
             if (cfg) {
                 bkConfig = Object.assign({}, bkConfig, cfg);
@@ -1126,7 +1169,7 @@
             if (isSignUp) {
                 auth.createUserWithEmailAndPassword(email, password)
                     .then(cred => db.ref('users/' + cred.user.uid).set({
-                        email, balance: 0, games: 0, wins: 0,
+                        email, balance: 1000, games: 0, wins: 0,
                         boxingKingGames: 0, boxingKingWins: 0,
                         createdAt: Date.now()
                     }))
@@ -1778,7 +1821,8 @@
 
             if (winningIndices.length > 0) {
                 const currentMultiplier = BK_MULTIPLIER_STEPS[bkCurrentMultiplierIndex];
-                const rtpFactor = (typeof bkConfig.rtpFactor === 'number' && bkConfig.rtpFactor > 0) ? bkConfig.rtpFactor : 1.0;
+                const globalRtpFactor = (typeof bkConfig.rtpFactor === 'number' && bkConfig.rtpFactor > 0) ? bkConfig.rtpFactor : 1.0;
+            const rtpFactor = (bkUserRtpUid && bkUserRtpFactor > 0) ? bkUserRtpFactor : globalRtpFactor;
                 const stepWin = evalResult.matchUnits * (activeBet * 0.4) * currentMultiplier * rtpFactor;
 
                 bkCurrentSpinTotalWin += stepWin;
