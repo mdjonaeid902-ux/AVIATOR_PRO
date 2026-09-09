@@ -166,6 +166,32 @@
         </select>
       </div>
 
+      <div class="bk-preset-wrap" style="margin-top:18px">
+        <div class="bk-preset-title">👤 User-specific RTP / Reference Factor</div>
+        <div class="bk-help" style="margin-bottom:8px">
+          একজন নির্দিষ্ট ইউজারের জন্য আলাদা <b>transparent payout/reference factor</b> সংরক্ষণ করা যাবে।
+          এটি win/lose outcome জোর করে নির্ধারণ করার কন্ট্রোল নয়।
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <label>User / UID</label>
+          <select id="userRtpUid" class="bk-input">
+            <option value="">একজন ইউজার নির্বাচন করুন…</option>
+          </select>
+        </div>
+        <div class="row">
+          <select id="userRtpFactor" class="bk-input" style="flex:1">
+            <option value="0.4">0.4x</option>
+            <option value="0.7">0.7x</option>
+            <option value="1.0" selected>1.0x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2.0">2.0x</option>
+          </select>
+          <button id="saveUserRtp" class="btn primary" type="button">Save for User</button>
+          <button id="clearUserRtp" class="btn" type="button">Clear</button>
+        </div>
+        <div id="userRtpMsg" class="bk-status"></div>
+      </div>
+
       <button id="saveConfig" class="bk-save" type="button">বক্সিং কিং সেটিংস সেভ করুন</button>
       <div id="configMsg" class="bk-status"></div>
     </div>
@@ -354,7 +380,20 @@ window.requestAction=async(type,id,status)=>{
   }
 };
 
+function renderUserRtpUsers(){
+  const sel = $("userRtpUid");
+  if(!sel) return;
+  const current = sel.value;
+  const rows = Object.entries(users||{}).sort((a,b)=>
+    String(a[1]?.email||a[0]).localeCompare(String(b[1]?.email||b[0]))
+  );
+  sel.innerHTML = '<option value="">একজন ইউজার নির্বাচন করুন…</option>' +
+    rows.map(([uid,u]) => `<option value="${esc(uid)}">${esc(u.email||uid)} — ${esc(uid)}</option>`).join("");
+  if(rows.some(([uid])=>uid===current)) sel.value=current;
+}
+
 function renderConfig(){
+  renderUserRtpUsers();
   const c=boxingConfig||{};
   $("bkEnabled").checked=c.enabled!==false;
   const bets=Array.isArray(c.betOptions)?c.betOptions:(typeof c.betOptions==="string"?c.betOptions.split(",").map(Number).filter(Number.isFinite):[1,2,3,5,10]);
@@ -376,6 +415,50 @@ $("saveConfig").onclick=async()=>{
     toast("Boxing King settings saved");
   }catch(e){$("configMsg").textContent="Save failed: "+e.message;toast(e.message)}
 };
+async function loadUserRtp(){
+  const uid = $("userRtpUid")?.value;
+  if(!uid) return;
+  const snap = await db.ref(`config/boxingKingUserRtp/${uid}`).once("value");
+  const cfg = snap.val() || {};
+  $("userRtpFactor").value = cfg.rtpFactor != null ? String(cfg.rtpFactor) : "1.0";
+  $("userRtpMsg").textContent = cfg.rtpFactor != null ? `Saved factor: ${cfg.rtpFactor}x` : "No user-specific factor saved.";
+}
+
+$("userRtpUid").onchange = () => loadUserRtp().catch(e => $("userRtpMsg").textContent = "Load failed: "+e.message);
+
+$("saveUserRtp").onclick = async () => {
+  const uid = $("userRtpUid").value;
+  const factor = Number($("userRtpFactor").value);
+  if(!uid){ toast("একজন ইউজার নির্বাচন করুন"); return; }
+  if(!Number.isFinite(factor) || factor <= 0){ toast("Valid RTP/reference factor নির্বাচন করুন"); return; }
+  const data = { rtpFactor: factor, updatedAt: Date.now() };
+  try{
+    await db.ref(`config/boxingKingUserRtp/${uid}`).set(data);
+    await audit("update_user_boxing_reference_factor", uid, JSON.stringify(data));
+    $("userRtpMsg").textContent = `Saved for selected user: ${factor}x`;
+    toast("User-specific reference factor saved");
+  }catch(e){
+    $("userRtpMsg").textContent = "Save failed: "+e.message;
+    toast(e.message);
+  }
+};
+
+$("clearUserRtp").onclick = async () => {
+  const uid = $("userRtpUid").value;
+  if(!uid){ toast("একজন ইউজার নির্বাচন করুন"); return; }
+  if(!confirm("এই ইউজারের আলাদা reference factor মুছে Global RTP ব্যবহার করতে দেবেন?")) return;
+  try{
+    await db.ref(`config/boxingKingUserRtp/${uid}`).remove();
+    await audit("clear_user_boxing_reference_factor", uid, "");
+    $("userRtpFactor").value = "1.0";
+    $("userRtpMsg").textContent = "Cleared; Global RTP applies.";
+    toast("User-specific factor cleared");
+  }catch(e){
+    $("userRtpMsg").textContent = "Clear failed: "+e.message;
+    toast(e.message);
+  }
+};
+
 async function loadAnnouncement(){const s=await db.ref("adminSettings/announcement").once("value");$("announcementText").value=s.val()||""}$("saveAnnouncement").onclick=async()=>{await db.ref("adminSettings/announcement").set($("announcementText").value);await audit("update_announcement","adminSettings/announcement",$("announcementText").value);toast("Announcement published")};$("clearAnnouncement").onclick=async()=>{await db.ref("adminSettings/announcement").set("");$("announcementText").value="";await audit("clear_announcement","adminSettings/announcement","");toast("Announcement cleared")};
 function renderAudit(data){const rows=Object.values(data).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));$("auditBody").innerHTML=rows.map(x=>`<tr><td>${x.timestamp?new Date(x.timestamp).toLocaleString():"—"}</td><td>${esc(x.adminEmail||x.adminUid)}</td><td>${esc(x.action)}</td><td>${esc(x.target)}</td><td>${esc(x.details)}</td></tr>`).join("")||`<tr><td colspan="5">No audit entries.</td></tr>`}
 
