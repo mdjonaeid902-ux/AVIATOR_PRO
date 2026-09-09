@@ -1189,6 +1189,11 @@ db.ref('config/boxingKing').on('value', function(snapshot) {
         auth.onAuthStateChanged(function(user) {
             if (user) {
                 currentUser = user;
+                // Load the selected user's Boxing King reference factor for this session.
+                loadBkUserRtp(user.uid).catch(function(){
+                    bkUserRtpUid = user.uid;
+                    bkUserRtpFactor = null;
+                });
                 authModal.classList.add('hidden');
                 globalUserBar.classList.remove('hidden');
                 userEmailDisplay.innerText = user.email;
@@ -1210,6 +1215,8 @@ db.ref('config/boxingKing').on('value', function(snapshot) {
                 });
             } else {
                 currentUser = null;
+                bkUserRtpUid = null;
+                bkUserRtpFactor = null;
                 userDbRef = null;
                 authModal.classList.remove('hidden');
                 globalUserBar.classList.add('hidden');
