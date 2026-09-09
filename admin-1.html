@@ -117,16 +117,21 @@
 
 <!-- Payment Number: ONLY in Deposit Requests -->
 <div id="depositPaymentNumberCard" class="card" style="margin:14px 0;">
-  <h3 style="margin:0 0 6px;">📱 Deposit Payment Number</h3>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-    <input id="depositPaymentNumberInput" type="text" inputmode="numeric"
-      placeholder="ডিপোজিটের ফোন/পেমেন্ট নাম্বার"
-      style="flex:1;min-width:220px;padding:11px;border-radius:8px;border:1px solid #ccc;">
-    <button id="saveDepositPaymentNumberBtn" type="button"
-      style="padding:11px 16px;border:0;border-radius:8px;cursor:pointer;">
-      💾 Save
-    </button>
+  <h3 style="margin:0 0 6px;">📱 Deposit Payment Numbers</h3>
+  <div class="form" style="margin-top:10px;">
+    <div class="field">
+      <label>বিকাশ (Bkash) নাম্বার</label>
+      <input id="depositBkashNumberInput" type="text" inputmode="numeric" placeholder="বিকাশ ডিপোজিট নাম্বার">
+    </div>
+    <div class="field">
+      <label>নগদ (Nagad) নাম্বার</label>
+      <input id="depositNagadNumberInput" type="text" inputmode="numeric" placeholder="নগদ ডিপোজিট নাম্বার">
+    </div>
   </div>
+  <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <button id="saveDepositPaymentNumberBtn" type="button" class="btn primary">💾 Save Numbers</button>
+  </div>
+  <div style="font-size:12px;color:var(--muted);margin-top:8px;">যে method-এর নাম্বার খালি থাকবে, User-এর Deposit-এ সেই method সাময়িকভাবে বন্ধ থাকবে।</div>
   <div id="depositPaymentNumberStatus" style="margin-top:8px;"></div>
 </div>
 
@@ -387,8 +392,13 @@ function renderUserRtpUsers(){
   const rows = Object.entries(users||{}).sort((a,b)=>
     String(a[1]?.email||a[0]).localeCompare(String(b[1]?.email||b[0]))
   );
-  sel.innerHTML = '<option value="">একজন ইউজার নির্বাচন করুন…</option>' +
-    rows.map(([uid,u]) => `<option value="${esc(uid)}">${esc(u.email||uid)} — ${esc(uid)}</option>`).join("");
+  sel.innerHTML = '<option value="">একজন ইউজার নির্বাচন করুন…</option>';
+  rows.forEach(([uid,u]) => {
+    const opt = document.createElement("option");
+    opt.value = uid;
+    opt.textContent = `${u.email||uid} — ${uid}`;
+    sel.appendChild(opt);
+  });
   if(rows.some(([uid])=>uid===current)) sel.value=current;
 }
 
@@ -487,7 +497,7 @@ auth.onAuthStateChanged(async user=>{
 
 // ===== Admin Controls: Payment Number only in Deposit Requests; Reset only in Overview =====
 (function () {
-  const PAYMENT_PATH = "adminSettings/paymentNumber";
+  const PAYMENT_PATHS = { bkash: "adminSettings/paymentNumberBkash", nagad: "adminSettings/paymentNumberNagad" };
 
   function setStatus(id, msg, ok) {
     const el = document.getElementById(id);
@@ -496,31 +506,38 @@ auth.onAuthStateChanged(async user=>{
     el.style.color = ok ? "#16803c" : "#c62828";
   }
 
-  function loadPaymentNumber() {
+  function loadPaymentNumbers() {
     if (typeof db === "undefined") return;
-    db.ref(PAYMENT_PATH).once("value").then(function (snap) {
-      const input = document.getElementById("depositPaymentNumberInput");
-      if (input) input.value = snap.val() || "";
+    Promise.all([
+      db.ref(PAYMENT_PATHS.bkash).once("value"),
+      db.ref(PAYMENT_PATHS.nagad).once("value")
+    ]).then(function (snaps) {
+      const b = document.getElementById("depositBkashNumberInput");
+      const n = document.getElementById("depositNagadNumberInput");
+      if (b) b.value = snaps[0].val() || "";
+      if (n) n.value = snaps[1].val() || "";
     }).catch(function (e) {
       setStatus("depositPaymentNumberStatus", "❌ " + (e.message || e), false);
     });
   }
 
-  function savePaymentNumber() {
+  function savePaymentNumbers() {
     if (typeof db === "undefined") return;
-    const input = document.getElementById("depositPaymentNumberInput");
-    const value = (input ? input.value : "").trim();
-
-    if (!value) {
-      setStatus("depositPaymentNumberStatus", "একটি নাম্বার দিন।", false);
+    const b = document.getElementById("depositBkashNumberInput");
+    const n = document.getElementById("depositNagadNumberInput");
+    const bkash = (b ? b.value : "").trim();
+    const nagad = (n ? n.value : "").trim();
+    if (!bkash && !nagad) {
+      setStatus("depositPaymentNumberStatus", "কমপক্ষে একটি পেমেন্ট নাম্বার দিন।", false);
       return;
     }
-
     const btn = document.getElementById("saveDepositPaymentNumberBtn");
     if (btn) btn.disabled = true;
-
-    db.ref(PAYMENT_PATH).set(value).then(function () {
-      setStatus("depositPaymentNumberStatus", "✅ ডিপোজিট পেমেন্ট নাম্বার আপডেট হয়েছে।", true);
+    Promise.all([
+      db.ref(PAYMENT_PATHS.bkash).set(bkash),
+      db.ref(PAYMENT_PATHS.nagad).set(nagad)
+    ]).then(function () {
+      setStatus("depositPaymentNumberStatus", "✅ বিকাশ ও নগদ ডিপোজিট নাম্বার আপডেট হয়েছে।", true);
     }).catch(function (e) {
       setStatus("depositPaymentNumberStatus", "❌ Save করা যায়নি: " + (e.message || e), false);
     }).finally(function () {
@@ -564,7 +581,7 @@ auth.onAuthStateChanged(async user=>{
       return db.ref().update(updates);
     }).then(function () {
       setStatus("resetAllStatus", "✅ Reset সম্পন্ন হয়েছে। User balance অপরিবর্তিত।", true);
-      loadPaymentNumber();
+      loadPaymentNumbers();
       if (typeof loadAll === "function") loadAll();
     }).catch(function (e) {
       setStatus("resetAllStatus", "❌ Reset করা যায়নি: " + (e.message || e), false);
@@ -579,13 +596,13 @@ auth.onAuthStateChanged(async user=>{
 
     const input = document.getElementById("depositPaymentNumberInput");
     if (input) input.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") savePaymentNumber();
+      if (e.key === "Enter") savePaymentNumbers();
     });
 
     const resetBtn = document.getElementById("resetAllBtn");
     if (resetBtn) resetBtn.addEventListener("click", resetEverythingKeepBalance);
 
-    loadPaymentNumber();
+    loadPaymentNumbers();
   }
 
   if (document.readyState === "loading") {
