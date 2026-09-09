@@ -592,7 +592,7 @@ auth.onAuthStateChanged(async user=>{
 
   function initAdminControls() {
     const saveBtn = document.getElementById("saveDepositPaymentNumberBtn");
-    if (saveBtn) saveBtn.addEventListener("click", savePaymentNumber);
+    if (saveBtn) saveBtn.addEventListener("click", savePaymentNumbers);
 
     const input = document.getElementById("depositPaymentNumberInput");
     if (input) input.addEventListener("keydown", function (e) {
