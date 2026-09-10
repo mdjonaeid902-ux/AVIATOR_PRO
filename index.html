@@ -1208,7 +1208,7 @@ db.ref('config/boxingKing').on('value', function(snapshot) {
                         updateSharedBalanceUI();
                     } else {
                         db.ref('users/' + user.uid).update({
-                            email: user.email, balance: 1000, games: 0, wins: 0,
+                            email: user.email, balance: 00, games: 0, wins: 0,
                             boxingKingGames: 0, boxingKingWins: 0
                         });
                     }
