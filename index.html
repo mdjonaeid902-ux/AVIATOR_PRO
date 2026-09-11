@@ -620,16 +620,7 @@
          :root{--rb-red:#e53935;--rb-blue:#1976d2;--rb-black:#111827;--rb-white:#f8fafc}
         .rb-red{background:var(--rb-red);color:#fff}.rb-blue{background:var(--rb-blue);color:#fff}.rb-black{background:var(--rb-black);color:#fff}.rb-white{background:var(--rb-white);color:#111827;border-color:#64748b!important}.rb-row{display:flex;gap:8px}.rb-row input{flex:1;background:#0009;border:1px solid #ffffff18;color:#fff;border-radius:9px;padding:10px;outline:none}
         .rb-spin{width:100%;margin-top:9px;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,#ffcc00,#ff6600);font-size:17px;font-weight:1000;color:#111}.rb-spin:disabled{filter:grayscale(1);opacity:.5}.rb-balance{margin:7px 0;color:#7ee7b2;font-weight:800}.rb-status{min-height:22px;margin:7px 0;font-size:.8rem;font-weight:800}.rb-live-countdown{margin:10px 0 8px;padding:9px 10px;border-radius:14px;text-align:center;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.18));border:1px solid rgba(255,204,0,.2);box-shadow:inset 0 0 18px rgba(255,204,0,.05)}.rb-countdown-label{font-size:9px;letter-spacing:1.4px;color:#9aa9bd;font-weight:900}.rb-countdown{font-size:30px;line-height:34px;font-weight:1000;color:#ffcc00;text-shadow:0 0 14px rgba(255,204,0,.55);font-variant-numeric:tabular-nums}.rb-countdown.pulse{animation:rbPulse .8s ease-in-out infinite}.rb-round-status{font-size:10px;font-weight:900;color:#7ee7b2;letter-spacing:.8px}.rb-live-countdown.locked{border-color:rgba(255,80,80,.25)}.rb-live-countdown.locked .rb-countdown{color:#ff7272;text-shadow:0 0 14px rgba(255,70,70,.45)}@keyframes rbResultGlow{from{filter:brightness(1) drop-shadow(0 0 4px rgba(255,255,255,.15))}to{filter:brightness(1.35) drop-shadow(0 0 18px rgba(255,255,255,.9))}}@keyframes rbPulse{50%{transform:scale(1.08);opacity:.72}}.rb-note{font-size:9px;color:#7f8da3;margin-top:10px}.sound-btn{background:#374151;color:#fff;border:1px solid #ffffff22;padding:6px 10px;border-radius:20px;font-size:11px}
-    
-        /* COLOR GEMS — Gaming Zone integrated slot game */
-        #color-gems-screen{background:radial-gradient(circle at 50% 10%,#243e87 0,#10152e 28%,#060812 72%);padding:8px;align-items:center;justify-content:center;overflow:auto}
-        .cg-container{width:100%;max-width:430px;background:linear-gradient(#14203d,#080b16);border:2px solid #5975a8;border-radius:18px;padding:8px;box-shadow:0 0 30px #18366d,inset 0 0 22px #000}
-        .cg-top{background:linear-gradient(180deg,#3969bd,#17316f 55%,#0d193a);border:2px solid #ffd84d;border-radius:11px;text-align:center;padding:3px 5px 6px;box-shadow:0 0 14px #247cff88,inset 0 0 8px #000}
-        .cg-ways{font-size:18px;font-weight:1000;letter-spacing:1.5px;color:#ffdc55;text-shadow:0 2px #8b4300,0 0 8px #ffd000}.cg-mults{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:2px;padding:3px;border-radius:7px;background:#0b1630}.cg-mults span{font-size:15px;font-weight:1000;padding:4px 0;border-radius:5px}.cg-mults span.active{color:#ffe45b;background:#1d5fb1;box-shadow:inset 0 0 8px #000,0 0 7px #ffd84d66}
-        .cg-frame{margin-top:7px;padding:6px;border-radius:13px;background:linear-gradient(135deg,#d6dbe3,#66738b 18%,#202a3c 48%,#aeb7c4 76%,#354158);border:2px solid #e6eaf0;box-shadow:0 0 12px #000,inset 0 0 9px #fff5}.cg-reels{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:#e9edf0;padding:2px;border-radius:8px;overflow:hidden}.cg-cell{position:relative;aspect-ratio:.82;border:1px solid #c5cbd3;border-radius:3px;background:linear-gradient(145deg,#f8f8f8,#b8bdc4);display:flex;align-items:center;justify-content:center;overflow:hidden}.cg-symbol{font-size:30px;line-height:1;filter:drop-shadow(0 3px 2px #555);position:relative;z-index:2}.cg-cell.rolling .cg-symbol{animation:cgRoll .13s linear infinite;filter:blur(2.4px)}@keyframes cgRoll{0%{transform:translateY(-14px) scale(.92)}50%{transform:translateY(14px) scale(1.05)}100%{transform:translateY(-14px) scale(.92)}}.cg-cell.winner{z-index:4;border:3px solid #ffe36c;box-shadow:0 0 12px #ffbd00,0 0 25px #fff6,inset 0 0 15px #ffd000;animation:cgWin .55s ease-in-out infinite alternate}@keyframes cgWin{to{transform:scale(1.045)}}
-        .cg-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}.cg-action{min-height:39px;border-radius:8px;border:2px solid #54e7ad;color:#effff8;background:linear-gradient(#25d995,#08774f);font-weight:1000}.cg-action.buy{border-color:#c99cff;background:linear-gradient(#a65cff,#5920a7)}.cg-info{display:grid;grid-template-columns:repeat(3,1fr);margin-top:7px;padding:5px;border-radius:9px;background:linear-gradient(#301b3c,#130d1c);border:1px solid #8c4b57;box-shadow:inset 0 0 12px #000}.cg-box{text-align:center;border-right:1px solid #9c6b69}.cg-box:last-child{border-right:0}.cg-label{font-size:10px;color:#ffe28b}.cg-value{font-size:17px;font-weight:1000;color:#ffd83d;text-shadow:0 0 7px #ff9d00}.cg-status{height:22px;padding-top:4px;text-align:center;font-size:11px;color:#c7d6f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cg-controls{display:grid;grid-template-columns:43px 52px 1fr 52px 43px;align-items:center;gap:5px;padding:7px 5px;border-radius:14px;background:radial-gradient(circle,#183d61,#0a1629 70%);border:2px solid #3e7da7;box-shadow:inset 0 0 17px #000,0 0 10px #0c6e9d88}.cg-icon{width:43px;height:43px;border-radius:10px;border:2px solid #6c8aa7;background:linear-gradient(#274361,#111c2f);color:#fff;font-size:19px;font-weight:800}.cg-spin{width:78px;height:78px;justify-self:center;border-radius:50%;border:5px solid #ffe15a;background:radial-gradient(circle at 35% 28%,#ff9a39,#ed4b1d 43%,#a81612 73%,#5b0909);color:#fff;font-size:34px;box-shadow:0 0 18px #ff5c28,inset 0 0 13px #ffcf8a}.cg-spin:active{transform:scale(.91)}.cg-spin:disabled{opacity:.55;filter:grayscale(.3)}.cg-auto-on{border-color:#57ffa9!important;box-shadow:0 0 12px #21d37b88}.cg-note{text-align:center;font-size:8px;color:#73819b;margin-top:4px}.cg-fs{margin-bottom:6px;width:100%;padding:7px;border-radius:8px;border:1px solid #79a6ff;background:#17346b;color:#fff;font-weight:800}
-        @media(max-width:360px){.cg-symbol{font-size:25px}.cg-spin{width:68px;height:68px;font-size:29px}.cg-controls{grid-template-columns:38px 45px 1fr 45px 38px}.cg-icon{width:38px}.cg-controls .cg-icon.cg-minus,.cg-controls .cg-icon.cg-plus{width:45px}}
-</style>
+    </style>
 </head>
 
 <body>
@@ -831,20 +822,6 @@
 
 
 
-    <!-- PAGE 4: COLOR GEMS -->
-    <div class="page-screen" id="color-gems-screen">
-      <div class="cg-container" id="cgGameContainer">
-        <button class="cg-fs" id="cg-fs-btn" onclick="toggleCgFullScreen()">📱 ফুলস্ক্রিন করুন</button>
-        <div class="cg-top"><div class="cg-ways">2000 WAYS</div><div class="cg-mults" id="cg-mults"><span class="active">1X</span><span>2X</span><span>3X</span><span>4X</span><span>5X</span></div></div>
-        <div class="cg-frame"><div class="cg-reels" id="cg-board"></div></div>
-        <div class="cg-actions"><button class="cg-action" id="cg-extra-btn">⚡ Extra Bet</button><button class="cg-action buy" id="cg-buy-btn">💎 Buy Feature</button></div>
-        <div class="cg-info"><div class="cg-box"><div class="cg-label">ব্যালেন্স</div><div class="cg-value" id="cg-bal">0.00</div></div><div class="cg-box"><div class="cg-label">উইন</div><div class="cg-value" id="cg-win">0.00</div></div><div class="cg-box"><div class="cg-label">মোট বেট</div><div class="cg-value" id="cg-bet">1.00</div></div></div>
-        <div class="cg-status" id="cg-status">SPIN চাপুন! 💎</div>
-        <div class="cg-controls"><button class="cg-icon" id="cg-auto-btn">⚡</button><button class="cg-icon cg-minus" id="cg-minus">−</button><button class="cg-spin" id="cg-spin">↻</button><button class="cg-icon cg-plus" id="cg-plus">+</button><button class="cg-icon" id="cg-menu">☰</button></div>
-        <div class="cg-note">Gaming Zone • Color Gems • Virtual/Demo Coins</div>
-      </div>
-    </div>
-
     <!-- PAGE 4: RED vs BLUE -->
     <div class="page-screen" id="redblue-game-screen">
         <div class="rb-container">
@@ -893,14 +870,6 @@
                 screenId: 'boxing-king-screen',
                 svgBg: 'linear-gradient(135deg, #2b033d, #6b0f4a)',
                 svgIcon: `🥊`
-            },
-            {
-                id: 'color-gems',
-                name: 'কালার জেমস (Color Gems)',
-                provider: 'Gaming Zone',
-                screenId: 'color-gems-screen',
-                svgBg: 'linear-gradient(135deg, #123b78, #4a1f73)',
-                svgIcon: `💎`
             },
             {
                 id: 'red-blue',
@@ -1153,9 +1122,6 @@
             rtpFactor: 1.0,
             testMode: false
         };
-        // Color Gems uses the SAME Boxing King configuration.
-        // There is intentionally NO separate config/colorGems path.
-        let cgConfig = bkConfig;
         db.ref('config/boxingKing').on('value', function(snapshot) {
             const cfg = snapshot.val();
             if (cfg) {
@@ -1167,9 +1133,7 @@
                     bkConfig.betOptions = [1.00, 2.00, 3.00, 5.00, 10.00];
                 }
             }
-            cgConfig = bkConfig;
             applyBkConfigToUI();
-            applyCgConfigToUI();
         });
 
         function updateSharedBalanceUI() {
@@ -1181,9 +1145,6 @@
 
             const rbBalEl = document.getElementById('rb-balance');
             if (rbBalEl) rbBalEl.innerText = currentBalance.toFixed(2);
-
-            const cgBalEl = document.getElementById('cg-bal');
-            if (cgBalEl) cgBalEl.innerText = currentBalance.toFixed(2);
         }
 
         const canvas = document.getElementById('game-canvas');
@@ -1995,29 +1956,6 @@
 
 
 
-/* COLOR GEMS — same lobby/auth/shared-wallet/admin-control pattern as Boxing King */
-        const CG_ITEMS=['🔴','🟠','🟡','🟢','🔵','🟣','💎','⭐','🟤','⚫'];
-        let CG_BET_OPTIONS=[1,2,3,5,10],cgBetIndex=0,cgSpinning=false,cgAuto=false,cgAutoTimer=null,cgBoardState=Array(25).fill(''),cgWin=0,cgMultiplierIndex=0;
-        const CG_MULTS=[1,2,3,4,5];
-        const cgBoard=document.getElementById('cg-board');
-        function cgFmt(n){return (Math.round((Number(n||0)+Number.EPSILON)*100)/100).toFixed(2)}
-        function cgRand(){return CG_ITEMS[Math.floor(Math.random()*CG_ITEMS.length)]}
-        function initCgBoard(){if(!cgBoard)return;cgBoard.innerHTML='';for(let i=0;i<25;i++){const c=document.createElement('div');c.className='cg-cell';c.id='cg-cell-'+i;const s=document.createElement('span');s.className='cg-symbol';s.textContent=cgRand();c.appendChild(s);cgBoard.appendChild(c);cgBoardState[i]=s.textContent}}
-        function updateCgUI(){const b=document.getElementById('cg-bal'),w=document.getElementById('cg-win'),bet=document.getElementById('cg-bet');if(b)b.innerText=cgFmt(currentBalance);if(w)w.innerText=cgFmt(cgWin);if(bet)bet.innerText=cgFmt(CG_BET_OPTIONS[cgBetIndex]||1)}
-        function updateCgMult(){document.querySelectorAll('#cg-mults span').forEach((e,i)=>e.classList.toggle('active',i===cgMultiplierIndex))}
-        function applyCgConfigToUI(){const min=Math.max(0,Number(cgConfig.minBet)||0);const max=Math.max(min,Number(cgConfig.maxBet)||10);const raw=Array.isArray(cgConfig.betOptions)?cgConfig.betOptions.map(Number).filter(n=>Number.isFinite(n)&&n>0):[1,2,3,5,10];CG_BET_OPTIONS=raw.filter(n=>n>=min&&n<=max);if(!CG_BET_OPTIONS.length)CG_BET_OPTIONS=[Math.max(min||1,1)];if(cgBetIndex>=CG_BET_OPTIONS.length)cgBetIndex=CG_BET_OPTIONS.length-1;updateCgUI();const s=document.getElementById('cg-spin'),st=document.getElementById('cg-status');if(s){s.disabled=!cgConfig.enabled||cgSpinning;if(!cgConfig.enabled&&!cgSpinning){st.innerText='গেমটি বর্তমানে বন্ধ আছে 🚧';st.style.color='#ff9900'}}}
-        function setCgControls(disabled){['cg-spin','cg-minus','cg-plus','cg-extra-btn','cg-buy-btn'].forEach(id=>{const e=document.getElementById(id);if(e)e.disabled=disabled})}
-        function changeCgBet(dir){if(cgSpinning)return;cgBetIndex=Math.max(0,Math.min(CG_BET_OPTIONS.length-1,cgBetIndex+dir));updateCgUI();document.getElementById('cg-status').innerText='Bet: '+cgFmt(CG_BET_OPTIONS[cgBetIndex])}
-        function cgSetStatus(t,color){const e=document.getElementById('cg-status');e.innerText=t;e.style.color=color||'#c7d6f5'}
-        function handleCgSpin(){if(cgSpinning)return;if(!currentUser)return alert('প্রথমে Login করুন!');if(!cgConfig.enabled){cgSetStatus('গেমটি বর্তমানে বন্ধ আছে 🚧','#ff9900');return}const activeBet=Number(CG_BET_OPTIONS[cgBetIndex]||1);const min=Math.max(0,Number(cgConfig.minBet)||0),max=Math.max(min,Number(cgConfig.maxBet)||activeBet);if(activeBet<min||activeBet>max){cgSetStatus('এই বেটটি Admin Config অনুযায়ী অনুমোদিত নয়।','#ff9900');return}if(!cgConfig.testMode&&currentBalance<activeBet){cgSetStatus('পর্যাপ্ত কয়েন নেই! 😢','#ff3333');return}cgSpinning=true;setCgControls(true);cgWin=0;cgMultiplierIndex=0;updateCgMult();updateCgUI();cgSetStatus('রিল ঘুরছে... 💎','#aaa');const cells=[...document.querySelectorAll('.cg-cell')];cells.forEach(c=>c.classList.remove('winner','rolling'));if(cgConfig.testMode){startCgSpinSequence(activeBet);return}db.ref('users/'+currentUser.uid+'/balance').transaction(cur=>{if(Number(cur||0)>=activeBet)return Number(cur||0)-activeBet},(err,ok)=>{if(!ok){cgSpinning=false;setCgControls(false);cgSetStatus('পর্যাপ্ত কয়েন নেই! 😢','#ff3333');return}startCgSpinSequence(activeBet)})}
-        function startCgSpinSequence(activeBet){const cells=[...document.querySelectorAll('.cg-cell')];cells.forEach((c,i)=>{c.classList.add('rolling');setTimeout(()=>{if(!c.classList.contains('rolling'))return;c.classList.remove('rolling')},(cgConfig.animationSpeedMs||90)*10+((i%5)*70))});let ticks=0;const speed=Math.max(35,Number(cgConfig.animationSpeedMs)||90);const timer=setInterval(()=>{cells.forEach(c=>{const s=c.querySelector('.cg-symbol');s.textContent=cgRand()});ticks++;if(ticks>=10){clearInterval(timer);cells.forEach(c=>c.classList.remove('rolling'));setTimeout(()=>finishCgSpin(activeBet),250)}},speed)}
-        function finishCgSpin(activeBet){const cells=[...document.querySelectorAll('.cg-cell')];cells.forEach(c=>{c.classList.remove('winner');const s=c.querySelector('.cg-symbol');s.textContent=cgRand();});const counts={};cells.forEach(c=>{const s=c.querySelector('.cg-symbol').textContent;counts[s]=(counts[s]||0)+1});let best='',count=0;Object.keys(counts).forEach(s=>{if(counts[s]>count){count=counts[s];best=s}});let mult=count>=7?5:count>=6?4:count>=5?3:count>=4?2:0;if(mult){cgMultiplierIndex=mult-1;updateCgMult();const factor=Number(cgConfig.rtpFactor)>0?Number(cgConfig.rtpFactor):1;cgWin=+(activeBet*mult*factor).toFixed(2);if(!cgConfig.testMode)db.ref('users/'+currentUser.uid+'/balance').transaction(v=>Number(v||0)+cgWin);cells.forEach(c=>{if(c.querySelector('.cg-symbol').textContent===best)c.classList.add('winner')});if(!cgConfig.testMode){db.ref('users/'+currentUser.uid+'/colorGemsWins').transaction(v=>(v||0)+1);db.ref('users/'+currentUser.uid+'/colorGemsGames').transaction(v=>(v||0)+1)}cgSetStatus('✨ WIN '+cgFmt(cgWin)+' • '+best,'#00ff7b')}else{cgMultiplierIndex=0;updateCgMult();if(!cgConfig.testMode)db.ref('users/'+currentUser.uid+'/colorGemsGames').transaction(v=>(v||0)+1);cgSetStatus('আবার চেষ্টা করুন ❌','#ff6666')}updateCgUI();cgSpinning=false;setCgControls(!cgConfig.enabled);if(cgAuto)cgAutoTimer=setTimeout(handleCgSpin,900)}
-        document.getElementById('cg-spin').onclick=handleCgSpin;document.getElementById('cg-minus').onclick=()=>changeCgBet(-1);document.getElementById('cg-plus').onclick=()=>changeCgBet(1);
-        document.getElementById('cg-auto-btn').onclick=()=>{if(cgAuto){cgAuto=false;clearTimeout(cgAutoTimer);document.getElementById('cg-auto-btn').classList.remove('cg-auto-on');cgSetStatus('Auto Spin বন্ধ')}else{cgAuto=true;document.getElementById('cg-auto-btn').classList.add('cg-auto-on');if(!cgSpinning)handleCgSpin()}};
-        document.getElementById('cg-extra-btn').onclick=()=>{if(cgSpinning)return;const idx=Math.min(CG_BET_OPTIONS.length-1,cgBetIndex+1);cgBetIndex=idx;updateCgUI();cgSetStatus('Extra Bet: '+cgFmt(CG_BET_OPTIONS[cgBetIndex]))};
-        document.getElementById('cg-buy-btn').onclick=()=>{if(cgSpinning)return;if(!currentUser)return alert('প্রথমে Login করুন!');const activeBet=Number(CG_BET_OPTIONS[cgBetIndex]||1),cost=activeBet*5;if(!cgConfig.testMode&&currentBalance<cost){cgSetStatus('Buy Feature-এর জন্য পর্যাপ্ত কয়েন নেই।','#ff6666');return}const run=()=>{const cells=[...document.querySelectorAll('.cg-cell')];cells.sort(()=>Math.random()-.5).slice(0,5).forEach(c=>c.classList.add('winner'));cgWin=+(activeBet*(Number(cgConfig.featureMultiplier)>0?Number(cgConfig.featureMultiplier):10)).toFixed(2);if(!cgConfig.testMode)db.ref('users/'+currentUser.uid+'/balance').transaction(v=>Number(v||0)+cgWin);updateCgUI();cgSetStatus('💎 Feature Win +'+cgFmt(cgWin),'#00ff7b')};if(cgConfig.testMode)run();else db.ref('users/'+currentUser.uid+'/balance').transaction(v=>Number(v||0)>=cost?Number(v||0)-cost:undefined,(e,ok)=>{if(ok)run();else cgSetStatus('পর্যাপ্ত কয়েন নেই।','#ff6666')})};
-        function toggleCgFullScreen(){const c=document.getElementById('cgGameContainer');const fs=document.fullscreenElement||document.webkitFullscreenElement;if(!fs){if(c.requestFullscreen)c.requestFullscreen().catch(()=>{});else if(c.webkitRequestFullscreen)c.webkitRequestFullscreen()}else{if(document.exitFullscreen)document.exitFullscreen().catch(()=>{});else if(document.webkitExitFullscreen)document.webkitExitFullscreen()}}
-        document.getElementById('cg-menu').onclick=()=>cgSetStatus('Color Gems: Admin-controlled virtual/demo game','#c7d6f5');
         /* RED/BLUE/BLACK/WHITE shared color source — buttons and wheel use the exact same codes. */
         const RB_COLOR_CODES = Object.freeze({ red:'#e53935', blue:'#1976d2', black:'#111827', white:'#f8fafc' });
         const RB_COLOR_ORDER = Object.freeze(['red','blue','black','white']);
@@ -2195,8 +2133,6 @@ function rbLockAndSpin(){
             document.getElementById('bk-bet-display').innerText = bkFormatDecimal(BK_BET_OPTIONS[bkCurrentBetIndex]);
             updateSharedBalanceUI();
             applyBkConfigToUI();
-            initCgBoard();
-            updateCgUI();
             rbBuildExactWheel();
             rbStartLiveRound();
         });
