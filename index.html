@@ -212,19 +212,27 @@
             top: 10px;
             left: 10px;
             z-index: 99999;
+            width: 142px;
+            min-height: 44px;
+            box-sizing: border-box;
             background: linear-gradient(135deg, #ff3333, #990000);
-            color: white;
-            border: 1.5px solid #ffffff;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 0 14px;
+            border-radius: 22px;
+            font-size: 0.78rem;
+            font-weight: 900;
+            line-height: 1;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 5px;
+            white-space: nowrap;
+            overflow: hidden;
             outline: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .back-to-lobby-btn:active {
@@ -597,6 +605,21 @@
             box-shadow: none;
             filter: grayscale(80%);
         }
+
+        /* RED vs BLUE — added game styles only */
+        #redblue-game-screen{background:radial-gradient(circle at 50% 20%,#17213b 0,#090b10 55%);padding:10px;align-items:center;justify-content:center}
+        .rb-container{width:100%;max-width:460px;background:#0f1420e8;border:1px solid #ffffff18;border-radius:24px;padding:14px;box-shadow:0 0 35px #000b;text-align:center;margin-top:20px}
+        .rb-title{font-size:22px;font-weight:900;background:linear-gradient(90deg,#ff3b3b,#fff,#3388ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .rb-sub{font-size:9px;color:#93a4bd;letter-spacing:1px;margin-bottom:10px}
+        .wheel-wrap{position:relative;width:min(78vw,310px);aspect-ratio:1;margin:8px auto 16px}
+        .wheel{width:100%;height:100%;border-radius:50%;border:7px solid #e8edf7;box-shadow:0 0 0 5px #111827,0 0 35px #000;transition:transform 3.2s cubic-bezier(.10,.72,.12,1);background:#111827;position:relative;overflow:hidden}
+        .wheel:after{content:"";position:absolute;inset:12%;border-radius:50%;border:2px dashed #fff8}
+        .wheel.rb-result-glow{animation:rbResultGlow 1.2s ease-in-out infinite alternate}.wheel-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:66px;height:66px;border-radius:50%;background:#111827;border:4px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:900;z-index:3;box-shadow:0 0 20px #000}
+        .pointer{position:absolute;top:-4px;left:50%;transform:translateX(-50%);z-index:5;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:30px solid #ffcc00;filter:drop-shadow(0 2px 3px #000)}
+        .rb-select{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:9px}.rb-select button{min-width:0;padding:10px 4px;border-radius:10px;border:2px solid transparent;font-weight:900;font-size:13px}.rb-select .chosen{border-color:#fff;box-shadow:0 0 16px #fff6;transform:translateY(-1px)}
+         :root{--rb-red:#e53935;--rb-blue:#1976d2;--rb-black:#111827;--rb-white:#f8fafc}
+        .rb-red{background:var(--rb-red);color:#fff}.rb-blue{background:var(--rb-blue);color:#fff}.rb-black{background:var(--rb-black);color:#fff}.rb-white{background:var(--rb-white);color:#111827;border-color:#64748b!important}.rb-row{display:flex;gap:8px}.rb-row input{flex:1;background:#0009;border:1px solid #ffffff18;color:#fff;border-radius:9px;padding:10px;outline:none}
+        .rb-spin{width:100%;margin-top:9px;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,#ffcc00,#ff6600);font-size:17px;font-weight:1000;color:#111}.rb-spin:disabled{filter:grayscale(1);opacity:.5}.rb-balance{margin:7px 0;color:#7ee7b2;font-weight:800}.rb-status{min-height:22px;margin:7px 0;font-size:.8rem;font-weight:800}.rb-live-countdown{margin:10px 0 8px;padding:9px 10px;border-radius:14px;text-align:center;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.18));border:1px solid rgba(255,204,0,.2);box-shadow:inset 0 0 18px rgba(255,204,0,.05)}.rb-countdown-label{font-size:9px;letter-spacing:1.4px;color:#9aa9bd;font-weight:900}.rb-countdown{font-size:30px;line-height:34px;font-weight:1000;color:#ffcc00;text-shadow:0 0 14px rgba(255,204,0,.55);font-variant-numeric:tabular-nums}.rb-countdown.pulse{animation:rbPulse .8s ease-in-out infinite}.rb-round-status{font-size:10px;font-weight:900;color:#7ee7b2;letter-spacing:.8px}.rb-live-countdown.locked{border-color:rgba(255,80,80,.25)}.rb-live-countdown.locked .rb-countdown{color:#ff7272;text-shadow:0 0 14px rgba(255,70,70,.45)}@keyframes rbResultGlow{from{filter:brightness(1) drop-shadow(0 0 4px rgba(255,255,255,.15))}to{filter:brightness(1.35) drop-shadow(0 0 18px rgba(255,255,255,.9))}}@keyframes rbPulse{50%{transform:scale(1.08);opacity:.72}}.rb-note{font-size:9px;color:#7f8da3;margin-top:10px}.sound-btn{background:#374151;color:#fff;border:1px solid #ffffff22;padding:6px 10px;border-radius:20px;font-size:11px}
     </style>
 </head>
 
@@ -634,7 +657,7 @@
         <div class="av-glass-card av-modal">
             <h2>➕ কয়েন ডিপোজিট</h2>
             <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;" id="admin-deposit-instruction">
-                <span id="admin-deposit-method-label">বিকাশ</span> নম্বর: <strong id="admin-bkash-num" style="color:#ffcc00;">লোড হচ্ছে...</strong><br>
+                এডমিন নম্বর: <strong id="admin-bkash-num" style="color:#ffcc00;">লোড হচ্ছে...</strong><br>
                 টাকা পাঠিয়ে নিচের তথ্যগুলো দিন:
             </div>
             <div class="form-group">
@@ -797,6 +820,38 @@
         </div>
     </div>
 
+
+
+    <!-- PAGE 4: RED vs BLUE -->
+    <div class="page-screen" id="redblue-game-screen">
+        <div class="rb-container">
+            <div class="rb-title">🔴 RED vs BLUE 🔵</div>
+            <div class="rb-sub">FAIR SPIN • 20 SLOTS • 5 RED / 5 BLUE / 5 BLACK / 5 WHITE</div>
+            <div class="wheel-wrap">
+                <div class="pointer"></div>
+                <div class="wheel" id="rb-wheel"></div>
+                <div class="wheel-center">SPIN</div>
+            </div>
+            <div class="rb-select">
+                <button class="rb-red" id="rb-red-btn" onclick="chooseRbColor('red')">🔴 RED</button>
+                <button class="rb-blue" id="rb-blue-btn" onclick="chooseRbColor('blue')">🔵 BLUE</button>
+                <button class="rb-black" id="rb-black-btn" onclick="chooseRbColor('black')">⚫ BLACK</button>
+                <button class="rb-white" id="rb-white-btn" onclick="chooseRbColor('white')">⚪ WHITE</button>
+            </div>
+            <div class="rb-row"><input type="number" id="rb-bet-amount" value="10" min="1" step="1" placeholder="কয়েন"></div>
+            <div class="rb-live-countdown" aria-live="polite">
+                <div class="rb-countdown-label">LIVE ROUND STARTS IN</div>
+                <div class="rb-countdown" id="rb-countdown">15</div>
+                <div class="rb-round-status" id="rb-round-status">BETTING OPEN</div>
+            </div>
+            <button class="rb-spin" id="rb-spin-btn" onclick="handleRbSpin()">🎡 BET / JOIN ROUND</button>
+            <div class="rb-balance">🪙 Main Balance: <span id="rb-balance">0.00</span></div>
+            <div class="rb-status" id="rb-status">একটি রং নির্বাচন করুন</div>
+            <div style="display:flex;justify-content:flex-end;align-items:center"><button class="sound-btn" id="rb-sound-btn" onclick="toggleRbSound()">🔊 Sound ON</button></div>
+            <div class="rb-note">20-slot demo: 5 Red + 5 Blue + 5 Black + 5 White. Result is random and independent of the selected bet. Result is random and does not depend on the selected bet.</div>
+        </div>
+    </div>
+
     <!-- JAVASCRIPT LOGIC -->
     <script>
         const GAME_CONFIGS = [
@@ -815,6 +870,14 @@
                 screenId: 'boxing-king-screen',
                 svgBg: 'linear-gradient(135deg, #2b033d, #6b0f4a)',
                 svgIcon: `🥊`
+            },
+            {
+                id: 'red-blue',
+                name: 'রেড বনাম ব্লু (Red vs Blue)',
+                provider: 'Gaming Zone',
+                screenId: 'redblue-game-screen',
+                svgBg: 'linear-gradient(135deg, #650b16, #102d67)',
+                svgIcon: `🔴🔵`
             }
         ];
 
@@ -914,34 +977,11 @@
             }
         });
 
-        let depositPaymentNumbers = { bkash: "", nagad: "" };
-        const depositMethodEl = document.getElementById('deposit-method');
-        const depositNumberEl = document.getElementById('admin-bkash-num');
-        const depositMethodLabelEl = document.getElementById('admin-deposit-method-label');
-        const depositConfirmBtn = document.getElementById('deposit-confirm-btn');
-
-        function updateDepositPaymentUI() {
-            const method = depositMethodEl ? depositMethodEl.value : 'bkash';
-            const num = (depositPaymentNumbers[method] || '').trim();
-            if (depositNumberEl) {
-                depositNumberEl.innerText = num || 'এই পেমেন্ট পদ্ধতি বর্তমানে বন্ধ';
-                depositNumberEl.style.color = num ? '#ffcc00' : '#e53935';
-            }
-            if (depositMethodLabelEl) {
-                depositMethodLabelEl.innerText = method === 'nagad' ? 'নগদ' : 'বিকাশ';
-            }
-            if (depositConfirmBtn) depositConfirmBtn.disabled = !num;
-        }
-
-        function watchDepositPaymentNumber(path, key) {
-            db.ref(path).on('value', function(snapshot) {
-                depositPaymentNumbers[key] = String(snapshot.val() || '');
-                updateDepositPaymentUI();
-            });
-        }
-        watchDepositPaymentNumber('adminSettings/paymentNumberBkash', 'bkash');
-        watchDepositPaymentNumber('adminSettings/paymentNumberNagad', 'nagad');
-        if (depositMethodEl) depositMethodEl.addEventListener('change', updateDepositPaymentUI);
+        db.ref('adminSettings/paymentNumber').on('value', function(snapshot) {
+            const num = snapshot.val() || "01700000000 (বিকাশ/নগদ)";
+            const numEl = document.getElementById('admin-bkash-num');
+            if(numEl) numEl.innerText = num;
+        });
 
         const depositModal = document.getElementById('deposit-modal');
         const withdrawModal = document.getElementById('withdraw-modal');
@@ -962,13 +1002,6 @@
             const amt = parseFloat(document.getElementById('deposit-amount').value);
             const method = document.getElementById('deposit-method').value;
             const trxId = document.getElementById('deposit-trxid').value.trim();
-            const paymentNumber = (depositPaymentNumbers[method] || '').trim();
-
-            if (!paymentNumber) {
-                depositMsg.style.color = "#ef9a9a";
-                depositMsg.innerText = method === 'nagad' ? "নগদ ডিপোজিট বর্তমানে বন্ধ আছে।" : "বিকাশ ডিপোজিট বর্তমানে বন্ধ আছে।";
-                return;
-            }
 
             if (isNaN(amt) || amt <= 0) {
                 depositMsg.style.color = "#ef9a9a";
@@ -1089,20 +1122,7 @@
             rtpFactor: 1.0,
             testMode: false
         };
-        let bkUserRtpFactor = null;
-let bkUserRtpUid = null;
-function loadBkUserRtp(uid) {
-    bkUserRtpUid = uid || null;
-    bkUserRtpFactor = null;
-    if (!uid) return Promise.resolve();
-    return db.ref('config/boxingKingUserRtp/' + uid).once('value').then(function(snapshot) {
-        const cfg = snapshot.val();
-        const n = cfg && Number(cfg.rtpFactor);
-        bkUserRtpFactor = Number.isFinite(n) && n > 0 ? n : null;
-    });
-}
-
-db.ref('config/boxingKing').on('value', function(snapshot) {
+        db.ref('config/boxingKing').on('value', function(snapshot) {
             const cfg = snapshot.val();
             if (cfg) {
                 bkConfig = Object.assign({}, bkConfig, cfg);
@@ -1122,6 +1142,9 @@ db.ref('config/boxingKing').on('value', function(snapshot) {
 
             const bkBalEl = document.getElementById('bk-bal');
             if (bkBalEl) bkBalEl.innerText = bkFormatDecimal(currentBalance);
+
+            const rbBalEl = document.getElementById('rb-balance');
+            if (rbBalEl) rbBalEl.innerText = currentBalance.toFixed(2);
         }
 
         const canvas = document.getElementById('game-canvas');
@@ -1169,7 +1192,7 @@ db.ref('config/boxingKing').on('value', function(snapshot) {
             if (isSignUp) {
                 auth.createUserWithEmailAndPassword(email, password)
                     .then(cred => db.ref('users/' + cred.user.uid).set({
-                        email, balance: 000, games: 0, wins: 0,
+                        email, balance: 1000, games: 0, wins: 0,
                         boxingKingGames: 0, boxingKingWins: 0,
                         createdAt: Date.now()
                     }))
@@ -1189,11 +1212,6 @@ db.ref('config/boxingKing').on('value', function(snapshot) {
         auth.onAuthStateChanged(function(user) {
             if (user) {
                 currentUser = user;
-                // Load the selected user's Boxing King reference factor for this session.
-                loadBkUserRtp(user.uid).catch(function(){
-                    bkUserRtpUid = user.uid;
-                    bkUserRtpFactor = null;
-                });
                 authModal.classList.add('hidden');
                 globalUserBar.classList.remove('hidden');
                 userEmailDisplay.innerText = user.email;
@@ -1208,15 +1226,13 @@ db.ref('config/boxingKing').on('value', function(snapshot) {
                         updateSharedBalanceUI();
                     } else {
                         db.ref('users/' + user.uid).update({
-                            email: user.email, balance: 00, games: 0, wins: 0,
+                            email: user.email, balance: 000, games: 0, wins: 0,
                             boxingKingGames: 0, boxingKingWins: 0
                         });
                     }
                 });
             } else {
                 currentUser = null;
-                bkUserRtpUid = null;
-                bkUserRtpFactor = null;
                 userDbRef = null;
                 authModal.classList.remove('hidden');
                 globalUserBar.classList.add('hidden');
@@ -1828,8 +1844,7 @@ db.ref('config/boxingKing').on('value', function(snapshot) {
 
             if (winningIndices.length > 0) {
                 const currentMultiplier = BK_MULTIPLIER_STEPS[bkCurrentMultiplierIndex];
-                const globalRtpFactor = (typeof bkConfig.rtpFactor === 'number' && bkConfig.rtpFactor > 0) ? bkConfig.rtpFactor : 1.0;
-            const rtpFactor = (bkUserRtpUid && bkUserRtpFactor > 0) ? bkUserRtpFactor : globalRtpFactor;
+                const rtpFactor = (typeof bkConfig.rtpFactor === 'number' && bkConfig.rtpFactor > 0) ? bkConfig.rtpFactor : 1.0;
                 const stepWin = evalResult.matchUnits * (activeBet * 0.4) * currentMultiplier * rtpFactor;
 
                 bkCurrentSpinTotalWin += stepWin;
@@ -1939,6 +1954,177 @@ db.ref('config/boxingKing').on('value', function(snapshot) {
             }
         }
 
+
+
+        /* RED/BLUE/BLACK/WHITE shared color source — buttons and wheel use the exact same codes. */
+        const RB_COLOR_CODES = Object.freeze({ red:'#e53935', blue:'#1976d2', black:'#111827', white:'#f8fafc' });
+        const RB_COLOR_ORDER = Object.freeze(['red','blue','black','white']);
+        const RB_SLOT_COUNT = 20;
+        const RB_SLOT_DEG = 360 / RB_SLOT_COUNT;
+        function rbBuildExactWheel(){
+            const wheel=document.getElementById('rb-wheel');
+            if(!wheel) return;
+            const stops=[];
+            for(let i=0;i<RB_SLOT_COUNT;i++){
+                /* EXACT visual order: 5 RED, 5 BLUE, 5 BLACK, 5 WHITE.
+                   This must match rbGetSharedResult() below. */
+                const color = i < 5 ? RB_COLOR_CODES.red :
+                              i < 10 ? RB_COLOR_CODES.blue :
+                              i < 15 ? RB_COLOR_CODES.black :
+                              RB_COLOR_CODES.white;
+                const start=i*RB_SLOT_DEG;
+                const end=(i+1)*RB_SLOT_DEG;
+                stops.push(`${color} ${start}deg ${end}deg`);
+            }
+            /* Shift the gradient by half a slot so every slot CENTER is exactly at 12 o'clock at 0deg. */
+            wheel.style.background=`conic-gradient(from -${RB_SLOT_DEG/2}deg, ${stops.join(',')})`;
+            ['red','blue','black','white'].forEach(c=>{
+                const b=document.getElementById('rb-'+c+'-btn');
+                if(b) b.style.background=RB_COLOR_CODES[c];
+            });
+        }
+
+        /* RED vs BLUE — fair random demo, shared main balance */
+        let rbColor=null,rbSpinning=false,rbRotation=0,rbSound=true,rbAudio=null;
+        let rbRoundSeconds=15,rbRoundTimer=null,rbBetLocked=false,rbPendingBet=null,rbServerOffset=0;
+        db.ref('.info/serverTimeOffset').on('value', snap=>{ rbServerOffset=Number(snap.val()||0); });
+        function rbNow(){ return Date.now()+rbServerOffset; }
+        function chooseRbColor(c){if(rbSpinning||rbBetLocked)return;rbColor=c;['red','blue','black','white'].forEach(x=>document.getElementById('rb-'+x+'-btn').classList.toggle('chosen',c===x));document.getElementById('rb-status').innerText='নির্বাচিত: '+({red:'🔴 RED',blue:'🔵 BLUE',black:'⚫ BLACK',white:'⚪ WHITE'}[c])}
+        function rbBeep(freq,dur=.09){if(!rbSound)return;try{if(!rbAudio)rbAudio=new(window.AudioContext||window.webkitAudioContext)();if(rbAudio.state==='suspended')rbAudio.resume();const o=rbAudio.createOscillator(),g=rbAudio.createGain();o.connect(g);g.connect(rbAudio.destination);o.frequency.value=freq;o.type='sine';g.gain.value=.045;o.start();o.stop(rbAudio.currentTime+dur)}catch(e){}}
+        function toggleRbSound(){rbSound=!rbSound;document.getElementById('rb-sound-btn').innerText=rbSound?'🔊 Sound ON':'🔇 Sound OFF'}
+        function rbUpdateCountdown(){const n=document.getElementById('rb-countdown'),s=document.getElementById('rb-round-status'),box=document.querySelector('.rb-live-countdown');if(!n)return;n.innerText=String(rbRoundSeconds);n.classList.toggle('pulse',rbRoundSeconds<=3);if(rbBetLocked){s.innerText='ROUND IN PROGRESS';box.classList.add('locked')}else{s.innerText='BETTING OPEN';box.classList.remove('locked')}}
+        function rbStartLiveRound(){
+    clearInterval(rbRoundTimer);
+    rbBetLocked=false;
+    rbPendingBet=null;
+    const ROUND_MS=18000;
+    const now=rbNow();
+    const roundEnd=Math.ceil(now/ROUND_MS)*ROUND_MS;
+    rbRoundSeconds=Math.max(1,Math.ceil((roundEnd-now)/1000));
+    rbUpdateCountdown();
+    const btn=document.getElementById('rb-spin-btn');
+    btn.disabled=false;
+    btn.innerText='🎡 BET / JOIN ROUND';
+
+    const tick=()=>{
+        const left=roundEnd-rbNow();
+        rbRoundSeconds=Math.max(0,Math.ceil(left/1000));
+        rbUpdateCountdown();
+        if(left<=0){
+            clearInterval(rbRoundTimer);
+            rbLockAndSpin();
+        }
+    };
+    tick();
+    rbRoundTimer=setInterval(tick,200);
+}
+        function handleRbSpin(){if(rbSpinning||rbBetLocked)return;if(!currentUser)return alert('প্রথমে Login করুন!');if(!rbColor)return document.getElementById('rb-status').innerText='আগে Red, Blue, Black অথবা White নির্বাচন করুন।';const amount=Number(document.getElementById('rb-bet-amount').value);if(!(amount>0)||amount>currentBalance)return document.getElementById('rb-status').innerText='সঠিক বেট/পর্যাপ্ত ব্যালেন্স দিন।';rbPendingBet={color:rbColor,amount};document.getElementById('rb-status').innerText='✅ Round-এ bet নেওয়া হয়েছে। Countdown শেষ হলে result আসবে।';document.getElementById('rb-spin-btn').innerText='✓ BET PLACED';document.getElementById('rb-spin-btn').disabled=true;rbBeep(660,.08)}
+        function rbColorLabel(c){return ({red:'🔴 RED',blue:'🔵 BLUE',black:'⚫ BLACK',white:'⚪ WHITE'}[c]||c)}
+
+function rbGetSharedResult(roundIndex){
+    /* Same public round -> same result for every connected player.
+       It is independent of the selected bet and player identity. */
+    let x = Math.sin(roundIndex * 12.9898 + 78.233) * 43758.5453;
+    x = x - Math.floor(x);
+    const slot = Math.floor(x * RB_SLOT_COUNT);
+    const result = slot < 5 ? 'red' : slot < 10 ? 'blue' : slot < 15 ? 'black' : 'white';
+    return {slot, result};
+}
+
+function rbAnimateWheel(slot, done){
+    const wheel=document.getElementById('rb-wheel');
+    if(!wheel) return;
+
+    /*
+      The gradient is built with `from -9deg`, so slot 0's CENTER is at
+      exactly 12 o'clock. The pointer is at 12 o'clock too. Therefore the
+      slot-center angle is simply slot * 18deg, and the required rotation
+      is its negative. This removes the previous half-slot/3-o'clock mismatch.
+    */
+    const slotCenter=slot*RB_SLOT_DEG;
+    const target=((360-slotCenter)%360+360)%360;
+    const current=rbRotation;
+    const currentMod=((current%360)+360)%360;
+    const delta=(target-currentMod+360)%360;
+    const finalRotation=current+(7*360)+delta;
+    rbRotation=finalRotation;
+
+    wheel.classList.remove('rb-result-glow');
+    wheel.style.transition='none';
+    wheel.style.transform=`rotate(${current}deg)`;
+    void wheel.offsetWidth;
+    requestAnimationFrame(()=>{
+        wheel.style.transition='transform 3.2s cubic-bezier(.10,.72,.12,1)';
+        wheel.style.transform=`rotate(${finalRotation}deg)`;
+    });
+    setTimeout(done,3350);
+}
+
+function rbLockAndSpin(){
+    rbBetLocked=true;
+    rbUpdateCountdown();
+
+    const btn=document.getElementById('rb-spin-btn');
+    const wheel=document.getElementById('rb-wheel');
+    btn.disabled=true;
+    btn.innerText='🔒 ROUND LOCKED';
+    document.getElementById('rb-status').innerText='⏳ Betting closed — ফলাফল আসছে...';
+    rbSpinning=true;
+    rbBeep(180,.12);
+
+    const bet=rbPendingBet;
+    const roundIndex=Math.floor(rbNow()/18000);
+    const shared=rbGetSharedResult(roundIndex);
+
+    /* Animate first. The result is shared by round number, so every
+       connected browser reaches the same Red/Blue/Black result. */
+    rbAnimateWheel(shared.slot,()=>{
+        wheel.classList.add('rb-result-glow');
+        if(!bet){
+            document.getElementById('rb-status').innerText=
+                shared.result==='black'?'⚫ BLACK — এই রাউন্ডে কোনো payout নেই':
+                'ফলাফল: '+rbColorLabel(shared.result);
+            rbBeep(shared.result==='black'?120:shared.result==='white'?700:520,.22);
+            rbSpinning=false;
+            setTimeout(rbStartLiveRound,700);
+            return;
+        }
+
+        const amount=bet.amount;
+        db.ref('users/'+currentUser.uid+'/balance').transaction(
+            v=>Number(v||0)>=amount?Number(v||0)-amount:undefined,
+            (e,ok)=>{
+                if(!ok){
+                    rbSpinning=false;
+                    rbPendingBet=null;
+                    document.getElementById('rb-status').innerText='ব্যালেন্স পরিবর্তিত হয়েছে — bet নেওয়া হয়নি';
+                    setTimeout(rbStartLiveRound,1000);
+                    return;
+                }
+
+                const win=shared.result===bet.color;
+                const payout=win?amount*2:0;
+
+                document.getElementById('rb-status').innerText=
+                    shared.result==='black'?'⚫ BLACK — কোনো payout নেই':
+                    win?'🎉 WIN! +'+payout.toFixed(2)+' কয়েন':
+                    '❌ ফলাফল: '+rbColorLabel(shared.result);
+
+                rbBeep(shared.result==='black'?120:shared.result==='white'?700:win?880:220,.22);
+
+                if(win) db.ref('users/'+currentUser.uid+'/balance').transaction(v=>(v||0)+payout);
+                db.ref('users/'+currentUser.uid+'/games').transaction(v=>(v||0)+1);
+                if(win) db.ref('users/'+currentUser.uid+'/wins').transaction(v=>(v||0)+1);
+
+                rbSpinning=false;
+                rbPendingBet=null;
+                setTimeout(rbStartLiveRound,700);
+            }
+        );
+    });
+}
+
+
         window.addEventListener('DOMContentLoaded', () => {
             renderLobbyCards();
             masterGameLoop();
@@ -1947,6 +2133,8 @@ db.ref('config/boxingKing').on('value', function(snapshot) {
             document.getElementById('bk-bet-display').innerText = bkFormatDecimal(BK_BET_OPTIONS[bkCurrentBetIndex]);
             updateSharedBalanceUI();
             applyBkConfigToUI();
+            rbBuildExactWheel();
+            rbStartLiveRound();
         });
     </script>
 </body>
