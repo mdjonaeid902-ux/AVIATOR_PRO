@@ -89,6 +89,54 @@
             letter-spacing: 0.5px;
         }
 
+
+        .lobby-uid-box {
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            width: fit-content;
+            max-width: 100%;
+            padding: 3px 5px 3px 7px;
+            border: 1px solid rgba(255, 204, 0, 0.32);
+            border-radius: 7px;
+            background: rgba(255, 204, 0, 0.07);
+            box-shadow: 0 0 10px rgba(255, 153, 0, 0.08);
+        }
+        .lobby-uid-label {
+            color: #ffcc00;
+            font-size: 0.56rem;
+            font-weight: 800;
+            letter-spacing: .35px;
+        }
+        .lobby-uid-value {
+            color: #fff;
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: .25px;
+            max-width: 145px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .lobby-uid-copy {
+            border: 0;
+            border-radius: 5px;
+            padding: 2px 5px;
+            background: linear-gradient(135deg, #ffcc00, #ff6600);
+            color: #15100a;
+            font-size: 0.55rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .lobby-uid-copy:active { transform: scale(.94); }
+        @media (max-width: 420px) {
+            .lobby-header { padding: 9px 9px; }
+            .lobby-uid-value { max-width: 105px; }
+            .lobby-uid-label { font-size: 0.52rem; }
+            .lobby-uid-copy { font-size: 0.5rem; padding: 2px 4px; }
+        }
+
         .lobby-container {
             flex: 1;
             max-width: 900px;
@@ -723,6 +771,11 @@
                 <div>
                     <div class="lobby-brand-title">👑 GAMING ZONE</div>
                     <div class="lobby-brand-subtitle">CHOOSE YOUR GAME</div>
+                    <div class="lobby-uid-box" title="আপনার Firebase UID">
+                        <span class="lobby-uid-label">UID</span>
+                        <span class="lobby-uid-value" id="lobby-user-uid">—</span>
+                        <button type="button" class="lobby-uid-copy" id="copy-uid-btn" onclick="copyLobbyUid()">📋 COPY</button>
+                    </div>
                 </div>
             </div>
 
@@ -1289,9 +1342,41 @@
             auth.signOut().then(() => { window.location.reload(); });
         });
 
+        function updateLobbyUid(uid) {
+            const el = document.getElementById('lobby-user-uid');
+            if (el) el.textContent = uid || '—';
+        }
+
+        async function copyLobbyUid() {
+            const uid = currentUser && currentUser.uid ? currentUser.uid : '';
+            if (!uid) {
+                alert('প্রথমে Login করুন!');
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(uid);
+            } catch (e) {
+                const ta = document.createElement('textarea');
+                ta.value = uid;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+            }
+            const btn = document.getElementById('copy-uid-btn');
+            if (btn) {
+                const old = btn.textContent;
+                btn.textContent = '✓ COPIED';
+                setTimeout(() => { btn.textContent = old; }, 1400);
+            }
+        }
+
         auth.onAuthStateChanged(function(user) {
             if (user) {
                 currentUser = user;
+                updateLobbyUid(user.uid);
                 authModal.classList.add('hidden');
                 globalUserBar.classList.remove('hidden');
                 userEmailDisplay.innerText = user.email;
@@ -1313,6 +1398,7 @@
                 });
             } else {
                 currentUser = null;
+                updateLobbyUid('');
                 userDbRef = null;
                 authModal.classList.remove('hidden');
                 globalUserBar.classList.add('hidden');
