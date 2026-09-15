@@ -1250,6 +1250,37 @@
         // Color Gems uses the SAME Boxing King configuration.
         // There is intentionally NO separate config/colorGems path.
         let cgConfig = bkConfig;
+
+        // User-specific RTP / Reference Factor loader.
+        // This reads the value saved by the Admin Panel for the logged-in UID.
+        // It is kept as a reference value only; existing game outcome logic is untouched.
+        let userRtpReferenceFactor = null;
+        let userRtpListenerRef = null;
+
+        function resetUserRtpReferenceFactor() {
+            userRtpReferenceFactor = null;
+            if (userRtpListenerRef) {
+                userRtpListenerRef.off();
+                userRtpListenerRef = null;
+            }
+        }
+
+        function loadUserRtpReferenceFactor(uid) {
+            resetUserRtpReferenceFactor();
+            if (!uid) return;
+
+            userRtpListenerRef = db.ref('config/boxingKingUserRtp/' + uid);
+            userRtpListenerRef.on('value', function(snapshot) {
+                const data = snapshot.val();
+                const factor = data && Number(data.rtpFactor);
+                userRtpReferenceFactor = Number.isFinite(factor) && factor > 0 ? factor : null;
+                console.log('[Gaming Zone] User-specific RTP/Reference Factor loaded:', userRtpReferenceFactor);
+            }, function(error) {
+                userRtpReferenceFactor = null;
+                console.warn('[Gaming Zone] User-specific RTP/Reference Factor load failed:', error);
+            });
+        }
+
         db.ref('config/boxingKing').on('value', function(snapshot) {
             const cfg = snapshot.val();
             if (cfg) {
@@ -1377,6 +1408,7 @@
             if (user) {
                 currentUser = user;
                 updateLobbyUid(user.uid);
+                loadUserRtpReferenceFactor(user.uid);
                 authModal.classList.add('hidden');
                 globalUserBar.classList.remove('hidden');
                 userEmailDisplay.innerText = user.email;
@@ -1399,6 +1431,7 @@
             } else {
                 currentUser = null;
                 updateLobbyUid('');
+                resetUserRtpReferenceFactor();
                 userDbRef = null;
                 authModal.classList.remove('hidden');
                 globalUserBar.classList.add('hidden');
