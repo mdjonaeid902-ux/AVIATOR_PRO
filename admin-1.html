@@ -425,16 +425,16 @@ $("saveConfig").onclick=async()=>{
     toast("Boxing King settings saved");
   }catch(e){$("configMsg").textContent="Save failed: "+e.message;toast(e.message)}
 };
-async function loadUserRtp(){
-  const uid = $("userRtpUid")?.value;
-  if(!uid) return;
-  const snap = await db.ref(`config/boxingKingUserRtp/${uid}`).once("value");
-  const cfg = snap.val() || {};
-  $("userRtpFactor").value = cfg.rtpFactor != null ? String(cfg.rtpFactor) : "1.0";
-  $("userRtpMsg").textContent = cfg.rtpFactor != null ? `Saved factor: ${cfg.rtpFactor}x` : "No user-specific factor saved.";
+let userRtpAdminRef=null;
+let userRtpAdminUid='';
+function stopAdminUserRtpListener(){if(userRtpAdminRef){try{userRtpAdminRef.off();}catch(e){}userRtpAdminRef=null;}userRtpAdminUid='';}
+function loadUserRtp(){
+  stopAdminUserRtpListener();const uid=$("userRtpUid")?.value;
+  if(!uid){$("userRtpFactor").value="1.0";$("userRtpMsg").textContent="একজন ইউজার নির্বাচন করুন।";return;}
+  userRtpAdminUid=String(uid);$("userRtpMsg").textContent="লোড হচ্ছে…";userRtpAdminRef=db.ref(`config/boxingKingUserRtp/${userRtpAdminUid}`);
+  userRtpAdminRef.on("value",snap=>{if(userRtpAdminUid!==String(uid))return;const factor=Number(snap.val()?.rtpFactor);if(Number.isFinite(factor)&&factor>0){$("userRtpFactor").value=String(factor);$("userRtpMsg").textContent=`✓ Saved for selected user: ${factor}x`;}else{$("userRtpFactor").value="1.0";$("userRtpMsg").textContent="No user-specific reference factor saved.";}},err=>{if(userRtpAdminUid===String(uid))$("userRtpMsg").textContent="Load failed: "+(err?.message||err);});
 }
-
-$("userRtpUid").onchange = () => loadUserRtp().catch(e => $("userRtpMsg").textContent = "Load failed: "+e.message);
+$("userRtpUid").onchange=loadUserRtp;
 
 $("saveUserRtp").onclick = async () => {
   const uid = $("userRtpUid").value;
