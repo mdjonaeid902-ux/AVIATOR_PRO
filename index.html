@@ -130,6 +130,9 @@
             cursor: pointer;
         }
         .lobby-uid-copy:active { transform: scale(.94); }
+        .user-rtp-ref-box{margin-top:6px;display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:8px;border:1px solid rgba(0,255,170,.22);background:rgba(0,255,170,.055);font-size:.54rem;font-weight:800;letter-spacing:.15px}
+        .user-rtp-ref-dot{width:6px;height:6px;border-radius:50%;background:#7f8a98}.user-rtp-ref-dot.active{background:#00e6a0;box-shadow:0 0 8px rgba(0,230,160,.8)}
+        .user-rtp-ref-label{color:#aeb9c8}.user-rtp-ref-value{color:#00e6a0}
         @media (max-width: 420px) {
             .lobby-header { padding: 9px 9px; }
             .lobby-uid-value { max-width: 105px; }
@@ -776,6 +779,11 @@
                         <span class="lobby-uid-value" id="lobby-user-uid">—</span>
                         <button type="button" class="lobby-uid-copy" id="copy-uid-btn" onclick="copyLobbyUid()">📋 COPY</button>
                     </div>
+                    <div class="user-rtp-ref-box" id="user-rtp-ref-box" title="Firebase থেকে আপনার UID-এর জন্য সংরক্ষিত reference factor">
+                        <span class="user-rtp-ref-dot" id="user-rtp-dot"></span>
+                        <span class="user-rtp-ref-label" id="user-rtp-ref-label">User RTP:</span>
+                        <span class="user-rtp-ref-value" id="user-rtp-ref-value">…</span>
+                    </div>
                 </div>
             </div>
 
@@ -1238,6 +1246,34 @@
         const historyBar = document.getElementById('history-bar');
         const liveBetsList = document.getElementById('live-bets-list');
 
+        let userRtpReferenceFactor = null;
+        let userRtpListenerRef = null;
+        let userRtpListenerUid = '';
+        function setUserRtpReferenceUI(state, factor, message) {
+            const dot=document.getElementById('user-rtp-dot'),label=document.getElementById('user-rtp-ref-label'),value=document.getElementById('user-rtp-ref-value');
+            if(!dot||!label||!value)return; dot.classList.toggle('active',state==='active');
+            if(state==='active'){label.textContent='User RTP Reference:';value.textContent=Number(factor).toFixed(2)+'x';}
+            else if(state==='global'){const g=Number(bkConfig?.rtpFactor)>0?Number(bkConfig.rtpFactor):1;label.textContent='User RTP Reference:';value.textContent='Global '+g.toFixed(2)+'x';}
+            else if(state==='loading'){label.textContent=message||'User RTP:';value.textContent='…';}
+            else if(state==='error'){label.textContent=message||'User RTP: Firebase error';value.textContent='—';}
+            else{label.textContent=message||'User RTP: সেট করা নেই';value.textContent='—';}
+        }
+        function resetUserRtpReference(){
+            userRtpReferenceFactor=null;userRtpListenerUid='';
+            if(userRtpListenerRef){try{userRtpListenerRef.off();}catch(e){}userRtpListenerRef=null;}
+            setUserRtpReferenceUI('none',null,'User RTP: সেট করা নেই');
+        }
+        function loadUserRtpReference(uid){
+            resetUserRtpReference();const cleanUid=String(uid||'').trim();if(!cleanUid)return;
+            userRtpListenerUid=cleanUid;setUserRtpReferenceUI('loading',null,'User RTP:');
+            userRtpListenerRef=db.ref('config/boxingKingUserRtp/'+cleanUid);
+            userRtpListenerRef.on('value',function(snapshot){
+                if(userRtpListenerUid!==cleanUid)return;const factor=Number((snapshot.val()||{}).rtpFactor);
+                userRtpReferenceFactor=Number.isFinite(factor)&&factor>0?factor:null;
+                if(userRtpReferenceFactor!==null)setUserRtpReferenceUI('active',userRtpReferenceFactor);else setUserRtpReferenceUI('global');
+            },function(error){if(userRtpListenerUid!==cleanUid)return;userRtpReferenceFactor=null;setUserRtpReferenceUI('error',null,'User RTP: Firebase access error');console.warn('[Gaming Zone] User RTP reference load failed:',error);});
+        }
+
         let bkConfig = {
             enabled: true,
             minBet: 1,
@@ -1250,37 +1286,6 @@
         // Color Gems uses the SAME Boxing King configuration.
         // There is intentionally NO separate config/colorGems path.
         let cgConfig = bkConfig;
-
-        // User-specific RTP / Reference Factor loader.
-        // This reads the value saved by the Admin Panel for the logged-in UID.
-        // It is kept as a reference value only; existing game outcome logic is untouched.
-        let userRtpReferenceFactor = null;
-        let userRtpListenerRef = null;
-
-        function resetUserRtpReferenceFactor() {
-            userRtpReferenceFactor = null;
-            if (userRtpListenerRef) {
-                userRtpListenerRef.off();
-                userRtpListenerRef = null;
-            }
-        }
-
-        function loadUserRtpReferenceFactor(uid) {
-            resetUserRtpReferenceFactor();
-            if (!uid) return;
-
-            userRtpListenerRef = db.ref('config/boxingKingUserRtp/' + uid);
-            userRtpListenerRef.on('value', function(snapshot) {
-                const data = snapshot.val();
-                const factor = data && Number(data.rtpFactor);
-                userRtpReferenceFactor = Number.isFinite(factor) && factor > 0 ? factor : null;
-                console.log('[Gaming Zone] User-specific RTP/Reference Factor loaded:', userRtpReferenceFactor);
-            }, function(error) {
-                userRtpReferenceFactor = null;
-                console.warn('[Gaming Zone] User-specific RTP/Reference Factor load failed:', error);
-            });
-        }
-
         db.ref('config/boxingKing').on('value', function(snapshot) {
             const cfg = snapshot.val();
             if (cfg) {
@@ -1293,6 +1298,7 @@
                 }
             }
             cgConfig = bkConfig;
+            if (userRtpReferenceFactor === null && userRtpListenerUid) setUserRtpReferenceUI('global');
             applyBkConfigToUI();
             applyCgConfigToUI();
         });
@@ -1408,7 +1414,7 @@
             if (user) {
                 currentUser = user;
                 updateLobbyUid(user.uid);
-                loadUserRtpReferenceFactor(user.uid);
+                loadUserRtpReference(user.uid);
                 authModal.classList.add('hidden');
                 globalUserBar.classList.remove('hidden');
                 userEmailDisplay.innerText = user.email;
@@ -1431,7 +1437,7 @@
             } else {
                 currentUser = null;
                 updateLobbyUid('');
-                resetUserRtpReferenceFactor();
+                resetUserRtpReference();
                 userDbRef = null;
                 authModal.classList.remove('hidden');
                 globalUserBar.classList.add('hidden');
