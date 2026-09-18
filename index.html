@@ -782,6 +782,7 @@
             <div style="display: flex; align-items: center; gap: 5px;">
                 <div class="av-balance-box" style="padding: 3px 6px; font-size: 0.7rem;">🪙 <span class="av-balance-amount" id="lobby-bal">0.00</span></div>
                 <button class="av-btn av-btn-deposit" id="deposit-btn" style="padding: 4px 8px; font-size: 0.65rem;">➕ Deposit</button>
+                <button class="av-btn" id="bonus-btn" type="button" style="background:#8e24aa;padding:4px 8px;font-size:0.65rem;position:relative;white-space:nowrap;">🎁 Bonus <span id="bonus-count-badge" style="display:none;margin-left:3px;background:#ffcc00;color:#111;border-radius:999px;padding:1px 5px;font-size:10px;font-weight:900;">0</span></button>
                 <button class="av-btn av-btn-withdraw" id="withdraw-btn" style="padding: 4px 8px; font-size: 0.65rem;">📤 Withdraw</button>
             </div>
         </header>
@@ -2949,8 +2950,24 @@ function rbLockAndSpin(){
     }, true);
   }
 
+
+  async function refreshBonusBadge(){
+    const badge=document.getElementById("bonus-count-badge");
+    if(!badge || !currentUser) return;
+    try{
+      const snap=await db.ref("users/"+currentUser.uid+"/bonuses").once("value");
+      const now=bonusNow();
+      let count=0;
+      Object.values(snap.val()||{}).forEach(b=>{
+        if(b && b.status==="pending" && Number(b.expiresAt||0)>now) count++;
+      });
+      badge.textContent=String(count);
+      badge.style.display=count ? "inline-block" : "none";
+    }catch(e){}
+  }
+
   const bonusBtn=document.getElementById("bonus-btn");
-  if(bonusBtn) bonusBtn.addEventListener("click",showBonusModal);
+  if(bonusBtn) bonusBtn.addEventListener("click",()=>{ showBonusModal(); refreshBonusBadge(); });
   const closeBonus=document.getElementById("close-bonus-btn");
   if(closeBonus) closeBonus.addEventListener("click",()=>{
     const m=document.getElementById("bonus-modal"); if(m)m.classList.add("hidden");
@@ -2960,6 +2977,8 @@ function rbLockAndSpin(){
   // Keep the lock state fresh while the user remains logged in.
   setInterval(updateWithdrawLockUI,15000);
   setTimeout(updateWithdrawLockUI,1000);
+  setTimeout(refreshBonusBadge,1200);
+  setInterval(refreshBonusBadge,15000);
 })();
 
 </script>
