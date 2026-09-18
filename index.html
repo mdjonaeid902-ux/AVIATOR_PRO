@@ -1043,6 +1043,46 @@
         // Aviator uses Firebase server time so every device derives the same round/crash point.
         // This prevents one phone from being a few seconds ahead/behind because of local clock drift.
         let aviatorServerTimeOffset = 0;
+        let aviatorFirebaseConnected = false;
+        let aviatorLoopRunning = false;
+
+        // Do not let cached/local JavaScript keep Aviator running without a live Firebase connection.
+        function isAviatorOnline() {
+            return navigator.onLine !== false && aviatorFirebaseConnected === true;
+        }
+        function setAviatorConnectionUI(online) {
+            let overlay = document.getElementById('aviator-offline-overlay');
+            if (!online) {
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'aviator-offline-overlay';
+                    overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(5,7,12,.94);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:#fff;font-family:Arial,sans-serif;';
+                    overlay.innerHTML = '<div style=\"max-width:360px\"><div style=\"font-size:46px;margin-bottom:12px\">📡</div><div style=\"font-size:24px;font-weight:800;margin-bottom:8px\">ইন্টারনেট সংযোগ নেই</div><div style=\"font-size:15px;line-height:1.6;color:#cbd5e1\">Aviator থেমে আছে। সংযোগ ফিরে না আসা পর্যন্ত গেম চলবে না এবং CASH OUT করা যাবে না।</div></div>';
+                    document.body.appendChild(overlay);
+                }
+                overlay.style.display = 'flex';
+                if (typeof betBtn !== 'undefined' && betBtn) betBtn.disabled = true;
+            } else if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+        function stopAviatorLoopForOffline() {
+            aviatorLoopRunning = false;
+            setAviatorConnectionUI(false);
+        }
+        function startAviatorLoopIfOnline() {
+            if (!isAviatorOnline() || aviatorLoopRunning) return;
+            aviatorLoopRunning = true;
+            setAviatorConnectionUI(true);
+            requestAnimationFrame(masterGameLoop);
+        }
+        window.addEventListener('offline', stopAviatorLoopForOffline);
+        window.addEventListener('online', startAviatorLoopIfOnline);
+        db.ref('.info/connected').on('value', function(snapshot) {
+            aviatorFirebaseConnected = snapshot.val() === true;
+            if (aviatorFirebaseConnected && navigator.onLine !== false) startAviatorLoopIfOnline();
+            else stopAviatorLoopForOffline();
+        });
         db.ref('.info/serverTimeOffset').on('value', function(snapshot) {
             const v = Number(snapshot.val());
             aviatorServerTimeOffset = Number.isFinite(v) ? v : 0;
@@ -1677,6 +1717,7 @@
         }
 
         function masterGameLoop() {
+            if (!isAviatorOnline()) { stopAviatorLoopForOffline(); return; }
             const CYCLE_DURATION = 18000;
             const WAIT_DURATION = 3000;
 
@@ -1780,10 +1821,12 @@
                 }
             }
 
-            requestAnimationFrame(masterGameLoop);
+            if (isAviatorOnline()) requestAnimationFrame(masterGameLoop);
+            else stopAviatorLoopForOffline();
         }
 
         betBtn.addEventListener('click', function() {
+            if (!isAviatorOnline()) return alert("ইন্টারনেট সংযোগ নেই। সংযোগ ফিরে এলে আবার চেষ্টা করুন।");
             if (!currentUser) return alert("প্রথমে Login করুন!");
 
             const CYCLE_DURATION = 18000;
@@ -2668,7 +2711,7 @@ function rbLockAndSpin(){
 
         window.addEventListener('DOMContentLoaded', () => {
             renderLobbyCards();
-            masterGameLoop();
+            if (isAviatorOnline()) startAviatorLoopIfOnline(); else setAviatorConnectionUI(false);
             initBkBoardDOM();
             updateBkMultiplierUI();
             document.getElementById('bk-bet-display').innerText = bkFormatDecimal(BK_BET_OPTIONS[bkCurrentBetIndex]);
