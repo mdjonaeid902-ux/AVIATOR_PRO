@@ -1073,9 +1073,10 @@
                 if (!overlay) {
                     overlay = document.createElement('div');
                     overlay.id = 'aviator-offline-overlay';
-                    overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(5,7,12,.94);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:#fff;font-family:Arial,sans-serif;';
+                    overlay.style.cssText = 'position:absolute;inset:0;z-index:9999;background:rgba(5,7,12,.94);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;box-sizing:border-box;color:#fff;font-family:Arial,sans-serif;';
                     overlay.innerHTML = '<div style=\"max-width:360px\"><div style=\"font-size:46px;margin-bottom:12px\">📡</div><div style=\"font-size:24px;font-weight:800;margin-bottom:8px\">ইন্টারনেট সংযোগ নেই</div><div style=\"font-size:15px;line-height:1.6;color:#cbd5e1\">Aviator থেমে আছে। সংযোগ ফিরে না আসা পর্যন্ত গেম চলবে না এবং CASH OUT করা যাবে না।</div></div>';
-                    document.body.appendChild(overlay);
+                    const aviatorDisplay = document.querySelector('#aviator-game-screen .av-game-display');
+                    if (aviatorDisplay) aviatorDisplay.appendChild(overlay);
                 }
                 overlay.style.display = 'flex';
                 if (typeof betBtn !== 'undefined' && betBtn) betBtn.disabled = true;
@@ -2785,7 +2786,7 @@ function rbLockAndSpin(){
     start();
 })();
 
-// ================= BONUS + 24H WITHDRAWAL COOLDOWN =================
+// ================= BONUS + 6H WITHDRAWAL COOLDOWN =================
 (function initBonusAndWithdrawCooldown(){
   const BONUS_TTL = 5 * 60 * 60 * 1000;
   const WITHDRAW_COOLDOWN = 6 * 60 * 60 * 1000;
@@ -2990,10 +2991,11 @@ function rbLockAndSpin(){
 
   const bonusBtn=document.getElementById("bonus-btn");
   if(bonusBtn) bonusBtn.addEventListener("click",()=>{ showBonusModal(); refreshBonusBadge(); });
-  const closeBonus=document.getElementById("close-bonus-btn");
-  if(closeBonus) closeBonus.addEventListener("click",()=>{
-    const m=document.getElementById("bonus-modal"); if(m)m.classList.add("hidden");
-    if(bonusTimer)clearInterval(bonusTimer);
+  document.addEventListener("click",function(e){
+    if(e.target && e.target.closest && e.target.closest("#close-bonus-btn")){
+      const m=document.getElementById("bonus-modal"); if(m)m.classList.add("hidden");
+      if(bonusTimer)clearInterval(bonusTimer);
+    }
   });
 
   // Keep the lock state fresh while the user remains logged in.
