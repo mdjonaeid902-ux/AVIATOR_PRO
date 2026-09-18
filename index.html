@@ -1037,6 +1037,8 @@
         let cashedAmount = 0;
         let lastProcessedRound = -1;
         let isProcessingBet = false;
+        let lastCrashSettlementAttempt = -1;
+        let aviatorBetsListener = null;
 
         // Aviator uses Firebase server time so every device derives the same round/crash point.
         // This prevents one phone from being a few seconds ahead/behind because of local clock drift.
@@ -1048,6 +1050,45 @@
         function getAviatorServerNow() {
             return Date.now() + aviatorServerTimeOffset;
         }
+
+        // Firebase-backed round state: every device sees the same bet/cashout status.
+        // This is intentionally separate from the visual animation state.
+        function getAviatorRoundKey(roundIndex) {
+            return String(roundIndex);
+        }
+
+        function syncLocalAviatorBet(roundIndex, record) {
+            const rec = record || null;
+            if (rec && Number(rec.roundIndex) === Number(roundIndex) && Number(rec.amount) > 0) {
+                betRoundIndex = roundIndex;
+                activeBet = Number(rec.amount) || 0;
+                hasCashedOut = rec.status === 'cashed';
+                cashedMultiplier = Number(rec.multiplier) || 0;
+                cashedAmount = Number(rec.payout) || 0;
+            } else {
+                betRoundIndex = -1;
+                activeBet = 0;
+                hasCashedOut = false;
+                cashedMultiplier = 0;
+                cashedAmount = 0;
+            }
+        }
+
+        function watchAviatorBetState(user) {
+            if (aviatorBetsListener) {
+                aviatorBetsListener.off();
+                aviatorBetsListener = null;
+            }
+            if (!user) return;
+            aviatorBetsListener = db.ref('users/' + user.uid + '/aviatorBets');
+            aviatorBetsListener.on('value', function(snapshot) {
+                if (!currentUser || currentUser.uid !== user.uid) return;
+                const allBets = snapshot.val() || {};
+                const roundIndex = Math.floor(getAviatorServerNow() / 18000);
+                syncLocalAviatorBet(roundIndex, allBets[getAviatorRoundKey(roundIndex)]);
+            });
+        }
+
         let historyArray = [];
 
         const authModal = document.getElementById('auth-modal');
@@ -1447,7 +1488,12 @@
                         });
                     }
                 });
+                watchAviatorBetState(user);
             } else {
+                if (aviatorBetsListener) {
+                    aviatorBetsListener.off();
+                    aviatorBetsListener = null;
+                }
                 currentUser = null;
                 updateLobbyUid('');
                 resetUserRtpReferenceFactor();
@@ -1606,6 +1652,30 @@
             }
         }
 
+        function settleAviatorCrash(roundIndex, targetCrashPoint) {
+            if (!currentUser) return;
+            const uid = currentUser.uid;
+            const roundKey = getAviatorRoundKey(roundIndex);
+            const betRef = db.ref('users/' + uid);
+
+            betRef.transaction(function(data) {
+                if (!data) return;
+                const bets = data.aviatorBets || {};
+                const bet = bets[roundKey];
+                if (!bet || bet.status !== 'active') return;
+
+                bet.status = 'lost';
+                bet.settledAt = firebase.database.ServerValue.TIMESTAMP;
+                bet.crashPoint = Number(targetCrashPoint) || 1;
+                bets[roundKey] = bet;
+                data.aviatorBets = bets;
+                data.games = (Number(data.games) || 0) + 1;
+                return data;
+            }).catch(function(err) {
+                console.warn('Aviator crash settlement failed:', err);
+            });
+        }
+
         function masterGameLoop() {
             const CYCLE_DURATION = 18000;
             const WAIT_DURATION = 3000;
@@ -1671,8 +1741,9 @@
                     multiplierDisplay.innerText = "FLEW AWAY!\n" + targetCrashPoint.toFixed(2) + "x";
                     multiplierDisplay.classList.add('crashed');
 
-                    if (isBetActiveForCurrentRound && !hasCashedOut && currentUser) {
-                        db.ref('users/' + currentUser.uid + '/games').transaction(g => (g || 0) + 1);
+                    if (isBetActiveForCurrentRound && !hasCashedOut && currentUser && lastCrashSettlementAttempt !== currentRoundIndex) {
+                        lastCrashSettlementAttempt = currentRoundIndex;
+                        settleAviatorCrash(currentRoundIndex, targetCrashPoint);
                     }
 
                     renderMyLiveBetUI(currentRoundIndex, true);
@@ -1720,12 +1791,11 @@
             const now = getAviatorServerNow();
             const cycleElapsed = now % CYCLE_DURATION;
             const currentRoundIndex = Math.floor(now / CYCLE_DURATION);
+            const roundKey = getAviatorRoundKey(currentRoundIndex);
 
             if (cycleElapsed < WAIT_DURATION) {
                 const targetRoundIndex = currentRoundIndex;
-
-                if (betRoundIndex === targetRoundIndex) return;
-                if (isProcessingBet) return;
+                if (betRoundIndex === targetRoundIndex || isProcessingBet) return;
 
                 const betAmt = parseFloat(betInput.value);
                 if (isNaN(betAmt) || betAmt < 10) return alert("সর্বনিম্ন বেট পরিমাণ ১০ কয়েন");
@@ -1735,52 +1805,120 @@
                 betBtn.innerText = "প্রসেসিং...";
                 betBtn.disabled = true;
 
-                const processingTimeout = setTimeout(() => {
-                    if (isProcessingBet) {
-                        isProcessingBet = false;
-                    }
-                }, 4000);
+                const targetCrashPoint = getDeterministicCrashPoint(targetRoundIndex);
+                const totalFlightTimeNeeded = calculateTimeFromMultiplier(targetCrashPoint);
 
-                db.ref('users/' + currentUser.uid + '/balance').transaction(current => {
-                    if (current >= betAmt) return current - betAmt;
-                }, (error, committed) => {
-                    clearTimeout(processingTimeout);
+                db.ref('users/' + currentUser.uid).transaction(function(data) {
+                    if (!data) return;
+                    const balance = Number(data.balance) || 0;
+                    const bets = data.aviatorBets || {};
+                    const existing = bets[roundKey];
+
+                    // One account can have only one authoritative bet per round.
+                    if (existing && (existing.status === 'active' || existing.status === 'cashed' || existing.status === 'lost')) return;
+                    if (balance < betAmt) return;
+
+                    data.balance = balance - betAmt;
+                    bets[roundKey] = {
+                        roundIndex: targetRoundIndex,
+                        amount: Number(betAmt.toFixed(2)),
+                        status: 'active',
+                        placedAt: firebase.database.ServerValue.TIMESTAMP,
+                        crashPoint: Number(targetCrashPoint.toFixed(2)),
+                        crashAtMs: (targetRoundIndex * CYCLE_DURATION) + WAIT_DURATION + (totalFlightTimeNeeded * 1000)
+                    };
+                    data.aviatorBets = bets;
+                    return data;
+                }).then(function(result) {
                     isProcessingBet = false;
-                    if (committed) {
-                        activeBet = betAmt;
-                        betRoundIndex = targetRoundIndex;
-                        hasCashedOut = false;
-                        
+                    if (result.committed) {
+                        syncLocalAviatorBet(targetRoundIndex, (result.snapshot.val().aviatorBets || {})[roundKey]);
                         betBtn.innerText = "বেট প্লেসড";
                         betBtn.className = "av-btn av-btn-action av-btn-waiting";
                         betBtn.disabled = true;
                         renderMyLiveBetUI(targetRoundIndex, false);
                     } else {
-                        alert("লেনদেন ব্যর্থ হয়েছে! পর্যাপ্ত কয়েন নেই।");
+                        betBtn.disabled = false;
+                        alert("এই রাউন্ডে বেট নেওয়া যায়নি। ইতিমধ্যে বেট/লেনদেন থাকতে পারে।");
                     }
+                }).catch(function(error) {
+                    isProcessingBet = false;
+                    betBtn.disabled = false;
+                    alert("লেনদেন ব্যর্থ হয়েছে: " + error.message);
                 });
-            } 
+            }
             else if (cycleElapsed >= WAIT_DURATION && betRoundIndex === currentRoundIndex && !hasCashedOut) {
                 const targetCrashPoint = getDeterministicCrashPoint(currentRoundIndex);
                 const totalFlightTimeNeeded = calculateTimeFromMultiplier(targetCrashPoint);
-                let flyElapsed = (cycleElapsed - WAIT_DURATION) / 1000;
-                
+                const serverNowAtClick = getAviatorServerNow();
+                const flyElapsed = (serverNowAtClick - (currentRoundIndex * CYCLE_DURATION + WAIT_DURATION)) / 1000;
+
                 if (flyElapsed >= totalFlightTimeNeeded) return;
+                if (isProcessingBet) return;
 
-                hasCashedOut = true;
-                cashedMultiplier = currentLocalMult;
-                cashedAmount = activeBet * cashedMultiplier;
-
-                betBtn.innerText = "CASHED OUT\n(" + cashedAmount.toFixed(2) + " কয়েন)";
-                betBtn.className = "av-btn av-btn-action av-btn-waiting";
+                isProcessingBet = true;
+                betBtn.innerText = "CASHING OUT...";
                 betBtn.disabled = true;
 
-                db.ref('users/' + currentUser.uid + '/balance').transaction(b => (b || 0) + cashedAmount);
-                db.ref('users/' + currentUser.uid + '/wins').transaction(w => (w || 0) + 1);
-                db.ref('users/' + currentUser.uid + '/games').transaction(g => (g || 0) + 1);
+                const uid = currentUser.uid;
+                const userRef = db.ref('users/' + uid);
 
-                cashoutBannerContainer.innerHTML = '<div class="av-cashout-banner">CASHED OUT ' + cashedAmount.toFixed(2) + ' কয়েন (' + cashedMultiplier.toFixed(2) + 'x)</div>';
-                renderMyLiveBetUI(currentRoundIndex, false);
+                userRef.transaction(function(data) {
+                    if (!data) return;
+                    const bets = data.aviatorBets || {};
+                    const bet = bets[roundKey];
+                    if (!bet || bet.status !== 'active') return;
+
+                    // The transaction is the single source of truth for cashout.
+                    // If Firebase/server time is already at/after crash, this request is rejected and the bet is lost.
+                    const authoritativeNow = getAviatorServerNow();
+                    const crashAtMs = Number(bet.crashAtMs);
+                    if (!Number.isFinite(crashAtMs) || authoritativeNow >= crashAtMs) {
+                        bet.status = 'lost';
+                        bet.settledAt = firebase.database.ServerValue.TIMESTAMP;
+                        bets[roundKey] = bet;
+                        data.aviatorBets = bets;
+                        data.games = (Number(data.games) || 0) + 1;
+                        return data;
+                    }
+
+                    const roundStartMs = currentRoundIndex * CYCLE_DURATION + WAIT_DURATION;
+                    const elapsedSec = Math.max(0, (authoritativeNow - roundStartMs) / 1000);
+                    const liveMultiplier = Math.min(calculateMultiplierFromTime(elapsedSec), targetCrashPoint);
+                    const payout = Number(((Number(bet.amount) || 0) * liveMultiplier).toFixed(2));
+
+                    bet.status = 'cashed';
+                    bet.multiplier = Number(liveMultiplier.toFixed(2));
+                    bet.payout = payout;
+                    bet.cashedAt = firebase.database.ServerValue.TIMESTAMP;
+                    bets[roundKey] = bet;
+
+                    data.balance = (Number(data.balance) || 0) + payout;
+                    data.wins = (Number(data.wins) || 0) + 1;
+                    data.games = (Number(data.games) || 0) + 1;
+                    data.aviatorBets = bets;
+                    return data;
+                }).then(function(result) {
+                    isProcessingBet = false;
+                    const data = result.snapshot.val() || {};
+                    const bet = (data.aviatorBets || {})[roundKey];
+
+                    if (result.committed && bet && bet.status === 'cashed') {
+                        syncLocalAviatorBet(currentRoundIndex, bet);
+                        cashoutBannerContainer.innerHTML = '<div class="av-cashout-banner">CASHED OUT ' + Number(bet.payout).toFixed(2) + ' কয়েন (' + Number(bet.multiplier).toFixed(2) + 'x)</div>';
+                    } else if (bet && bet.status === 'lost') {
+                        syncLocalAviatorBet(currentRoundIndex, bet);
+                        alert("CASH OUT নেওয়ার আগেই রাউন্ড শেষ হয়েছে।");
+                    } else {
+                        alert("CASH OUT নেওয়া যায়নি—রাউন্ডটি ইতিমধ্যে settle হয়ে গেছে।");
+                    }
+                    renderMyLiveBetUI(currentRoundIndex, false);
+                }).catch(function(error) {
+                    isProcessingBet = false;
+                    betBtn.disabled = false;
+                    console.error('Aviator cashout failed:', error);
+                    alert("CASH OUT ব্যর্থ হয়েছে: " + error.message);
+                });
             }
         });
 
