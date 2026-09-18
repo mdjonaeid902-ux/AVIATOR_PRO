@@ -744,6 +744,7 @@
             <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;">
                 আপনার ব্যালেন্স থেকে কয়েন উইথড্র করুন।
             </div>
+            <div id="withdraw-cooldown-status" style="display:none;margin:-2px 0 10px;padding:9px 10px;border-radius:9px;background:rgba(251,140,0,.10);border:1px solid rgba(251,140,0,.28);color:#ffcc80;font-size:12px;line-height:1.5;text-align:center;"></div>
             <div class="form-group">
                 <select id="withdraw-method">
                     <option value="bkash">বিকাশ (Bkash)</option>
@@ -1052,14 +1053,19 @@
             return navigator.onLine !== false && aviatorFirebaseConnected === true;
         }
         function setAviatorConnectionUI(online) {
+            // The offline notice belongs ONLY inside the Aviator flight/display area.
+            // It must never cover the Main Game Lobby or any other game screen.
+            const gameDisplay = document.querySelector('#aviator-game-screen .av-game-display');
+            if (!gameDisplay) return;
+
             let overlay = document.getElementById('aviator-offline-overlay');
             if (!online) {
                 if (!overlay) {
                     overlay = document.createElement('div');
                     overlay.id = 'aviator-offline-overlay';
-                    overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(5,7,12,.94);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:#fff;font-family:Arial,sans-serif;';
+                    overlay.style.cssText = 'position:absolute;inset:0;z-index:20;background:rgba(5,7,12,.96);display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;box-sizing:border-box;color:#fff;font-family:Arial,sans-serif;border-radius:8px;';
                     overlay.innerHTML = '<div style=\"max-width:360px\"><div style=\"font-size:46px;margin-bottom:12px\">📡</div><div style=\"font-size:24px;font-weight:800;margin-bottom:8px\">ইন্টারনেট সংযোগ নেই</div><div style=\"font-size:15px;line-height:1.6;color:#cbd5e1\">Aviator থেমে আছে। সংযোগ ফিরে না আসা পর্যন্ত গেম চলবে না এবং CASH OUT করা যাবে না।</div></div>';
-                    document.body.appendChild(overlay);
+                    gameDisplay.appendChild(overlay);
                 }
                 overlay.style.display = 'flex';
                 if (typeof betBtn !== 'undefined' && betBtn) betBtn.disabled = true;
@@ -2774,9 +2780,9 @@ function rbLockAndSpin(){
   const BONUS_TTL = 5 * 60 * 60 * 1000;
   const WITHDRAW_COOLDOWN = 24 * 60 * 60 * 1000;
   let bonusTimer = null;
+  let withdrawLastDepositAt = 0;
 
   function bonusNow(){
-    // Firebase server offset is already maintained by the Aviator online-sync code when available.
     const offset = (typeof aviatorServerTimeOffset === "number") ? aviatorServerTimeOffset : 0;
     return Date.now() + offset;
   }
@@ -2784,10 +2790,11 @@ function rbLockAndSpin(){
   function fmtRemaining(ms){
     ms = Math.max(0, ms);
     const total = Math.floor(ms/1000);
-    const h = Math.floor(total/3600);
+    const d = Math.floor(total/86400);
+    const h = Math.floor((total%86400)/3600);
     const m = Math.floor((total%3600)/60);
     const s = total%60;
-    return `${h}ঘ ${String(m).padStart(2,"0")}মি ${String(s).padStart(2,"0")}সে`;
+    return `${d ? d+"দিন " : ""}${String(h).padStart(2,"0")}ঘ ${String(m).padStart(2,"0")}মি ${String(s).padStart(2,"0")}সে`;
   }
 
   function showBonusModal(){
@@ -2810,56 +2817,60 @@ function rbLockAndSpin(){
   async function renderBonuses(){
     const list=document.getElementById("bonus-list");
     const status=document.getElementById("bonus-status");
-    if(!list||!status||!currentUser){return;}
+    if(!list||!status||!currentUser) return;
     if(bonusTimer) clearInterval(bonusTimer);
     list.innerHTML="<div style='color:#aaa'>লোড হচ্ছে...</div>";
-    const snap=await db.ref("users/"+currentUser.uid+"/bonuses").once("value");
-    const bonuses=snap.val()||{};
-    await cleanupExpiredBonuses(currentUser.uid,bonuses);
+    try{
+      const snap=await db.ref("users/"+currentUser.uid+"/bonuses").once("value");
+      const bonuses=snap.val()||{};
+      await cleanupExpiredBonuses(currentUser.uid,bonuses);
+      const now=bonusNow();
+      const active=Object.entries(bonuses).filter(([id,b]) =>
+        b && b.status==="pending" && Number(b.expiresAt||0)>now
+      );
 
-    const now=bonusNow();
-    const active=Object.entries(bonuses).filter(([id,b]) =>
-      b && b.status==="pending" && Number(b.expiresAt||0)>now
-    );
+      status.textContent = active.length
+        ? `আপনার ${active.length}টি active bonus আছে। প্রতিটি bonus দেওয়ার সময় থেকে ৫ ঘণ্টার মধ্যে Claim করতে হবে।`
+        : "এখন কোনো active bonus নেই।";
 
-    status.textContent = active.length
-      ? `আপনার ${active.length}টি claim করা যায় এমন bonus আছে। প্রতিটি bonus ৫ ঘণ্টার মধ্যে claim করতে হবে।`
-      : "এখন কোনো active bonus নেই।";
+      list.innerHTML="";
+      if(!active.length) return;
 
-    list.innerHTML="";
-    if(!active.length) return;
-
-    active.forEach(([id,b])=>{
-      const card=document.createElement("div");
-      card.style.cssText="background:#0b1018;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;";
-      const amount=Number(b.amount||0);
-      const exp=Number(b.expiresAt||0);
-      card.innerHTML=`
-        <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
-          <div>
-            <div style="font-weight:900;color:#ffd54f;font-size:20px;">৳${amount.toFixed(2)}</div>
-            <div style="font-size:12px;color:#9aa6b2;margin-top:4px;">Bonus • Claim করলে main balance-এ যোগ হবে</div>
+      active.forEach(([id,b])=>{
+        const card=document.createElement("div");
+        card.style.cssText="background:#0b1018;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;";
+        const amount=Number(b.amount||0);
+        const exp=Number(b.expiresAt||0);
+        card.innerHTML=`
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
+            <div>
+              <div style="font-weight:900;color:#ffd54f;font-size:20px;">৳${amount.toFixed(2)}</div>
+              <div style="font-size:12px;color:#9aa6b2;margin-top:4px;">আলাদা Bonus balance • Claim করলে main balance-এ যোগ হবে</div>
+            </div>
+            <button type="button" data-bonus-id="${id}" style="border:0;border-radius:10px;padding:10px 14px;background:#8e24aa;color:#fff;font-weight:800;cursor:pointer;">Claim</button>
           </div>
-          <button type="button" data-bonus-id="${id}" style="border:0;border-radius:10px;padding:10px 14px;background:#8e24aa;color:#fff;font-weight:800;cursor:pointer;">Claim</button>
-        </div>
-        <div class="bonus-countdown" data-expires="${exp}" style="margin-top:10px;color:#ffb74d;font-size:12px;"></div>
-      `;
-      list.appendChild(card);
-    });
-
-    const tick=()=>{
-      const now2=bonusNow();
-      document.querySelectorAll("#bonus-list .bonus-countdown").forEach(el=>{
-        const left=Number(el.dataset.expires||0)-now2;
-        el.textContent=left>0 ? "⏳ Expire in: "+fmtRemaining(left) : "Expired";
+          <div class="bonus-countdown" data-expires="${exp}" style="margin-top:10px;color:#ffb74d;font-size:12px;"></div>
+        `;
+        list.appendChild(card);
       });
-    };
-    tick();
-    bonusTimer=setInterval(tick,1000);
 
-    list.querySelectorAll("[data-bonus-id]").forEach(btn=>{
-      btn.addEventListener("click",()=>claimBonus(btn.dataset.bonusId));
-    });
+      const tick=()=>{
+        const now2=bonusNow();
+        document.querySelectorAll("#bonus-list .bonus-countdown").forEach(el=>{
+          const left=Number(el.dataset.expires||0)-now2;
+          el.textContent=left>0 ? "⏳ Claim করার সময় বাকি: "+fmtRemaining(left) : "সময় শেষ";
+        });
+      };
+      tick();
+      bonusTimer=setInterval(tick,1000);
+
+      list.querySelectorAll("[data-bonus-id]").forEach(btn=>{
+        btn.addEventListener("click",()=>claimBonus(btn.dataset.bonusId));
+      });
+    }catch(e){
+      status.textContent="Bonus লোড করা যায়নি।";
+      list.innerHTML="<div style='color:#ef9a9a'>সংযোগ/ডাটাবেস সমস্যা হয়েছে। আবার চেষ্টা করুন।</div>";
+    }
   }
 
   async function claimBonus(bonusId){
@@ -2882,11 +2893,12 @@ function rbLockAndSpin(){
         return Object.assign({},u,{balance:Number(u.balance||0)+amount,bonuses:nextBonuses});
       });
       if(!result.committed){
-        alert("এই bonus আর claim করা যাচ্ছে না।");
+        alert("এই bonus আর claim করা যাচ্ছে না—সম্ভবত ৫ ঘণ্টার সময় শেষ হয়েছে বা এটি আগে claim করা হয়েছে।");
         return renderBonuses();
       }
-      alert(`৳${claimedAmount.toFixed(2)} bonus আপনার balance-এ যোগ হয়েছে।`);
-      renderBonuses();
+      alert(`৳${claimedAmount.toFixed(2)} bonus আপনার main balance-এ যোগ হয়েছে।`);
+      await renderBonuses();
+      refreshBonusBadge();
     }catch(e){
       alert("Bonus claim করা যায়নি: "+(e.message||e));
     }
@@ -2896,16 +2908,36 @@ function rbLockAndSpin(){
     return Number(u?.lastDepositAt||0);
   }
 
-  async function updateWithdrawLockUI(){
+  function updateWithdrawCountdownText(){
+    const status=document.getElementById("withdraw-cooldown-status");
+    if(!status) return;
+    if(!currentUser){
+      status.style.display="none";
+      return;
+    }
+    const left=withdrawLastDepositAt ? (withdrawLastDepositAt+WITHDRAW_COOLDOWN-bonusNow()) : 0;
+    if(left>0){
+      status.style.display="block";
+      status.style.color="#ffcc80";
+      status.innerHTML="🔒 Withdraw সাময়িকভাবে বন্ধ। সর্বশেষ approved deposit-এর ২৪ ঘণ্টা পূর্ণ হতে বাকি: <b>"+fmtRemaining(left)+"</b>";
+    }else if(withdrawLastDepositAt){
+      status.style.display="block";
+      status.style.color="#81c784";
+      status.innerHTML="✅ ২৪ ঘণ্টার cooldown শেষ হয়েছে। এখন Withdraw করা যাবে।";
+    }else{
+      status.style.display="none";
+    }
+  }
+
+  async function refreshWithdrawState(){
     const btn=document.getElementById("withdraw-btn");
     if(!btn || !currentUser) return;
     try{
-      const snap=await db.ref("users/"+currentUser.uid).once("value");
-      const u=snap.val()||{};
-      const last= getLastDepositAtFromUser(u);
-      const left=last ? (last+WITHDRAW_COOLDOWN-bonusNow()) : 0;
+      const snap=await db.ref("users/"+currentUser.uid+"/lastDepositAt").once("value");
+      withdrawLastDepositAt=Number(snap.val()||0);
+      const left=withdrawLastDepositAt ? (withdrawLastDepositAt+WITHDRAW_COOLDOWN-bonusNow()) : 0;
       if(left>0){
-        btn.title="ডিপোজিটের ২৪ ঘণ্টা পূর্ণ হয়নি";
+        btn.title="ডিপোজিট approve হওয়ার পর ২৪ ঘণ্টা পূর্ণ হয়নি";
         btn.dataset.withdrawLocked="1";
         btn.style.opacity=".65";
       }else{
@@ -2913,17 +2945,19 @@ function rbLockAndSpin(){
         btn.dataset.withdrawLocked="0";
         btn.style.opacity="";
       }
+      updateWithdrawCountdownText();
     }catch(e){}
   }
 
-  const oldWithdrawClick=document.getElementById("withdraw-btn");
-  if(oldWithdrawClick){
-    oldWithdrawClick.addEventListener("click", async function(e){
+  // Capture-phase guards stop the original withdraw handlers when the 24h lock is active.
+  const withdrawBtn=document.getElementById("withdraw-btn");
+  if(withdrawBtn){
+    withdrawBtn.addEventListener("click", async function(e){
       if(!currentUser) return;
-      const snap=await db.ref("users/"+currentUser.uid).once("value");
-      const u=snap.val()||{};
-      const last=getLastDepositAtFromUser(u);
-      const left=last ? (last+WITHDRAW_COOLDOWN-bonusNow()) : 0;
+      const snap=await db.ref("users/"+currentUser.uid+"/lastDepositAt").once("value");
+      withdrawLastDepositAt=Number(snap.val()||0);
+      const left=withdrawLastDepositAt ? (withdrawLastDepositAt+WITHDRAW_COOLDOWN-bonusNow()) : 0;
+      updateWithdrawCountdownText();
       if(left>0){
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -2932,15 +2966,14 @@ function rbLockAndSpin(){
     }, true);
   }
 
-  // Enforce the same rule at submit time as well, so it cannot be bypassed by an already-open modal.
-  const oldConfirm=document.getElementById("withdraw-confirm-btn");
-  if(oldConfirm){
-    oldConfirm.addEventListener("click", async function(e){
+  const withdrawConfirm=document.getElementById("withdraw-confirm-btn");
+  if(withdrawConfirm){
+    withdrawConfirm.addEventListener("click", async function(e){
       if(!currentUser) return;
-      const snap=await db.ref("users/"+currentUser.uid).once("value");
-      const u=snap.val()||{};
-      const last=getLastDepositAtFromUser(u);
-      const left=last ? (last+WITHDRAW_COOLDOWN-bonusNow()) : 0;
+      const snap=await db.ref("users/"+currentUser.uid+"/lastDepositAt").once("value");
+      withdrawLastDepositAt=Number(snap.val()||0);
+      const left=withdrawLastDepositAt ? (withdrawLastDepositAt+WITHDRAW_COOLDOWN-bonusNow()) : 0;
+      updateWithdrawCountdownText();
       if(left>0){
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -2949,7 +2982,6 @@ function rbLockAndSpin(){
       }
     }, true);
   }
-
 
   async function refreshBonusBadge(){
     const badge=document.getElementById("bonus-count-badge");
@@ -2967,16 +2999,29 @@ function rbLockAndSpin(){
   }
 
   const bonusBtn=document.getElementById("bonus-btn");
-  if(bonusBtn) bonusBtn.addEventListener("click",()=>{ showBonusModal(); refreshBonusBadge(); });
-  const closeBonus=document.getElementById("close-bonus-btn");
-  if(closeBonus) closeBonus.addEventListener("click",()=>{
-    const m=document.getElementById("bonus-modal"); if(m)m.classList.add("hidden");
+  if(bonusBtn) bonusBtn.addEventListener("click",()=>{
+    if(!currentUser){alert("প্রথমে Login করুন!");return;}
+    showBonusModal();
+    refreshBonusBadge();
+  });
+
+  // The modal is appended after this script, so use delegated click handling for its close button.
+  document.addEventListener("click",function(e){
+    const close=e.target && e.target.closest ? e.target.closest("#close-bonus-btn") : null;
+    if(!close) return;
+    const m=document.getElementById("bonus-modal");
+    if(m)m.classList.add("hidden");
     if(bonusTimer)clearInterval(bonusTimer);
   });
 
-  // Keep the lock state fresh while the user remains logged in.
-  setInterval(updateWithdrawLockUI,15000);
-  setTimeout(updateWithdrawLockUI,1000);
+  // Countdown is local-only between Firebase refreshes; the source timestamp is re-read every 15s.
+  setInterval(()=>{
+    updateWithdrawCountdownText();
+  },1000);
+  setInterval(()=>{
+    refreshWithdrawState();
+  },15000);
+  setTimeout(refreshWithdrawState,1000);
   setTimeout(refreshBonusBadge,1200);
   setInterval(refreshBonusBadge,15000);
 })();
