@@ -1276,17 +1276,44 @@
                 });
         });
 
-        document.getElementById('withdraw-btn').addEventListener('click', () => {
+        document.getElementById('withdraw-btn').addEventListener('click', async () => {
             if (!currentUser) return alert("প্রথমে Login করুন!");
             withdrawMsg.innerText = "";
             document.getElementById('withdraw-account').value = "";
+            const notice = document.getElementById('withdraw-cooldown-notice');
+            const countdown = document.getElementById('withdraw-countdown');
+            if (notice) notice.classList.add('hidden');
+            try {
+                const snap = await db.ref('users/' + currentUser.uid).once('value');
+                const u = snap.val() || {};
+                const last = Number(u.lastDepositAt || 0);
+                const left = last ? (last + 6 * 60 * 60 * 1000 - (Date.now() + ((typeof aviatorServerTimeOffset === 'number') ? aviatorServerTimeOffset : 0))) : 0;
+                if (left > 0) {
+                    if (notice) notice.classList.remove('hidden');
+                    if (countdown) countdown.textContent = fmtRemaining(left);
+                }
+            } catch (e) {}
             withdrawModal.classList.remove('hidden');
         });
         document.getElementById('close-withdraw-btn').onclick = () => withdrawModal.classList.add('hidden');
 
         // --- উইথড্র রিকোয়েস্ট সাবমিট (এডমিন পেন্ডিং) ---
-        document.getElementById('withdraw-confirm-btn').addEventListener('click', () => {
+        document.getElementById('withdraw-confirm-btn').addEventListener('click', async (e) => {
             if (!currentUser) return;
+            try {
+                const snap = await db.ref('users/' + currentUser.uid).once('value');
+                const u = snap.val() || {};
+                const last = Number(u.lastDepositAt || 0);
+                const left = last ? (last + 6 * 60 * 60 * 1000 - (Date.now() + ((typeof aviatorServerTimeOffset === 'number') ? aviatorServerTimeOffset : 0))) : 0;
+                if (left > 0) {
+                    e.preventDefault();
+                    const notice = document.getElementById('withdraw-cooldown-notice');
+                    const countdown = document.getElementById('withdraw-countdown');
+                    if (notice) notice.classList.remove('hidden');
+                    if (countdown) countdown.textContent = fmtRemaining(left);
+                    return;
+                }
+            } catch (err) {}
             const amt = parseFloat(document.getElementById('withdraw-amount').value);
             const method = document.getElementById('withdraw-method').value;
             const accountNo = document.getElementById('withdraw-account').value.trim();
@@ -2933,45 +2960,6 @@ function rbLockAndSpin(){
     }catch(e){}
   }
 
-  const oldWithdrawClick=document.getElementById("withdraw-btn");
-  if(oldWithdrawClick){
-    oldWithdrawClick.addEventListener("click", async function(e){
-      if(!currentUser) return;
-      const snap=await db.ref("users/"+currentUser.uid).once("value");
-      const u=snap.val()||{};
-      const last=getLastDepositAtFromUser(u);
-      const left=last ? (last+WITHDRAW_COOLDOWN-bonusNow()) : 0;
-      if(left>0){
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        const notice=document.getElementById("withdraw-cooldown-notice");
-        const countdown=document.getElementById("withdraw-countdown");
-        if(notice) notice.classList.remove("hidden");
-        if(countdown) countdown.textContent=fmtRemaining(left);
-      }
-    }, true);
-  }
-
-  // Enforce the same rule at submit time as well, so it cannot be bypassed by an already-open modal.
-  const oldConfirm=document.getElementById("withdraw-confirm-btn");
-  if(oldConfirm){
-    oldConfirm.addEventListener("click", async function(e){
-      if(!currentUser) return;
-      const snap=await db.ref("users/"+currentUser.uid).once("value");
-      const u=snap.val()||{};
-      const last=getLastDepositAtFromUser(u);
-      const left=last ? (last+WITHDRAW_COOLDOWN-bonusNow()) : 0;
-      if(left>0){
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        const msg=document.getElementById("withdraw-msg");
-        const notice=document.getElementById("withdraw-cooldown-notice");
-        const countdown=document.getElementById("withdraw-countdown");
-        if(notice) notice.classList.remove("hidden");
-        if(countdown) countdown.textContent=fmtRemaining(left);
-      }
-    }, true);
-  }
 
 
   async function refreshBonusBadge(){
