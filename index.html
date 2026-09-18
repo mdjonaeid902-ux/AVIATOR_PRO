@@ -2785,7 +2785,7 @@ function rbLockAndSpin(){
     start();
 })();
 
-// ================= BONUS + 6H WITHDRAWAL COOLDOWN =================
+// ================= BONUS + 24H WITHDRAWAL COOLDOWN =================
 (function initBonusAndWithdrawCooldown(){
   const BONUS_TTL = 5 * 60 * 60 * 1000;
   const WITHDRAW_COOLDOWN = 6 * 60 * 60 * 1000;
@@ -2914,27 +2914,41 @@ function rbLockAndSpin(){
 
   async function updateWithdrawLockUI(){
     const btn=document.getElementById("withdraw-btn");
-    const notice=document.getElementById("withdraw-cooldown-notice");
-    const countdown=document.getElementById("withdraw-countdown");
     if(!btn || !currentUser) return;
     try{
       const snap=await db.ref("users/"+currentUser.uid).once("value");
       const u=snap.val()||{};
-      const last=getLastDepositAtFromUser(u);
+      const last= getLastDepositAtFromUser(u);
       const left=last ? (last+WITHDRAW_COOLDOWN-bonusNow()) : 0;
       if(left>0){
         btn.title="ডিপোজিটের ৬ ঘণ্টা পূর্ণ হয়নি";
         btn.dataset.withdrawLocked="1";
         btn.style.opacity=".65";
-        if(notice) notice.classList.remove("hidden");
-        if(countdown) countdown.textContent=fmtRemaining(left);
       }else{
         btn.title="";
         btn.dataset.withdrawLocked="0";
         btn.style.opacity="";
-        if(notice) notice.classList.add("hidden");
       }
     }catch(e){}
+  }
+
+  const oldWithdrawClick=document.getElementById("withdraw-btn");
+  if(oldWithdrawClick){
+    oldWithdrawClick.addEventListener("click", async function(e){
+      if(!currentUser) return;
+      const snap=await db.ref("users/"+currentUser.uid).once("value");
+      const u=snap.val()||{};
+      const last=getLastDepositAtFromUser(u);
+      const left=last ? (last+WITHDRAW_COOLDOWN-bonusNow()) : 0;
+      if(left>0){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const notice=document.getElementById("withdraw-cooldown-notice");
+        const countdown=document.getElementById("withdraw-countdown");
+        if(notice) notice.classList.remove("hidden");
+        if(countdown) countdown.textContent=fmtRemaining(left);
+      }
+    }, true);
   }
 
   // Enforce the same rule at submit time as well, so it cannot be bypassed by an already-open modal.
@@ -2949,6 +2963,7 @@ function rbLockAndSpin(){
       if(left>0){
         e.preventDefault();
         e.stopImmediatePropagation();
+        const msg=document.getElementById("withdraw-msg");
         const notice=document.getElementById("withdraw-cooldown-notice");
         const countdown=document.getElementById("withdraw-countdown");
         if(notice) notice.classList.remove("hidden");
