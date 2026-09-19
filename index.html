@@ -1276,17 +1276,50 @@
                 });
         });
 
-        document.getElementById('withdraw-btn').addEventListener('click', () => {
+        let withdrawRequestBusy = false;
+
+        document.getElementById('withdraw-btn').addEventListener('click', async () => {
             if (!currentUser) return alert("প্রথমে Login করুন!");
             withdrawMsg.innerText = "";
             document.getElementById('withdraw-account').value = "";
+            const notice = document.getElementById('withdraw-cooldown-notice');
+            const countdown = document.getElementById('withdraw-countdown');
+            if (notice) notice.classList.add('hidden');
+            try {
+                const snap = await db.ref('users/' + currentUser.uid).once('value');
+                const u = snap.val() || {};
+                const last = Number(u.lastDepositAt || 0);
+                const left = last ? (last + 6 * 60 * 60 * 1000 - (Date.now() + ((typeof aviatorServerTimeOffset === 'number') ? aviatorServerTimeOffset : 0))) : 0;
+                if (left > 0) {
+                    if (notice) notice.classList.remove('hidden');
+                    if (countdown) countdown.textContent = fmtRemaining(left);
+                }
+            } catch (e) {}
             withdrawModal.classList.remove('hidden');
         });
         document.getElementById('close-withdraw-btn').onclick = () => withdrawModal.classList.add('hidden');
 
         // --- উইথড্র রিকোয়েস্ট সাবমিট (এডমিন পেন্ডিং) ---
-        document.getElementById('withdraw-confirm-btn').addEventListener('click', () => {
+        document.getElementById('withdraw-confirm-btn').addEventListener('click', async (e) => {
             if (!currentUser) return;
+            if (withdrawRequestBusy) return;
+            withdrawRequestBusy = true;
+            const withdrawConfirmButton = document.getElementById('withdraw-confirm-btn');
+            if (withdrawConfirmButton) withdrawConfirmButton.disabled = true;
+            try {
+                const snap = await db.ref('users/' + currentUser.uid).once('value');
+                const u = snap.val() || {};
+                const last = Number(u.lastDepositAt || 0);
+                const left = last ? (last + 6 * 60 * 60 * 1000 - (Date.now() + ((typeof aviatorServerTimeOffset === 'number') ? aviatorServerTimeOffset : 0))) : 0;
+                if (left > 0) {
+                    e.preventDefault();
+                    const notice = document.getElementById('withdraw-cooldown-notice');
+                    const countdown = document.getElementById('withdraw-countdown');
+                    if (notice) notice.classList.remove('hidden');
+                    if (countdown) countdown.textContent = fmtRemaining(left);
+                    return;
+                }
+            } catch (err) {}
             const amt = parseFloat(document.getElementById('withdraw-amount').value);
             const method = document.getElementById('withdraw-method').value;
             const accountNo = document.getElementById('withdraw-account').value.trim();
@@ -1302,43 +1335,76 @@
                 return;
             }
 
-            db.ref('users/' + currentUser.uid + '/balance').once('value').then(snapshot => {
-                const currentBalance = snapshot.val() || 0;
-                if (currentBalance < amt) {
+            const requestRef = db.ref('adminRequests/withdrawals').push();
+            const requestKey = requestRef.key;
+            const withdrawData = {
+                uid: currentUser.uid,
+                email: currentUser.email,
+                amount: amt,
+                method: method,
+                accountNo: accountNo,
+                status: 'processing',
+                timestamp: Date.now()
+            };
+
+            try {
+                // Create a non-payable processing record first. Admin should only
+                // act on records that reach status='pending' after the balance debit.
+                await requestRef.set(withdrawData);
+
+                const balanceRef = db.ref('users/' + currentUser.uid + '/balance');
+                let committedBalance = null;
+
+                const result = await balanceRef.transaction(value => {
+                    const balance = Number(value || 0);
+                    if (!Number.isFinite(balance) || balance < amt) return;
+                    const next = balance - amt;
+                    committedBalance = next;
+                    return next;
+                });
+
+                if (!result.committed) {
+                    await requestRef.update({
+                        status: 'rejected',
+                        rejectedAt: Date.now(),
+                        rejectionReason: 'Insufficient balance or concurrent balance change'
+                    });
                     withdrawMsg.style.color = "#ef9a9a";
                     withdrawMsg.innerText = "পর্যাপ্ত ব্যালেন্স নেই।";
                     return;
                 }
 
-                const withdrawData = {
-                    uid: currentUser.uid,
-                    email: currentUser.email,
-                    amount: amt,
-                    method: method,
-                    accountNo: accountNo,
+                await requestRef.update({
                     status: 'pending',
-                    timestamp: Date.now()
-                };
+                    debitedAt: Date.now(),
+                    balanceAfterDebit: committedBalance
+                });
 
-                db.ref('users/' + currentUser.uid + '/balance').set(currentBalance - amt)
-                    .then(() => {
-                        return db.ref('adminRequests/withdrawals').push(withdrawData);
-                    })
-                    .then(() => {
-                        withdrawMsg.style.color = "#81c784";
-                        withdrawMsg.innerText = "উইথড্র রিকোয়েস্ট সফলভাবে জমা হয়েছে।";
-                        setTimeout(() => {
-                            withdrawModal.classList.add('hidden');
-                            document.getElementById('withdraw-amount').value = '';
-                            document.getElementById('withdraw-account').value = '';
-                            withdrawMsg.innerText = '';
-                        }, 2000);
-                    })
-                    .catch(error => {
-                        withdrawMsg.style.color = "#ef9a9a";
-                        withdrawMsg.innerText = "ত্রুটি: " + error.message;
+                withdrawMsg.style.color = "#81c784";
+                withdrawMsg.innerText = "উইথড্র রিকোয়েস্ট সফলভাবে জমা হয়েছে।";
+                setTimeout(() => {
+                    withdrawModal.classList.add('hidden');
+                    document.getElementById('withdraw-amount').value = '';
+                    document.getElementById('withdraw-account').value = '';
+                    withdrawMsg.innerText = '';
+                }, 2000);
+            } catch (error) {
+                // Keep a failed record non-payable instead of leaving an
+                // apparently pending request that an admin could process.
+                try {
+                    await requestRef.update({
+                        status: 'error',
+                        errorAt: Date.now(),
+                        errorMessage: String(error && error.message ? error.message : error)
                     });
-            });
+                } catch (_) {}
+                withdrawMsg.style.color = "#ef9a9a";
+                withdrawMsg.innerText = "ত্রুটি: " + (error.message || error);
+            } finally {
+                withdrawRequestBusy = false;
+                if (withdrawConfirmButton) withdrawConfirmButton.disabled = false;
+            }
+            return;
         });
 
         const betBtn = document.getElementById('bet-btn');
@@ -2933,45 +2999,6 @@ function rbLockAndSpin(){
     }catch(e){}
   }
 
-  const oldWithdrawClick=document.getElementById("withdraw-btn");
-  if(oldWithdrawClick){
-    oldWithdrawClick.addEventListener("click", async function(e){
-      if(!currentUser) return;
-      const snap=await db.ref("users/"+currentUser.uid).once("value");
-      const u=snap.val()||{};
-      const last=getLastDepositAtFromUser(u);
-      const left=last ? (last+WITHDRAW_COOLDOWN-bonusNow()) : 0;
-      if(left>0){
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        const notice=document.getElementById("withdraw-cooldown-notice");
-        const countdown=document.getElementById("withdraw-countdown");
-        if(notice) notice.classList.remove("hidden");
-        if(countdown) countdown.textContent=fmtRemaining(left);
-      }
-    }, true);
-  }
-
-  // Enforce the same rule at submit time as well, so it cannot be bypassed by an already-open modal.
-  const oldConfirm=document.getElementById("withdraw-confirm-btn");
-  if(oldConfirm){
-    oldConfirm.addEventListener("click", async function(e){
-      if(!currentUser) return;
-      const snap=await db.ref("users/"+currentUser.uid).once("value");
-      const u=snap.val()||{};
-      const last=getLastDepositAtFromUser(u);
-      const left=last ? (last+WITHDRAW_COOLDOWN-bonusNow()) : 0;
-      if(left>0){
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        const msg=document.getElementById("withdraw-msg");
-        const notice=document.getElementById("withdraw-cooldown-notice");
-        const countdown=document.getElementById("withdraw-countdown");
-        if(notice) notice.classList.remove("hidden");
-        if(countdown) countdown.textContent=fmtRemaining(left);
-      }
-    }, true);
-  }
 
 
   async function refreshBonusBadge(){
@@ -2991,10 +3018,11 @@ function rbLockAndSpin(){
 
   const bonusBtn=document.getElementById("bonus-btn");
   if(bonusBtn) bonusBtn.addEventListener("click",()=>{ showBonusModal(); refreshBonusBadge(); });
-  const closeBonus=document.getElementById("close-bonus-btn");
-  if(closeBonus) closeBonus.addEventListener("click",()=>{
-    const m=document.getElementById("bonus-modal"); if(m)m.classList.add("hidden");
-    if(bonusTimer)clearInterval(bonusTimer);
+  document.addEventListener("click",function(e){
+    if(e.target && e.target.closest && e.target.closest("#close-bonus-btn")){
+      const m=document.getElementById("bonus-modal"); if(m)m.classList.add("hidden");
+      if(bonusTimer)clearInterval(bonusTimer);
+    }
   });
 
   // Keep the lock state fresh while the user remains logged in.
