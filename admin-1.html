@@ -39,6 +39,14 @@
     .bk-grid-2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
     .bk-input, #bkRtpFactor { width:100%; padding:10px; background:rgba(0,0,0,.35); color:var(--text); border:1px solid var(--line); border-radius:8px; }
     @media (max-width:600px){ .bk-grid-2{grid-template-columns:1fr;} }
+.danger-zone-card{border-color:rgba(255,111,125,.32);background:linear-gradient(145deg,rgba(50,21,26,.55),rgba(16,35,49,.92))}.danger-zone-card h3{color:#ff9aa4}.danger-zone-card .btn.danger{font-weight:800}
+/* Clean admin presentation — visual only */
+.side{box-shadow:18px 0 50px rgba(0,0,0,.18)}
+.brand{letter-spacing:.3px}.brand:before{content:"🛡️ ";font-size:18px}
+.top{padding:16px 18px;border:1px solid rgba(84,224,167,.12);border-radius:18px;background:rgba(13,26,36,.55);box-shadow:0 14px 35px rgba(0,0,0,.12)}
+.top h1{letter-spacing:.2px}.nav button{font-weight:700}.nav button.active{box-shadow:inset 3px 0 0 var(--accent)}
+.card{transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}.card:hover{border-color:rgba(84,224,167,.20);box-shadow:0 16px 36px rgba(0,0,0,.20)}
+@media(max-width:600px){.top{padding:13px 14px}.top h1{font-size:20px}.grid{grid-template-columns:1fr}.stat .num{font-size:22px}}
 </style>
 </head>
 <body>
@@ -67,15 +75,10 @@
 <div id="adminEmail" style="color:var(--muted);font-size:12px;margin-top:4px"></div></div><span class="pill">● ADMIN SESSION</span></div>
 
   <section id="overview" class="page active">
-    <div id="globalResetCard" class="card" style="margin:0 0 18px;">
-      <h3 style="margin:0 0 6px;">♻️ Reset Data</h3>
-      <p style="margin:0 0 10px;opacity:.8;">
-        User balance অপরিবর্তিত রেখে admin/request/config/statistics data reset করা হবে।
-      </p>
-      <button id="resetAllBtn" type="button"
-        style="padding:11px 16px;border:0;border-radius:8px;cursor:pointer;">
-        ♻️ Reset Everything (Keep User Balance)
-      </button>
+    <div class="card danger-zone-card" style="margin:0 0 18px;">
+      <h3 style="margin:0 0 6px;">⚠️ Danger Zone — Reset Data</h3>
+      <p style="margin:0 0 10px;opacity:.82;">Admin/request/config/statistics data reset করা যাবে। <b>User Balance কোনোভাবেই কাটবে বা পরিবর্তন হবে না।</b> এই কাজ Undo করা যাবে না।</p>
+      <button id="resetAllBtn" type="button" class="btn danger">♻️ Reset Everything — Keep User Balance</button>
       <div id="resetAllStatus" style="margin-top:8px;"></div>
     </div>
     <div class="grid">
@@ -93,7 +96,7 @@
   <section id="users" class="page">
     <div class="card">
       <h2>Extra Bonus Coins</h2>
-      <div class="notice" style="margin-bottom:12px">নির্দিষ্ট user-কে আলাদা Bonus হিসেবে coins দেওয়া যাবে; Admin-এর Give Bonus চাপলে main balance পরিবর্তন হবে না। Bonus user-এর Bonus section-এ pending থাকবে এবং দেওয়ার সময় থেকে ৫ ঘণ্টার মধ্যে User-কে Claim করতে হবে। এটি Boxing King-এর winning probability বা game outcome পরিবর্তন করে না।</div>
+      <div class="notice" style="margin-bottom:12px">নির্দিষ্ট user-কে transparent bonus হিসেবে coins যোগ করা যাবে। এটি Boxing King-এর winning probability বা game outcome পরিবর্তন করে না।</div>
       <div class="form">
         <div class="field"><label>Select user</label><select id="bonusUser"><option value="">Select a user…</option></select></div>
         <div class="field"><label>Bonus coins</label><input id="bonusAmount" type="number" min="1" step="1" placeholder="e.g. 500"></div>
@@ -102,12 +105,6 @@
         <button id="giveBonusBtn" class="btn primary">Give Bonus</button>
         <button id="giveAllBonusBtn" class="btn">Give Same Bonus to All Users</button>
       </div>
-    </div>
-    <div class="card section">
-      <h2>Remove inactive users</h2>
-      <div class="notice" style="margin-bottom:12px">যে user-এর profile-এ <code>lastActiveAt</code>, <code>lastLoginAt</code> বা <code>updatedAt</code> আছে, তার শেষ activity অনুযায়ী inactive user শনাক্ত করা হবে। Activity timestamp না থাকলে তাকে bulk cleanup-এ ধরা হবে না।</div>
-      <div class="form"><div class="field"><label>Inactive for (days)</label><input id="inactiveDays" type="number" min="1" step="1" value="90"></div></div>
-      <div class="row" style="margin-top:12px"><button id="scanInactiveBtn" class="btn">🔎 Find Inactive Users</button><button id="removeInactiveBtn" class="btn danger">🗑️ Remove Found Users</button><span id="inactiveStatus" class="badge"></span></div>
     </div>
     <div class="card section"><input id="userSearch" class="search" placeholder="Search by email or UID…"><div class="table-wrap"><table class="table"><thead><tr><th>User</th><th>Balance</th><th>Games</th><th>Wins</th><th>Boxing</th><th>Last activity</th><th>Action</th></tr></thead><tbody id="usersBody"></tbody></table></div></div>
   </section>
@@ -171,32 +168,6 @@
         </select>
       </div>
 
-      <div class="bk-preset-wrap" style="margin-top:18px">
-        <div class="bk-preset-title">👤 User-specific RTP / Reference Factor</div>
-        <div class="bk-help" style="margin-bottom:8px">
-          একজন নির্দিষ্ট ইউজারের জন্য আলাদা <b>transparent payout/reference factor</b> সংরক্ষণ করা যাবে।
-          এটি win/lose outcome জোর করে নির্ধারণ করার কন্ট্রোল নয়।
-        </div>
-        <div class="field" style="margin-bottom:10px">
-          <label>User / UID</label>
-          <select id="userRtpUid" class="bk-input">
-            <option value="">একজন ইউজার নির্বাচন করুন…</option>
-          </select>
-        </div>
-        <div class="row">
-          <select id="userRtpFactor" class="bk-input" style="flex:1">
-            <option value="0.4">0.4x</option>
-            <option value="0.7">0.7x</option>
-            <option value="1.0" selected>1.0x</option>
-            <option value="1.5">1.5x</option>
-            <option value="2.0">2.0x</option>
-          </select>
-          <button id="saveUserRtp" class="btn primary" type="button">Save for User</button>
-          <button id="clearUserRtp" class="btn" type="button">Clear</button>
-        </div>
-        <div id="userRtpMsg" class="bk-status"></div>
-      </div>
-
       <button id="saveConfig" class="bk-save" type="button">বক্সিং কিং সেটিংস সেভ করুন</button>
       <div id="configMsg" class="bk-status"></div>
     </div>
@@ -221,6 +192,38 @@ async function audit(action,target,details){if(!auth.currentUser)return;await db
 function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));$("pageTitle").textContent=p[0].toUpperCase()+p.slice(1)}
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
 $("closeModal").onclick=()=>$("userModal").classList.add("hidden");
+async function resetEverythingKeepBalance(){
+  const btn=$("resetAllBtn");
+  const typed=prompt("নিশ্চিত করতে RESET লিখুন। User Balance পরিবর্তন হবে না:");
+  if(typed!=="RESET"){ if(typed!==null) toast("Reset বাতিল করা হয়েছে"); return; }
+  if(!confirm("শেষবার নিশ্চিত করুন: User Balance একদম অপরিবর্তিত থাকবে। Reset চালাবেন?")) return;
+  if(btn) btn.disabled=true;
+  const status=$("resetAllStatus");
+  if(status) status.textContent="Resetting...";
+  try{
+    const snap=await db.ref().once("value");
+    const root=snap.val()||{};
+    const updates={};
+    ["adminRequests","adminSettings","adminAudit","auditLogs","config"].forEach(path=>{if(root[path]!==undefined) updates[path]=null});
+    const userRoot=root.users||{};
+    Object.keys(userRoot).forEach(uid=>{
+      const u=userRoot[uid]||{};
+      ["games","wins","boxingKingGames","boxingKingWins","extraBonusCoins"].forEach(field=>{
+        if(u[field]!==undefined) updates["users/"+uid+"/"+field]=null;
+      });
+    });
+    await db.ref().update(updates);
+    if(status) status.textContent="✅ Reset সম্পন্ন হয়েছে। User Balance অপরিবর্তিত আছে।";
+    await audit("reset_everything_keep_user_balance","root","User balances were intentionally preserved");
+    await loadAll();
+    toast("Reset complete — User Balance unchanged");
+  }catch(e){
+    if(status) status.textContent="❌ Reset করা যায়নি: "+(e.message||e);
+    toast(e.message||String(e));
+  }finally{ if(btn) btn.disabled=false; }
+}
+$("resetAllBtn").onclick=resetEverythingKeepBalance;
+
 async function loadAll(){
  const [u,dep,wd,c,a]=await Promise.all([
    db.ref("users").once("value"),
@@ -247,48 +250,34 @@ function populateBonusUsers(){
     .map(([uid,u])=>`<option value="${esc(uid)}">${esc(u.email||uid)} — ${money(u.balance)} coins</option>`).join("");
   if(users[current])sel.value=current;
 }
-let adminServerTimeOffset = 0;
-db.ref('.info/serverTimeOffset').on('value', s => {
-  const v=Number(s.val());
-  adminServerTimeOffset=Number.isFinite(v)?v:0;
-});
-function adminServerNow(){ return Date.now()+adminServerTimeOffset; }
-
-async function grantBonusRecord(uid, amount){
-  const n=Number(amount);
-  if(!uid||!Number.isFinite(n)||n<=0) throw new Error("Valid user and positive bonus amount required");
-  const now=adminServerNow();
-  const ref=db.ref(`users/${uid}/bonuses`).push();
-  await ref.set({amount:n,status:"pending",grantedAt:now,expiresAt:now+5*60*60*1000,grantedBy:auth.currentUser?.email||"admin"});
-  return ref.key;
-}
 async function giveBonus(uid, amount){
   const n=Number(amount);
   if(!uid||!Number.isFinite(n)||n<=0){toast("Valid user and positive bonus amount required");return}
-  const id=await grantBonusRecord(uid,n);
-  await audit("grant_bonus",uid,JSON.stringify({bonusId:id,amount:n,expiresInHours:5}));
+  const ref=db.ref("users/"+uid+"/balance");
+  await ref.transaction(v=>Number(v||0)+n);
+  const u=users[uid]||{};
+  await audit("give_extra_bonus",uid,JSON.stringify({amount:n,previousBalance:Number(u.balance||0),newBalance:Number(u.balance||0)+n}));
   await loadAll();
-  toast("Bonus added to user's Bonus section (5 hours)");
+  toast("Bonus added successfully");
 }
 $("giveBonusBtn").onclick=async()=>{
-  try{await giveBonus($("bonusUser").value,$("bonusAmount").value)}catch(e){toast(e.message||e)}
+  try{await giveBonus($("bonusUser").value,$("bonusAmount").value)}
+  catch(e){toast(e.message)}
 };
 $("giveAllBonusBtn").onclick=async()=>{
   const n=Number($("bonusAmount").value);
   if(!Number.isFinite(n)||n<=0){toast("Enter a positive bonus amount");return}
-  const entries=Object.keys(users||{});
+  const entries=Object.keys(users);
   if(!entries.length){toast("No users found");return}
   if(!confirm(`Give ${n} bonus coins to all ${entries.length} users?`))return;
-  const now=adminServerNow(), updates={};
-  entries.forEach(uid=>{
-    const key=db.ref(`users/${uid}/bonuses`).push().key;
-    updates[`users/${uid}/bonuses/${key}`]={amount:n,status:"pending",grantedAt:now,expiresAt:now+5*60*60*1000,grantedBy:auth.currentUser?.email||"admin"};
-  });
+  const updates={};
+  entries.forEach(uid=>updates["users/"+uid+"/balance"] = Number(users[uid].balance||0)+n);
   await db.ref().update(updates);
-  await audit("grant_bonus_all","all_users",JSON.stringify({amount:n,userCount:entries.length,expiresInHours:5}));
+  await audit("give_extra_bonus_all","all_users",JSON.stringify({amount:n,userCount:entries.length}));
   await loadAll();
-  toast("Bonus added to all users' Bonus sections");
+  toast("Bonus added to all users");
 };
+
 function render(){
  populateBonusUsers();
  const arr=Object.entries(users);$("sUsers").textContent=arr.length;$("sBalance").textContent=arr.reduce((s,[,u])=>s+Number(u.balance||0),0).toFixed(2);$("sDeposits").textContent=Object.keys(deposits).length;$("sWithdrawals").textContent=Object.keys(withdrawals).length;
@@ -302,27 +291,6 @@ function getLastActivity(u){
   const valid=candidates.map(Number).filter(v=>Number.isFinite(v)&&v>0);
   return valid.length?Math.max(...valid):null;
 }
-let inactiveUserIds=[];
-function findInactiveUsers(){
-  const days=Number($("inactiveDays").value);
-  if(!Number.isFinite(days)||days<1){toast("Enter a valid number of days");return []}
-  const cutoff=Date.now()-days*86400000;
-  inactiveUserIds=Object.entries(users).filter(([uid,u])=>{const ts=getLastActivity(u);return ts!==null&&ts<cutoff}).map(([uid])=>uid);
-  $("inactiveStatus").textContent=`Found ${inactiveUserIds.length} inactive user(s)`;
-  return inactiveUserIds;
-}
-$("scanInactiveBtn").onclick=()=>{findInactiveUsers()};
-window.removeUser=async uid=>{
-  const u=users[uid]||{};
-  if(!confirm(`Remove ${u.email||uid}? This deletes the user's Realtime Database profile, including balance and game stats. The Firebase Auth account is not deleted by this dashboard.`))return;
-  try{await db.ref("users/"+uid).remove();await audit("remove_user",uid,JSON.stringify({email:u.email||"",balance:Number(u.balance||0)}));await loadAll();toast("User removed from database")}catch(e){toast(e.message)}
-};
-$("removeInactiveBtn").onclick=async()=>{
-  const ids=findInactiveUsers();
-  if(!ids.length){toast("No inactive users found");return}
-  if(!confirm(`Remove ${ids.length} inactive user(s)? This deletes their database profiles, including balances and game stats. Firebase Auth accounts are not deleted.`))return;
-  try{const updates={};ids.forEach(uid=>updates["users/"+uid]=null);await db.ref().update(updates);await audit("remove_inactive_users","all_inactive",JSON.stringify({count:ids.length,days:Number($("inactiveDays").value)}));inactiveUserIds=[];await loadAll();$("inactiveStatus").textContent=`Removed ${ids.length} user(s)`;toast(`${ids.length} inactive user(s) removed`)}catch(e){toast(e.message)}
-};
 window.viewUser=uid=>{const u=users[uid]||{};$("userDetails").innerHTML=`<div class="notice"><b>${esc(u.email||"—")}</b><br>UID: ${esc(uid)}<br>Balance: ${money(u.balance)}<br>Aviator: ${u.wins||0} wins / ${u.games||0} games<br>Boxing King: ${u.boxingKingWins||0} wins / ${u.boxingKingGames||0} games</div>`;$("userModal").classList.remove("hidden")};
 function renderRequests(){
  const dep=Object.entries(deposits).reverse();$("depositsBody").innerHTML=dep.map(([id,r])=>`<tr><td>${esc(r.email||r.uid||"—")}</td><td>${money(r.amount)}</td><td>${esc(r.method)}</td><td>${esc(r.trxId||"—")}</td><td><span class="badge ${r.status==="approved"?"ok":r.status==="rejected"?"bad":"warn"}">${esc(r.status||"pending")}</span></td><td>${(r.status && r.status!=="pending")?"—":`<button class="btn primary" data-request-id="${esc(id)}" onclick="requestAction('deposits','${esc(id)}','approved')">Approve</button> <button class="btn danger" data-request-id="${esc(id)}" onclick="requestAction('deposits','${esc(id)}','rejected')">Reject</button>`}</td></tr>`).join("")||`<tr><td colspan="6">No deposit requests.</td></tr>`;
@@ -380,8 +348,6 @@ window.requestAction=async(type,id,status)=>{
         await db.ref(path).update({status:"pending",reviewedAt:null,reviewedBy:null,reviewAction:null});
         throw new Error("Balance update was not committed");
       }
-      // Start the 24-hour withdrawal cooldown only AFTER the deposit was actually credited.
-      await db.ref(`users/${uid}/lastDepositAt`).set(firebase.database.ServerValue.TIMESTAMP);
 
       await db.ref(path).update({balanceCredited:true});
     }
@@ -400,23 +366,6 @@ window.requestAction=async(type,id,status)=>{
     await loadAll().catch(()=>{});
   }
 };
-
-function renderUserRtpUsers(){
-  const sel = $("userRtpUid");
-  if(!sel) return;
-  const current = sel.value;
-  const rows = Object.entries(users||{}).sort((a,b)=>
-    String(a[1]?.email||a[0]).localeCompare(String(b[1]?.email||b[0]))
-  );
-  sel.innerHTML = '<option value="">একজন ইউজার নির্বাচন করুন…</option>';
-  rows.forEach(([uid,u]) => {
-    const opt = document.createElement("option");
-    opt.value = uid;
-    opt.textContent = `${u.email||uid} — ${uid}`;
-    sel.appendChild(opt);
-  });
-  if(rows.some(([uid])=>uid===current)) sel.value=current;
-}
 
 function renderConfig(){
   renderUserRtpUsers();
@@ -441,50 +390,6 @@ $("saveConfig").onclick=async()=>{
     toast("Boxing King settings saved");
   }catch(e){$("configMsg").textContent="Save failed: "+e.message;toast(e.message)}
 };
-async function loadUserRtp(){
-  const uid = $("userRtpUid")?.value;
-  if(!uid) return;
-  const snap = await db.ref(`config/boxingKingUserRtp/${uid}`).once("value");
-  const cfg = snap.val() || {};
-  $("userRtpFactor").value = cfg.rtpFactor != null ? String(cfg.rtpFactor) : "1.0";
-  $("userRtpMsg").textContent = cfg.rtpFactor != null ? `Saved factor: ${cfg.rtpFactor}x` : "No user-specific factor saved.";
-}
-
-$("userRtpUid").onchange = () => loadUserRtp().catch(e => $("userRtpMsg").textContent = "Load failed: "+e.message);
-
-$("saveUserRtp").onclick = async () => {
-  const uid = $("userRtpUid").value;
-  const factor = Number($("userRtpFactor").value);
-  if(!uid){ toast("একজন ইউজার নির্বাচন করুন"); return; }
-  if(!Number.isFinite(factor) || factor <= 0){ toast("Valid RTP/reference factor নির্বাচন করুন"); return; }
-  const data = { rtpFactor: factor, updatedAt: Date.now() };
-  try{
-    await db.ref(`config/boxingKingUserRtp/${uid}`).set(data);
-    await audit("update_user_boxing_reference_factor", uid, JSON.stringify(data));
-    $("userRtpMsg").textContent = `Saved for selected user: ${factor}x`;
-    toast("User-specific reference factor saved");
-  }catch(e){
-    $("userRtpMsg").textContent = "Save failed: "+e.message;
-    toast(e.message);
-  }
-};
-
-$("clearUserRtp").onclick = async () => {
-  const uid = $("userRtpUid").value;
-  if(!uid){ toast("একজন ইউজার নির্বাচন করুন"); return; }
-  if(!confirm("এই ইউজারের আলাদা reference factor মুছে Global RTP ব্যবহার করতে দেবেন?")) return;
-  try{
-    await db.ref(`config/boxingKingUserRtp/${uid}`).remove();
-    await audit("clear_user_boxing_reference_factor", uid, "");
-    $("userRtpFactor").value = "1.0";
-    $("userRtpMsg").textContent = "Cleared; Global RTP applies.";
-    toast("User-specific factor cleared");
-  }catch(e){
-    $("userRtpMsg").textContent = "Clear failed: "+e.message;
-    toast(e.message);
-  }
-};
-
 async function loadAnnouncement(){const s=await db.ref("adminSettings/announcement").once("value");$("announcementText").value=s.val()||""}$("saveAnnouncement").onclick=async()=>{await db.ref("adminSettings/announcement").set($("announcementText").value);await audit("update_announcement","adminSettings/announcement",$("announcementText").value);toast("Announcement published")};$("clearAnnouncement").onclick=async()=>{await db.ref("adminSettings/announcement").set("");$("announcementText").value="";await audit("clear_announcement","adminSettings/announcement","");toast("Announcement cleared")};
 function renderAudit(data){const rows=Object.values(data).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));$("auditBody").innerHTML=rows.map(x=>`<tr><td>${x.timestamp?new Date(x.timestamp).toLocaleString():"—"}</td><td>${esc(x.adminEmail||x.adminUid)}</td><td>${esc(x.action)}</td><td>${esc(x.target)}</td><td>${esc(x.details)}</td></tr>`).join("")||`<tr><td colspan="5">No audit entries.</td></tr>`}
 
@@ -561,62 +466,9 @@ auth.onAuthStateChanged(async user=>{
     });
   }
 
-  // Reset everything except users/{uid}/balance.
-  function resetEverythingKeepBalance() {
-    if (typeof db === "undefined") return;
-
-    if (!window.confirm(
-      "সব admin/request/config/statistics data reset করবেন?\n\n" +
-      "⚠️ কোনো User Balance পরিবর্তন হবে না।\n" +
-      "এই কাজটি undo করা যাবে না।"
-    )) return;
-
-    const btn = document.getElementById("resetAllBtn");
-    if (btn) btn.disabled = true;
-    setStatus("resetAllStatus", "Resetting...", true);
-
-    db.ref().once("value").then(function (snap) {
-      const root = snap.val() || {};
-      const updates = {};
-
-      // Never delete users/{uid}/balance.
-      ["adminRequests", "adminSettings", "adminAudit", "auditLogs", "config"].forEach(function (path) {
-        if (root[path] !== undefined) updates[path] = null;
-      });
-
-      const users = root.users || {};
-      Object.keys(users).forEach(function (uid) {
-        const u = users[uid] || {};
-        ["games", "wins", "boxingKingGames", "boxingKingWins", "extraBonusCoins", "bonuses", "lastDepositAt"].forEach(function (field) {
-          if (u[field] !== undefined) {
-            updates["users/" + uid + "/" + field] = null;
-          }
-        });
-      });
-
-      return db.ref().update(updates);
-    }).then(function () {
-      setStatus("resetAllStatus", "✅ Reset সম্পন্ন হয়েছে। User balance অপরিবর্তিত।", true);
-      loadPaymentNumbers();
-      if (typeof loadAll === "function") loadAll();
-    }).catch(function (e) {
-      setStatus("resetAllStatus", "❌ Reset করা যায়নি: " + (e.message || e), false);
-    }).finally(function () {
-      if (btn) btn.disabled = false;
-    });
-  }
-
   function initAdminControls() {
     const saveBtn = document.getElementById("saveDepositPaymentNumberBtn");
     if (saveBtn) saveBtn.addEventListener("click", savePaymentNumbers);
-
-    const input = document.getElementById("depositPaymentNumberInput");
-    if (input) input.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") savePaymentNumbers();
-    });
-
-    const resetBtn = document.getElementById("resetAllBtn");
-    if (resetBtn) resetBtn.addEventListener("click", resetEverythingKeepBalance);
 
     loadPaymentNumbers();
   }
