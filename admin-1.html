@@ -303,88 +303,74 @@ window.requestAction=async(type,id,status)=>{
   actionButtons.forEach(b=>b.disabled=true);
 
   try{
+    // Read the current request once. We intentionally do NOT change the
+    // request to "processing" first; that intermediate write can be rejected
+    // by Firebase validation/rules and can leave the request stuck.
     const snap=await db.ref(path).once("value");
-    const r=snap.val();
-    if(!r){
-      toast("Request already processed or missing");
+    const processed=snap.val();
+    if(!processed){
+      toast("Request already removed or missing");
       await loadAll();
       return;
     }
-    if(r.status && r.status!=="pending"){
+    if(processed.status && processed.status!=="pending"){
       toast("Request already processed");
       await loadAll();
       return;
     }
 
-    // Claim the request atomically. This prevents two admin clicks/tabs
-    // from approving the same pending request twice.
-    const claim=await db.ref(path).transaction(req=>{
-      if(!req || (req.status && req.status!=="pending")) return;
-      req.status="processing";
-      req.reviewedAt=Date.now();
-      req.reviewedBy=auth.currentUser?.uid||"direct-dashboard";
-      req.reviewAction=status;
-      return req;
-    });
-
-    const processed=claim.snapshot.val();
-    if(!claim.committed || !processed){
-      toast("Request was already processed");
-      await loadAll();
-      return;
-    }
-
+    // Deposit approval: credit balance first, then remove the request.
     if(status==="approved" && type==="deposits"){
       const uid=String(processed.uid||"");
       const amount=Number(processed.amount);
       if(!uid || !Number.isFinite(amount) || amount<=0){
-        await db.ref(path).update({status:"pending",reviewedAt:null,reviewedBy:null,reviewAction:null});
         throw new Error("Invalid deposit request");
       }
 
-      // Add the approved deposit atomically to the user's current balance.
       const balanceResult=await db.ref(`users/${uid}/balance`).transaction(v=>Number(v||0)+amount);
       if(!balanceResult.committed){
-        await db.ref(path).update({status:"pending",reviewedAt:null,reviewedBy:null,reviewAction:null});
         throw new Error("Balance update was not committed");
       }
-
-      await db.ref(path).update({balanceCredited:true});
+      await db.ref(path+"/balanceCredited").set(true);
     }
 
-    // Permanently remove the processed request from the admin queue.
-    // Use a root update + verification so the row cannot remain visible
-    // because of a stale listener/render cycle.
-    const removeUpdate = {};
-    removeUpdate[path] = null;
-    await db.ref().update(removeUpdate);
+    // IMPORTANT: remove the actual request node directly.
+    // This is the operation that makes it disappear from the admin queue.
+    await db.ref(path).remove();
 
-    // Verify the request is really gone. Retry once if Firebase still returns it.
-    let verify = await db.ref(path).once("value");
-    if (verify.exists()) {
+    // Verify removal from Firebase. Retry once for transient client/network issues.
+    let verify=await db.ref(path).once("value");
+    if(verify.exists()){
       await db.ref(path).remove();
-      verify = await db.ref(path).once("value");
+      verify=await db.ref(path).once("value");
     }
-    if (verify.exists()) {
-      throw new Error("Request processed, but it could not be removed from the queue");
+    if(verify.exists()){
+      throw new Error("Firebase request node was not removed. Check Firebase Database write rules.");
     }
 
-    // Audit failure should never recreate/keep the request in the queue.
-    try {
+    try{
       await audit(`${type}_${status}`,id,JSON.stringify({
         uid:processed.uid||null,
         amount:Number(processed.amount||0),
         method:processed.method||null
       }));
-    } catch (auditError) {
-      console.warn("Audit log failed after request removal:", auditError);
+    }catch(auditError){
+      console.warn("Audit log failed after request removal:",auditError);
     }
 
     await loadAll();
     toast(status==="approved"?"Approved and removed":"Rejected and removed");
   }catch(e){
-    toast("Request update failed: "+(e.message||e));
+    console.error("requestAction failed",{type,id,status,error:e});
+    const msg=e?.message||String(e);
+    if(/permission_denied|permission denied|PERMISSION_DENIED/i.test(msg)){
+      toast("Firebase Permission Denied — Database Rules/ Admin access check করুন");
+    }else{
+      toast("Request update failed: "+msg);
+    }
     await loadAll().catch(()=>{});
+  }finally{
+    actionButtons.forEach(b=>b.disabled=false);
   }
 };
 
