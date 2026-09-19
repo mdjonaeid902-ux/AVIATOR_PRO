@@ -352,15 +352,36 @@ window.requestAction=async(type,id,status)=>{
       await db.ref(path).update({balanceCredited:true});
     }
 
-    // Processed requests are intentionally removed from the request queue.
-    await db.ref(path).remove();
-    await audit(`${type}_${status}`,id,JSON.stringify({
-      uid:processed.uid||null,
-      amount:Number(processed.amount||0),
-      method:processed.method||null
-    }));
+    // Permanently remove the processed request from the admin queue.
+    // Use a root update + verification so the row cannot remain visible
+    // because of a stale listener/render cycle.
+    const removeUpdate = {};
+    removeUpdate[path] = null;
+    await db.ref().update(removeUpdate);
+
+    // Verify the request is really gone. Retry once if Firebase still returns it.
+    let verify = await db.ref(path).once("value");
+    if (verify.exists()) {
+      await db.ref(path).remove();
+      verify = await db.ref(path).once("value");
+    }
+    if (verify.exists()) {
+      throw new Error("Request processed, but it could not be removed from the queue");
+    }
+
+    // Audit failure should never recreate/keep the request in the queue.
+    try {
+      await audit(`${type}_${status}`,id,JSON.stringify({
+        uid:processed.uid||null,
+        amount:Number(processed.amount||0),
+        method:processed.method||null
+      }));
+    } catch (auditError) {
+      console.warn("Audit log failed after request removal:", auditError);
+    }
+
     await loadAll();
-    toast(status==="approved"?"Approved and processed":"Rejected and removed");
+    toast(status==="approved"?"Approved and removed":"Rejected and removed");
   }catch(e){
     toast("Request update failed: "+(e.message||e));
     await loadAll().catch(()=>{});
