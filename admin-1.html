@@ -299,18 +299,18 @@ window.removeUser=async uid=>{
   const u=users[uid]||{};
   if(!uid){toast("Invalid user");return}
   if(!confirm(`Remove ${u.email||uid}? This deletes the user's Realtime Database profile, including balance and game data.`))return;
-  const btns=[...document.querySelectorAll(`button[onclick*="removeUser('${uid.replace("'","\\'")}")"]`)];
+  const btns=[...document.querySelectorAll(`button[onclick*="removeUser(\'${uid.replace("\'","\\\'")}\')"]`)];
   btns.forEach(b=>b.disabled=true);
   try{
     const ref=db.ref("users/"+uid);
     const snap=await ref.once("value");
     if(!snap.exists()){toast("User already removed");await loadAll();return}
-    await ref.remove();
+    await ref.set(null);
     const verify=await ref.once("value");
     if(verify.exists()) throw new Error("User was not removed. Check Firebase Database Rules/permissions.");
-    try{await audit("remove_user",uid,JSON.stringify({email:u.email||"",balance:Number(u.balance||0)}))}catch(auditError){console.warn("Remove audit failed:",auditError)}
     delete users[uid];
     render();
+    try{await audit("remove_user",uid,JSON.stringify({email:u.email||"",balance:Number(u.balance||0)}))}catch(auditError){console.warn("Remove audit failed:",auditError)}
     toast("User removed successfully");
   }catch(e){
     console.error("removeUser failed",e);
