@@ -379,7 +379,6 @@ window.requestAction=async(type,id,status)=>{
 };
 
 function renderConfig(){
-  renderUserRtpUsers();
   const c=boxingConfig||{};
   $("bkEnabled").checked=c.enabled!==false;
   const bets=Array.isArray(c.betOptions)?c.betOptions:(typeof c.betOptions==="string"?c.betOptions.split(",").map(Number).filter(Number.isFinite):[1,2,3,5,10]);
@@ -392,7 +391,7 @@ $("saveConfig").onclick=async()=>{
   const rtpFactor=Number($("bkRtpFactor").value);
   if(!bets.length){toast("কমপক্ষে একটি valid bet option দিন");return}
   if(!Number.isFinite(rtpFactor)||rtpFactor<=0){toast("Valid RTP/reference factor নির্বাচন করুন");return}
-  const out={enabled:$("bkEnabled").checked,testMode:false,betOptions:bets,rtpFactor};
+  const out={enabled:$("bkEnabled").checked,betOptions:bets,rtpFactor};
   try{
     await db.ref("config/boxingKing").update(out);
     boxingConfig=Object.assign({},boxingConfig,out);
