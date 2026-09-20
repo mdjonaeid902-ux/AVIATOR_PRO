@@ -1353,19 +1353,36 @@
             const withdrawConfirmButton = document.getElementById('withdraw-confirm-btn');
             if (withdrawConfirmButton) withdrawConfirmButton.disabled = true;
             try {
+                // Always re-check the latest Firebase value immediately before debit.
+                // This keeps the 6-hour lock authoritative on the client even if the
+                // modal was opened before the admin approved a new deposit.
                 const snap = await db.ref('users/' + currentUser.uid).once('value');
                 const u = snap.val() || {};
-                const last = Number(u.lastDepositAt || 0);
-                const left = last ? (last + 6 * 60 * 60 * 1000 - (Date.now() + ((typeof aviatorServerTimeOffset === 'number') ? aviatorServerTimeOffset : 0))) : 0;
+                let last = Number(u.lastDepositAt || 0);
+                // Accept legacy second-based timestamps as well as millisecond timestamps.
+                if (last > 0 && last < 1000000000000) last *= 1000;
+                const now = Date.now() + ((typeof aviatorServerTimeOffset === 'number') ? aviatorServerTimeOffset : 0);
+                const left = last ? (last + 6 * 60 * 60 * 1000 - now) : 0;
                 if (left > 0) {
                     e.preventDefault();
                     const notice = document.getElementById('withdraw-cooldown-notice');
                     const countdown = document.getElementById('withdraw-countdown');
                     if (notice) notice.classList.remove('hidden');
                     if (countdown) countdown.textContent = fmtRemaining(left);
+                    withdrawMsg.style.color = '#ffb74d';
+                    withdrawMsg.innerText = 'সর্বশেষ approved deposit-এর ৬ ঘণ্টা পূর্ণ হয়নি।';
+                    // This return is before the actual withdrawal request starts,
+                    // so release the busy state and re-enable the button.
+                    withdrawRequestBusy = false;
+                    if (withdrawConfirmButton) withdrawConfirmButton.disabled = false;
                     return;
                 }
-            } catch (err) {}
+            } catch (err) {
+                // If the cooldown check itself fails, do not leave the button locked.
+                withdrawRequestBusy = false;
+                if (withdrawConfirmButton) withdrawConfirmButton.disabled = false;
+                return;
+            }
             const amt = parseFloat(document.getElementById('withdraw-amount').value);
             const method = document.getElementById('withdraw-method').value;
             const accountNo = document.getElementById('withdraw-account').value.trim();
@@ -3022,7 +3039,10 @@ function rbLockAndSpin(){
   }
 
   function getLastDepositAtFromUser(u){
-    return Number(u?.lastDepositAt||0);
+    let last=Number(u?.lastDepositAt||0);
+    // Support both current millisecond timestamps and any older second-based value.
+    if(last>0 && last<1000000000000) last*=1000;
+    return last;
   }
 
   async function updateWithdrawLockUI(){
