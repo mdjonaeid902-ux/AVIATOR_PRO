@@ -253,12 +253,13 @@ function populateBonusUsers(){
 async function giveBonus(uid, amount){
   const n=Number(amount);
   if(!uid||!Number.isFinite(n)||n<=0){toast("Valid user and positive bonus amount required");return}
-  const ref=db.ref("users/"+uid+"/balance");
-  await ref.transaction(v=>Number(v||0)+n);
-  const u=users[uid]||{};
-  await audit("give_extra_bonus",uid,JSON.stringify({amount:n,previousBalance:Number(u.balance||0),newBalance:Number(u.balance||0)+n}));
+  const bonusId=db.ref("users/"+uid+"/bonuses").push().key;
+  const now=Date.now();
+  const bonus={amount:n,createdAt:now,expiresAt:now+(5*60*60*1000),status:"pending",grantedBy:auth.currentUser?.email||"admin"};
+  await db.ref("users/"+uid+"/bonuses/"+bonusId).set(bonus);
+  await audit("grant_bonus",uid,JSON.stringify({amount:n,bonusId,expiresAt:bonus.expiresAt}));
   await loadAll();
-  toast("Bonus added successfully");
+  toast("Bonus added to Bonus Box");
 }
 $("giveBonusBtn").onclick=async()=>{
   try{await giveBonus($("bonusUser").value,$("bonusAmount").value)}
@@ -270,12 +271,15 @@ $("giveAllBonusBtn").onclick=async()=>{
   const entries=Object.keys(users);
   if(!entries.length){toast("No users found");return}
   if(!confirm(`Give ${n} bonus coins to all ${entries.length} users?`))return;
-  const updates={};
-  entries.forEach(uid=>updates["users/"+uid+"/balance"] = Number(users[uid].balance||0)+n);
+  const now=Date.now(), updates={};
+  entries.forEach(uid=>{
+    const bonusId=db.ref("users/"+uid+"/bonuses").push().key;
+    updates["users/"+uid+"/bonuses/"+bonusId]={amount:n,createdAt:now,expiresAt:now+(5*60*60*1000),status:"pending",grantedBy:auth.currentUser?.email||"admin"};
+  });
   await db.ref().update(updates);
-  await audit("give_extra_bonus_all","all_users",JSON.stringify({amount:n,userCount:entries.length}));
+  await audit("grant_bonus_all","all_users",JSON.stringify({amount:n,userCount:entries.length,expiresInHours:5}));
   await loadAll();
-  toast("Bonus added to all users");
+  toast("Bonus added to all users' Bonus sections");
 };
 
 function render(){
