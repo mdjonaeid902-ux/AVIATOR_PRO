@@ -1249,6 +1249,12 @@
                 return;
             }
 
+            // A real payment transaction ID must be unique. Normalize it so
+            // harmless spaces/case changes cannot bypass the duplicate check.
+            const normalizedTrxId = trxId.replace(/\\s+/g, '').toLowerCase();
+            const trxIndexKey = encodeURIComponent(normalizedTrxId).replace(/\\./g, '%2E');
+            const trxIndexRef = db.ref('adminRequests/depositTrxIndex/' + trxIndexKey);
+            const requestRef = db.ref('adminRequests/deposits').push();
             const depositData = {
                 uid: currentUser.uid,
                 email: currentUser.email,
@@ -1259,8 +1265,38 @@
                 timestamp: Date.now()
             };
 
-            db.ref('adminRequests/deposits').push(depositData)
-                .then(() => {
+            (async () => {
+                try {
+                    // First check existing requests that were created before
+                    // the transaction-ID index was introduced.
+                    const existingSnap = await db.ref('adminRequests/deposits').once('value');
+                    const existingDeposits = existingSnap.val() || {};
+                    const duplicateExists = Object.values(existingDeposits).some(req =>
+                        String(req?.trxId || '').replace(/\s+/g, '').toLowerCase() === normalizedTrxId
+                    );
+
+                    if (duplicateExists) {
+                        throw new Error('এই Transaction ID দিয়ে ইতিমধ্যে একটি Deposit Request আছে। একই TrxID আবার ব্যবহার করা যাবে না।');
+                    }
+
+                    // Atomically reserve this transaction ID. This closes the
+                    // race where the same TrxID is submitted from two tabs/devices.
+                    const claim = await trxIndexRef.transaction(current => {
+                        if (current) return;
+                        return {
+                            uid: currentUser.uid,
+                            requestId: requestRef.key,
+                            trxId: trxId,
+                            createdAt: firebase.database.ServerValue.TIMESTAMP
+                        };
+                    });
+
+                    if (!claim.committed) {
+                        throw new Error('এই Transaction ID দিয়ে ইতিমধ্যে একটি Deposit Request আছে। একই TrxID আবার ব্যবহার করা যাবে না।');
+                    }
+
+                    await requestRef.set(depositData);
+
                     depositMsg.style.color = "#81c784";
                     depositMsg.innerText = "ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে।";
                     setTimeout(() => {
@@ -1269,11 +1305,21 @@
                         document.getElementById('deposit-trxid').value = '';
                         depositMsg.innerText = '';
                     }, 2000);
-                })
-                .catch(error => {
+                } catch (error) {
+                    // If request creation failed after reserving the ID, release
+                    // only our own reservation so a retry can be made safely.
+                    try {
+                        const reservation = await trxIndexRef.once('value');
+                        const data = reservation.val();
+                        if (data && data.requestId === requestRef.key) {
+                            await trxIndexRef.remove();
+                        }
+                    } catch (_) {}
+
                     depositMsg.style.color = "#ef9a9a";
                     depositMsg.innerText = "ত্রুটি: " + error.message;
-                });
+                }
+            })();
         });
 
         let withdrawRequestBusy = false;
@@ -2981,20 +3027,26 @@ function rbLockAndSpin(){
 
   async function updateWithdrawLockUI(){
     const btn=document.getElementById("withdraw-btn");
+    const notice=document.getElementById("withdraw-cooldown-notice");
+    const countdown=document.getElementById("withdraw-countdown");
     if(!btn || !currentUser) return;
     try{
       const snap=await db.ref("users/"+currentUser.uid).once("value");
       const u=snap.val()||{};
-      const last= getLastDepositAtFromUser(u);
+      const last=getLastDepositAtFromUser(u);
       const left=last ? (last+WITHDRAW_COOLDOWN-bonusNow()) : 0;
       if(left>0){
         btn.title="ডিপোজিটের ৬ ঘণ্টা পূর্ণ হয়নি";
         btn.dataset.withdrawLocked="1";
         btn.style.opacity=".65";
+        if(notice) notice.classList.remove("hidden");
+        if(countdown) countdown.textContent=fmtRemaining(left);
       }else{
         btn.title="";
         btn.dataset.withdrawLocked="0";
         btn.style.opacity="";
+        if(notice) notice.classList.add("hidden");
+        if(countdown) countdown.textContent="00ঘ 00মি 00সে";
       }
     }catch(e){}
   }
@@ -3026,7 +3078,7 @@ function rbLockAndSpin(){
   });
 
   // Keep the lock state fresh while the user remains logged in.
-  setInterval(updateWithdrawLockUI,15000);
+  setInterval(updateWithdrawLockUI,1000);
   setTimeout(updateWithdrawLockUI,1000);
   setTimeout(refreshBonusBadge,1200);
   setInterval(refreshBonusBadge,15000);
