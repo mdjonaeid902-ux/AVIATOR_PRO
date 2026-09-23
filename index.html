@@ -1179,7 +1179,7 @@
     <!-- PAGE 4: COLOR GEMS -->
     <div class="page-screen" id="color-gems-screen">
       <div class="cg-container" id="cgGameContainer">
-        <button class="cg-fs" id="cg-fs-btn" onclick="toggleCgFullScreen()">📱 ফুলস্ক্রিন করুন</button>
+        <div class="cg-fs" id="cg-balance-display"><span id="cg-top-balance">0.00</span></div>
         <div class="cg-top"><div class="cg-ways">2000 WAYS</div><div class="cg-mults" id="cg-mults"><span class="active">1X</span><span>2X</span><span>3X</span><span>5X</span></div></div>
         <div class="cg-frame"><div class="cg-reels" id="cg-board"></div></div>
         <div class="cg-actions"><button class="cg-action" id="cg-extra-btn">⚡ Extra Bet</button><button class="cg-action buy" id="cg-buy-btn">💎 Buy Feature</button></div>
@@ -1825,6 +1825,9 @@
 
             const cgBalEl = document.getElementById('cg-bal');
             if (cgBalEl) cgBalEl.innerText = currentBalance.toFixed(2);
+
+            const cgTopBalEl = document.getElementById('cg-top-balance');
+            if (cgTopBalEl) cgTopBalEl.innerText = currentBalance.toFixed(2);
         }
 
         const canvas = document.getElementById('game-canvas');
@@ -2772,8 +2775,8 @@
 
 
 /* COLOR GEMS — same lobby/auth/shared-wallet/admin-control pattern as Boxing King */
-        const FK_ITEMS = ['🇧🇩','🇧🇷','🇯🇵','🇮🇷','🇸🇪','🇹🇻','🇵🇰','🇪🇺','🇪🇷','🇦🇩'];
-        const FK_SYMBOL_VALUES = {'🇧🇩':1.2,'🇧🇷':2.0,'🇯🇵':1.0,'🇮🇷':0.8,'🇸🇪':0.6,'🇹🇻':1.5,'🇵🇰':0.5,'🇪🇺':1.1,'🇪🇷':0.9,'🇦🇩':0.7};
+        const FK_ITEMS = ['🇧🇩','🇧🇷','🇯🇵','🇮🇷','🇸🇪','🇹🇻','🇵🇰'];
+        const FK_SYMBOL_VALUES = {'🇧🇩':1.2,'🇧🇷':2.0,'🇯🇵':1.0,'🇮🇷':0.8,'🇸🇪':0.6,'🇹🇻':1.5,'🇵🇰':0.5};
         let FK_BET_OPTIONS = [1.00, 2.00, 3.00, 5.00, 10.00];
         let FK_MULTIPLIER_STEPS = [1, 2, 3, 5];
         let fkMultiplierConfig = { m1: 1, m2: 2, m3: 3, m5: 5 };
@@ -3167,7 +3170,7 @@
 
 
 /* COLOR GEMS — same lobby/auth/shared-wallet/admin-control pattern as Boxing King */
-        const CG_ITEMS=['🔴','🟠','🟡','🟢','🔵','🟣','💎','⭐','🟤','⚫'];
+        const CG_ITEMS=['🔴','🟠','🟡','🟢','🔵','🟣','💎'];
         let CG_BET_OPTIONS=[1,2,3,5,10],cgBetIndex=0,cgSpinning=false,cgAuto=false,cgAutoTimer=null,cgBoardState=Array(25).fill(''),cgWin=0,cgMultiplierIndex=0;
         /* Color Gems multiplier sequence follows Boxing King's 1X → 2X → 3X → 5X. */
         const CG_MULTS=[1,2,3,5];
