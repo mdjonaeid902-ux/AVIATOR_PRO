@@ -654,6 +654,229 @@
             filter: grayscale(80%);
         }
 
+        /* FLAG KING STYLES — separate game, same structure */
+        #flag-king-screen {
+            background: linear-gradient(rgba(13, 1, 26, 0.85), rgba(13, 1, 26, 0.95)), 
+                        url('https://images.unsplash.com/photo-1518156677180-95a2893f3e9f?q=80&w=1200&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .fk-game-container {
+            width: 100%;
+            max-width: 430px;
+            background: rgba(20, 5, 35, 0.85); 
+            border: 3px solid #ffcc00;
+            border-radius: 24px;
+            padding: 15px;
+            box-shadow: 0 0 40px rgba(255, 204, 0, 0.25);
+            text-align: center;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            box-sizing: border-box;
+        }
+
+        .fk-game-header h1 {
+            font-size: 22px;
+            color: #ffcc00;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px #ff3300, 2px 2px 0px #000;
+            margin: 0 0 2px 0;
+        }
+
+        .fk-game-header span {
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: #ff9900;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .fk-fullscreen-toggle-btn {
+            background: linear-gradient(135deg, #00ffff, #0088cc);
+            color: black;
+            border: 2px solid #fff;
+            padding: 5px 12px;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            outline: none;
+        }
+
+        .fk-multiplier-bar {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 8px 0;
+        }
+
+        .fk-mult-box {
+            background: #222;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            border: 1px solid #333;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .fk-mult-box.active {
+            background: linear-gradient(135deg, #ffcc00, #ff6600);
+            color: black;
+            border-color: #fff;
+            box-shadow: 0 0 12px #ffcc00;
+            transform: scale(1.1);
+        }
+
+        .fk-reels-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 8px;
+            border-radius: 12px;
+            border: 2px solid #2a1b40;
+            margin-bottom: 8px;
+            touch-action: manipulation;
+        }
+
+        .fk-slot-cell {
+            aspect-ratio: 1 / 1;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, #222 0%, #050505 100%);
+            border-radius: 8px;
+            border: 1.5px solid #ffcc00;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
+            transition: transform 0.25s ease, opacity 0.25s ease, background 0.25s ease;
+            will-change: transform, opacity;
+        }
+
+        .fk-explode {
+            transform: scale(0) rotate(45deg);
+            opacity: 0;
+            background: radial-gradient(circle, #fff 0%, #ff0055 100%) !important;
+        }
+
+        .fk-spinning {
+            transform: scaleY(0.9);
+            opacity: 0.7;
+        }
+
+        .fk-status {
+            margin: 6px 0;
+            font-size: 13px;
+            font-weight: bold;
+            min-height: 20px;
+            color: #aaa;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fk-dashboard {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 204, 0, 0.2);
+        }
+
+        .fk-dash-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fk-dash-label {
+            font-size: 9px;
+            color: #ffcc00;
+            text-transform: uppercase;
+        }
+
+        .fk-dash-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        #fk-bal { color: #00ffcc; }
+        #fk-win-display { color: #ff3366; }
+        #fk-bet-display { color: #ffcc00; }
+
+        .fk-controls-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 12px;
+            border-radius: 50px;
+        }
+
+        .fk-bet-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #ffcc00;
+            background: #222;
+            color: #ffcc00;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
+        }
+
+        .fk-bet-btn:disabled {
+            border-color: #444;
+            color: #444;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .fk-spin-btn-container {
+            background: radial-gradient(circle, #5a4000 0%, transparent 70%);
+            padding: 3px;
+            border-radius: 50%;
+        }
+
+        .fk-spin-btn {
+            width: 65px;
+            height: 65px;
+            font-size: 14px;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffe066 0%, #ff9900 50%, #b36600 100%);
+            color: #000;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            outline: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .fk-spin-btn:disabled {
+            background: linear-gradient(135deg, #555, #222);
+            color: #666;
+            border-color: #444;
+            cursor: not-allowed;
+            box-shadow: none;
+            filter: grayscale(80%);
+        }
+
         /* RED vs BLUE — added game styles only */
         #redblue-game-screen{background:radial-gradient(circle at 50% 20%,#17213b 0,#090b10 55%);padding:10px;align-items:center;justify-content:center}
         .rb-container{width:100%;max-width:460px;background:#0f1420e8;border:1px solid #ffffff18;border-radius:24px;padding:14px;box-shadow:0 0 35px #000b;text-align:center;margin-top:20px}
@@ -872,7 +1095,7 @@
 
             <div class="bk-reels-board" id="bk-board"></div>
 
-            <div class="bk-status" id="bk-status">SPIN চাপুন! 🥊</div>
+            <div class="bk-status" id="bk-status">SPIN চাপুন! 🇧🇩</div>
 
             <div class="bk-dashboard">
                 <div class="bk-dash-box">
@@ -895,6 +1118,58 @@
                     <button class="bk-spin-btn" onclick="handleBkSpinClick()" id="bk-spin-btn">SPIN</button>
                 </div>
                 <button class="bk-bet-btn" id="bk-bet-plus-btn" onclick="changeBkBet(1)">+</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- PAGE 3B: FLAG KING -->
+    <div class="page-screen" id="flag-king-screen">
+        <div class="fk-game-container" id="fkGameContainer">
+            <div class="fk-game-header">
+                <h1>Flag King</h1>
+                <span>LEFT TO RIGHT ONLY</span>
+            </div>
+
+            <div>
+                <button class="fk-fullscreen-toggle-btn" id="fkFsBtn" onclick="toggleFkFullScreen()">
+                    📱 ফুলস্ক্রিন করুন
+                </button>
+            </div>
+
+            <div class="fk-multiplier-bar">
+                <div class="fk-mult-box active" id="fk-m1">1X</div>
+                <div class="fk-mult-box" id="fk-m2">2X</div>
+                <div class="fk-mult-box" id="fk-m3">3X</div>
+                <div class="fk-mult-box" id="fk-m5">5X</div>
+            </div>
+
+            <div class="fk-reels-board" id="fk-board"></div>
+
+            <div class="fk-status" id="fk-status">SPIN চাপুন! 🇧🇩</div>
+
+            <div class="fk-dashboard">
+                <div class="fk-dash-box">
+                    <span class="fk-dash-label">Win (Coin)</span>
+                    <span id="fk-win-display" class="fk-dash-value">0.00</span>
+                </div>
+                <div class="fk-dash-box">
+                    <span class="fk-dash-label">Bet (Coin)</span>
+                    <span id="fk-bet-display" class="fk-dash-value">1.00</span>
+                </div>
+                <div class="fk-dash-box">
+                    <span class="fk-dash-label">Balance</span>
+                    <span id="fk-bal" class="fk-dash-value">0.00</span>
+                </div>
+            </div>
+
+            <div class="fk-controls-panel">
+                <button class="fk-bet-btn" id="fk-bet-minus-btn" onclick="changeFkBet(-1)">-</button>
+                <div class="fk-spin-btn-container">
+                    <button class="fk-spin-btn" onclick="handleFkSpinClick()" id="fk-spin-btn">SPIN</button>
+                </div>
+                <button class="fk-bet-btn" id="fk-bet-plus-btn" onclick="changeFkBet(1)">+</button>
             </div>
         </div>
     </div>
@@ -963,6 +1238,14 @@
                 screenId: 'boxing-king-screen',
                 svgBg: 'linear-gradient(135deg, #2b033d, #6b0f4a)',
                 svgIcon: `🥊`
+            },
+            {
+                id: 'flag-king',
+                name: 'ফ্ল্যাগ কিং (Flag King)',
+                provider: 'Gaming Zone',
+                screenId: 'flag-king-screen',
+                svgBg: 'linear-gradient(135deg, #063b35, #1d6f5d)',
+                svgIcon: `🎰`
             },
             {
                 id: 'color-gems',
@@ -1353,36 +1636,19 @@
             const withdrawConfirmButton = document.getElementById('withdraw-confirm-btn');
             if (withdrawConfirmButton) withdrawConfirmButton.disabled = true;
             try {
-                // Always re-check the latest Firebase value immediately before debit.
-                // This keeps the 6-hour lock authoritative on the client even if the
-                // modal was opened before the admin approved a new deposit.
                 const snap = await db.ref('users/' + currentUser.uid).once('value');
                 const u = snap.val() || {};
-                let last = Number(u.lastDepositAt || 0);
-                // Accept legacy second-based timestamps as well as millisecond timestamps.
-                if (last > 0 && last < 1000000000000) last *= 1000;
-                const now = Date.now() + ((typeof aviatorServerTimeOffset === 'number') ? aviatorServerTimeOffset : 0);
-                const left = last ? (last + 6 * 60 * 60 * 1000 - now) : 0;
+                const last = Number(u.lastDepositAt || 0);
+                const left = last ? (last + 6 * 60 * 60 * 1000 - (Date.now() + ((typeof aviatorServerTimeOffset === 'number') ? aviatorServerTimeOffset : 0))) : 0;
                 if (left > 0) {
                     e.preventDefault();
                     const notice = document.getElementById('withdraw-cooldown-notice');
                     const countdown = document.getElementById('withdraw-countdown');
                     if (notice) notice.classList.remove('hidden');
                     if (countdown) countdown.textContent = fmtRemaining(left);
-                    withdrawMsg.style.color = '#ffb74d';
-                    withdrawMsg.innerText = 'সর্বশেষ approved deposit-এর ৬ ঘণ্টা পূর্ণ হয়নি।';
-                    // This return is before the actual withdrawal request starts,
-                    // so release the busy state and re-enable the button.
-                    withdrawRequestBusy = false;
-                    if (withdrawConfirmButton) withdrawConfirmButton.disabled = false;
                     return;
                 }
-            } catch (err) {
-                // If the cooldown check itself fails, do not leave the button locked.
-                withdrawRequestBusy = false;
-                if (withdrawConfirmButton) withdrawConfirmButton.disabled = false;
-                return;
-            }
+            } catch (err) {}
             const amt = parseFloat(document.getElementById('withdraw-amount').value);
             const method = document.getElementById('withdraw-method').value;
             const accountNo = document.getElementById('withdraw-account').value.trim();
@@ -1550,6 +1816,9 @@
 
             const bkBalEl = document.getElementById('bk-bal');
             if (bkBalEl) bkBalEl.innerText = bkFormatDecimal(currentBalance);
+
+            const fkBalEl = document.getElementById('fk-bal');
+            if (fkBalEl) fkBalEl.innerText = fkFormatDecimal(currentBalance);
 
             const rbBalEl = document.getElementById('rb-balance');
             if (rbBalEl) rbBalEl.innerText = currentBalance.toFixed(2);
@@ -2503,6 +2772,395 @@
 
 
 /* COLOR GEMS — same lobby/auth/shared-wallet/admin-control pattern as Boxing King */
+        const FK_ITEMS = ['🎰','🇧🇷','🇯🇵','🇮🇷','🇸🇪','🇹🇻','🇵🇰','🇪🇺','🇪🇷','🇦🇩'];
+        const FK_SYMBOL_VALUES = {'🎰':1.2,'🇧🇷':2.0,'🇯🇵':1.0,'🇮🇷':0.8,'🇸🇪':0.6,'🇹🇻':1.5,'🇵🇰':0.5,'🇪🇺':1.1,'🇪🇷':0.9,'🇦🇩':0.7};
+        let FK_BET_OPTIONS = [1.00, 2.00, 3.00, 5.00, 10.00];
+        let FK_MULTIPLIER_STEPS = [1, 2, 3, 5];
+        let fkMultiplierConfig = { m1: 1, m2: 2, m3: 3, m5: 5 };
+
+        let fkCurrentBetIndex = 0;
+        let fkIsSpinning = false;
+        let fkCurrentMultiplierIndex = 0;
+        let fkCurrentSpinTotalWin = 0;
+        let fkBoardState = Array(25).fill('');
+        let fkAudioCtx = null;
+
+        function initFkAudio() {
+            if (!fkAudioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) fkAudioCtx = new AudioContextClass();
+            }
+            if (fkAudioCtx && fkAudioCtx.state === 'suspended') {
+                fkAudioCtx.resume().catch(() => {});
+            }
+        }
+
+        function playFkSound(type) {
+            try {
+                initFkAudio();
+                if (!fkAudioCtx || fkAudioCtx.state !== 'running') return;
+                const now = fkAudioCtx.currentTime;
+
+                if (type === 'spin') {
+                    const osc = fkAudioCtx.createOscillator();
+                    const gain = fkAudioCtx.createGain();
+                    osc.connect(gain); gain.connect(fkAudioCtx.destination);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(120, now);
+                    osc.frequency.linearRampToValueAtTime(280, now + 0.08);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.08);
+                    osc.start(now); osc.stop(now + 0.08);
+                } else if (type === 'blast') {
+                    const osc = fkAudioCtx.createOscillator();
+                    const gain = fkAudioCtx.createGain();
+                    osc.connect(gain); gain.connect(fkAudioCtx.destination);
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.exponentialRampToValueAtTime(20, now + 0.25);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now); osc.stop(now + 0.25);
+                } else if (type === 'win') {
+                    const baseFreq = [523.25, 587.33, 698.46, 880.00][Math.max(0, Math.min(fkCurrentMultiplierIndex, 3))];
+                    const osc1 = fkAudioCtx.createOscillator();
+                    const osc2 = fkAudioCtx.createOscillator();
+                    const gain = fkAudioCtx.createGain();
+                    osc1.connect(gain); osc2.connect(gain); gain.connect(fkAudioCtx.destination);
+                    osc1.type = 'sine'; osc2.type = 'sine';
+                    osc1.frequency.setValueAtTime(baseFreq, now);
+                    osc2.frequency.setValueAtTime(baseFreq * 1.25, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc1.start(now); osc2.start(now);
+                    osc1.stop(now + 0.4); osc2.stop(now + 0.4);
+                }
+            } catch (e) {}
+        }
+
+        function fkFormatDecimal(num) {
+            return (Math.round((num + Number.EPSILON) * 100) / 100).toFixed(2);
+        }
+
+        function getFkCellIndex(row, col) {
+            return row * 5 + col;
+        }
+
+        const fkBoardContainer = document.getElementById('fk-board');
+
+        function initFkBoardDOM() {
+            fkBoardContainer.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'fk-slot-cell';
+                cell.id = `fk-cell-${i}`;
+                const randomItem = FK_ITEMS[Math.floor(Math.random() * FK_ITEMS.length)];
+                cell.innerText = randomItem;
+                fkBoardState[i] = randomItem;
+                fkBoardContainer.appendChild(cell);
+            }
+        }
+
+        function updateFkMultiplierUI() {
+            document.querySelectorAll('.fk-mult-box').forEach(b => b.classList.remove('active'));
+            const ids = ['fk-m1', 'fk-m2', 'fk-m3', 'fk-m5'];
+            const id = ids[Math.max(0, Math.min(fkCurrentMultiplierIndex, ids.length - 1))];
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active');
+        }
+
+        function changeFkBet(direction) {
+            if (fkIsSpinning) return;
+            initFkAudio();
+            fkCurrentBetIndex += direction;
+            if (fkCurrentBetIndex < 0) fkCurrentBetIndex = 0;
+            if (fkCurrentBetIndex >= FK_BET_OPTIONS.length) fkCurrentBetIndex = FK_BET_OPTIONS.length - 1;
+            document.getElementById('fk-bet-display').innerText = fkFormatDecimal(FK_BET_OPTIONS[fkCurrentBetIndex]);
+        }
+
+        function applyFkConfigToUI() {
+            FK_BET_OPTIONS = bkConfig.betOptions;
+            if (fkCurrentBetIndex >= FK_BET_OPTIONS.length) fkCurrentBetIndex = FK_BET_OPTIONS.length - 1;
+            const betDisplayEl = document.getElementById('fk-bet-display');
+            if (betDisplayEl) betDisplayEl.innerText = fkFormatDecimal(FK_BET_OPTIONS[fkCurrentBetIndex]);
+
+            const spinBtn = document.getElementById('fk-spin-btn');
+            const statusEl = document.getElementById('fk-status');
+            if (spinBtn) {
+                if (!bkConfig.enabled) {
+                    spinBtn.disabled = true;
+                    if (statusEl) { statusEl.innerText = "গেমটি বর্তমানে বন্ধ আছে 🚧"; statusEl.style.color = "#ff9900"; }
+                } else if (!fkIsSpinning) {
+                    spinBtn.disabled = false;
+                }
+            }
+        }
+
+        function setFkControlsDisabled(disabled) {
+            document.getElementById("fk-spin-btn").disabled = disabled;
+            document.getElementById("fk-bet-minus-btn").disabled = disabled;
+            document.getElementById("fk-bet-plus-btn").disabled = disabled;
+        }
+
+        function handleFkSpinClick() {
+            if (fkIsSpinning) return;
+            initFkAudio();
+
+            if (!currentUser) { alert("প্রথমে Login করুন!"); return; }
+            if (!bkConfig.enabled) {
+                const statusEl = document.getElementById("fk-status");
+                statusEl.innerText = "গেমটি বর্তমানে বন্ধ আছে 🚧";
+                statusEl.style.color = "#ff9900";
+                return;
+            }
+
+            const activeBet = FK_BET_OPTIONS[fkCurrentBetIndex];
+
+            if (!isFkSandboxTestUser() && currentBalance < activeBet) {
+                const statusEl = document.getElementById("fk-status");
+                statusEl.innerText = "পর্যাপ্ত কয়েন নেই! 😢";
+                statusEl.style.color = "#ff3333";
+                return;
+            }
+
+            fkIsSpinning = true;
+            setFkControlsDisabled(true);
+
+            if (isFkSandboxTestUser()) {
+                startFkSpinSequence(activeBet);
+                return;
+            }
+
+            db.ref('users/' + currentUser.uid + '/balance').transaction(cur => {
+                if ((cur || 0) >= activeBet) return (cur || 0) - activeBet;
+            }, (error, committed) => {
+                if (!committed) {
+                    fkIsSpinning = false;
+                    setFkControlsDisabled(false);
+                    const statusEl = document.getElementById("fk-status");
+                    statusEl.innerText = "পর্যাপ্ত কয়েন নেই! 😢";
+                    statusEl.style.color = "#ff3333";
+                    return;
+                }
+                startFkSpinSequence(activeBet);
+            });
+        }
+
+        function startFkSpinSequence(activeBet) {
+            fkCurrentSpinTotalWin = 0;
+            fkCurrentMultiplierIndex = 0;
+            updateFkMultiplierUI();
+            
+            document.getElementById("fk-win-display").innerText = "0.00";
+            const statusEl = document.getElementById("fk-status");
+            statusEl.innerText = "রিল ঘুরছে... 🇯🇵";
+            statusEl.style.color = "#aaa";
+
+            const allCells = document.querySelectorAll('.fk-slot-cell');
+            allCells.forEach(cell => {
+                cell.classList.remove('fk-explode');
+                cell.classList.add('fk-spinning');
+            });
+
+            let spinCounter = 0;
+            const spinInterval = setInterval(() => {
+                playFkSound('spin'); 
+                for (let i = 0; i < 25; i++) {
+                    const randSym = FK_ITEMS[Math.floor(Math.random() * FK_ITEMS.length)];
+                    fkBoardState[i] = randSym;
+                    document.getElementById(`fk-cell-${i}`).innerText = randSym;
+                }
+                spinCounter++;
+
+                if (spinCounter >= 10) {
+                    clearInterval(spinInterval);
+                    allCells.forEach(cell => cell.classList.remove('fk-spinning'));
+                    setTimeout(() => {
+                        evaluateFkCascade(activeBet);
+                    }, 200);
+                }
+            }, bkConfig.animationSpeedMs || 90);
+        }
+
+        function findFkLeftToRightMatches() {
+            const winningCellIndices = new Set();
+            let totalMatchUnits = 0;
+
+            FK_ITEMS.forEach(symbol => {
+                const connectedIndices = new Set();
+                let maxColumnReached = -1;
+
+                let currentColumnNodes = [];
+                for (let r = 0; r < 5; r++) {
+                    const idx = getFkCellIndex(r, 0);
+                    if (fkBoardState[idx] === symbol) {
+                        currentColumnNodes.push({ row: r, col: 0, index: idx });
+                    }
+                }
+
+                if (currentColumnNodes.length === 0) return;
+
+                let colIndex = 0;
+                while (currentColumnNodes.length > 0 && colIndex < 5) {
+                    maxColumnReached = colIndex;
+                    currentColumnNodes.forEach(n => connectedIndices.add(n.index));
+
+                    if (colIndex === 4) break;
+
+                    const nextColumnIndex = colIndex + 1;
+                    const nextColumnNodes = [];
+                    const nextColVisited = new Set();
+
+                    currentColumnNodes.forEach(currentNode => {
+                        const candidateRows = [currentNode.row - 1, currentNode.row, currentNode.row + 1];
+                        candidateRows.forEach(r => {
+                            if (r >= 0 && r < 5) {
+                                const nextIdx = getFkCellIndex(r, nextColumnIndex);
+                                if (fkBoardState[nextIdx] === symbol && !nextColVisited.has(nextIdx)) {
+                                    nextColVisited.add(nextIdx);
+                                    nextColumnNodes.push({ row: r, col: nextColumnIndex, index: nextIdx });
+                                }
+                            }
+                        });
+                    });
+
+                    currentColumnNodes = nextColumnNodes;
+                    colIndex++;
+                }
+
+                if (maxColumnReached >= 2) {
+                    connectedIndices.forEach(idx => winningCellIndices.add(idx));
+                    const symbolBaseVal = FK_SYMBOL_VALUES[symbol] || 1.0;
+                    totalMatchUnits += (connectedIndices.size * symbolBaseVal);
+                }
+            });
+
+            return {
+                winningIndices: Array.from(winningCellIndices),
+                matchUnits: totalMatchUnits
+            };
+        }
+
+        function evaluateFkCascade(activeBet) {
+            const evalResult = findFkLeftToRightMatches();
+            const winningIndices = evalResult.winningIndices;
+
+            if (winningIndices.length > 0) {
+                const currentMultiplier = FK_MULTIPLIER_STEPS[fkCurrentMultiplierIndex];
+                const configuredRtp = isFkSandboxTestUser() ? Number(bkConfig.testRtpFactor) : Number(bkConfig.rtpFactor);
+                const rtpFactor = Number.isFinite(configuredRtp) && configuredRtp > 0 ? configuredRtp : 1.0;
+                const stepWin = evalResult.matchUnits * (activeBet * 0.4) * currentMultiplier * rtpFactor;
+
+                fkCurrentSpinTotalWin += stepWin;
+
+                document.getElementById("fk-win-display").innerText = fkFormatDecimal(fkCurrentSpinTotalWin);
+                
+                const statusEl = document.getElementById("fk-status");
+                statusEl.innerText = `💥 চেইন হিট (${currentMultiplier}X)! উইন: +${fkFormatDecimal(stepWin)} কয়েন`;
+                statusEl.style.color = "#00ff00";
+
+                playFkSound('blast');
+                if (currentMultiplier > 1) {
+                    setTimeout(() => playFkSound('win'), 150);
+                }
+
+                winningIndices.forEach(idx => {
+                    const cell = document.getElementById(`fk-cell-${idx}`);
+                    cell.classList.add('fk-explode');
+                    fkBoardState[idx] = '';
+                });
+
+                setTimeout(() => {
+                    for (let col = 0; col < 5; col++) {
+                        let existingSymbolsInCol = [];
+                        for (let row = 0; row < 5; row++) {
+                            const idx = getFkCellIndex(row, col);
+                            if (fkBoardState[idx] !== '') {
+                                existingSymbolsInCol.push(fkBoardState[idx]);
+                            }
+                        }
+
+                        const emptyCount = 5 - existingSymbolsInCol.length;
+                        const newSymbols = [];
+                        for (let k = 0; k < emptyCount; k++) {
+                            newSymbols.push(FK_ITEMS[Math.floor(Math.random() * FK_ITEMS.length)]);
+                        }
+
+                        const fullColSymbols = newSymbols.concat(existingSymbolsInCol);
+                        
+                        for (let row = 0; row < 5; row++) {
+                            const idx = getFkCellIndex(row, col);
+                            fkBoardState[idx] = fullColSymbols[row];
+                            const cell = document.getElementById(`fk-cell-${idx}`);
+                            cell.innerText = fullColSymbols[row];
+                            cell.classList.remove('fk-explode');
+                        }
+                    }
+
+                    for (let col = 0; col < 5; col++) {
+                        setTimeout(() => {
+                            for (let row = 0; row < 5; row++) {
+                                const idx = getFkCellIndex(row, col);
+                                const cell = document.getElementById(`fk-cell-${idx}`);
+                                cell.style.transform = 'scale(1.15)';
+                                setTimeout(() => { cell.style.transform = 'scale(1)'; }, 120);
+                            }
+                            playFkSound('spin');
+                        }, col * 80);
+                    }
+
+                    if (fkCurrentMultiplierIndex < FK_MULTIPLIER_STEPS.length - 1) {
+                        fkCurrentMultiplierIndex++;
+                    }
+                    updateFkMultiplierUI();
+
+                    setTimeout(() => {
+                        evaluateFkCascade(activeBet);
+                    }, 650);
+
+                }, 350);
+
+            } else {
+                const statusEl = document.getElementById("fk-status");
+                if (fkCurrentSpinTotalWin === 0) {
+                    statusEl.innerText = "আবার চেষ্টা করুন ❌";
+                    statusEl.style.color = "#ff3333";
+                } else {
+                    statusEl.innerText = `💰 চেইন শেষ! মোট উইন: ${fkFormatDecimal(fkCurrentSpinTotalWin)} কয়েন`;
+                    statusEl.style.color = "#ffcc00";
+                }
+
+                if (currentUser && !isFkSandboxTestUser()) {
+                    const uidRef = 'users/' + currentUser.uid;
+                    if (fkCurrentSpinTotalWin > 0) {
+                        db.ref(uidRef + '/balance').transaction(cur => (cur || 0) + fkCurrentSpinTotalWin);
+                        db.ref(uidRef + '/flagKingWins').transaction(w => (w || 0) + 1);
+                    }
+                    db.ref(uidRef + '/flagKingGames').transaction(g => (g || 0) + 1);
+                }
+
+                fkIsSpinning = false;
+                setFkControlsDisabled(bkConfig.enabled === false);
+            }
+        }
+
+        function toggleFkFullScreen() {
+            initFkAudio();
+            const container = document.getElementById("fkGameContainer");
+            const isFS = document.fullscreenElement || document.wefkitFullscreenElement;
+
+            if (!isFS) {
+                if (container.requestFullscreen) container.requestFullscreen().catch(() => {});
+                else if (container.wefkitRequestFullscreen) container.wefkitRequestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+                else if (document.wefkitExitFullscreen) document.wefkitExitFullscreen();
+            }
+        }
+
+
+
+/* COLOR GEMS — same lobby/auth/shared-wallet/admin-control pattern as Boxing King */
         const CG_ITEMS=['🔴','🟠','🟡','🟢','🔵','🟣','💎','⭐','🟤','⚫'];
         let CG_BET_OPTIONS=[1,2,3,5,10],cgBetIndex=0,cgSpinning=false,cgAuto=false,cgAutoTimer=null,cgBoardState=Array(25).fill(''),cgWin=0,cgMultiplierIndex=0;
         /* Color Gems multiplier sequence follows Boxing King's 1X → 2X → 3X → 5X. */
@@ -2862,8 +3520,12 @@ function rbLockAndSpin(){
             initBkBoardDOM();
             updateBkMultiplierUI();
             document.getElementById('bk-bet-display').innerText = bkFormatDecimal(BK_BET_OPTIONS[bkCurrentBetIndex]);
+            initFkBoardDOM();
+            updateFkMultiplierUI();
+            document.getElementById('fk-bet-display').innerText = fkFormatDecimal(FK_BET_OPTIONS[fkCurrentBetIndex]);
             updateSharedBalanceUI();
             applyBkConfigToUI();
+            applyFkConfigToUI();
             initCgBoard();
             updateCgUI();
             rbBuildExactWheel();
@@ -3039,10 +3701,7 @@ function rbLockAndSpin(){
   }
 
   function getLastDepositAtFromUser(u){
-    let last=Number(u?.lastDepositAt||0);
-    // Support both current millisecond timestamps and any older second-based value.
-    if(last>0 && last<1000000000000) last*=1000;
-    return last;
+    return Number(u?.lastDepositAt||0);
   }
 
   async function updateWithdrawLockUI(){
