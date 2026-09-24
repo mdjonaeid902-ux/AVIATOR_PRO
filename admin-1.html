@@ -100,6 +100,7 @@
       <div class="notice" style="margin-bottom:12px">নির্দিষ্ট user-কে transparent bonus হিসেবে coins যোগ করা যাবে। এটি Boxing King-এর winning probability বা game outcome পরিবর্তন করে না।</div>
       <div class="form">
         <div class="field"><label>Select user</label><select id="bonusUser"><option value="">Select a user…</option></select></div>
+        <div class="field"><label>Bonus Name / Type</label><input id="bonusTitle" type="text" maxlength="80" placeholder="e.g. Free Bonus / Login Bonus"></div>
         <div class="field"><label>Bonus coins</label><input id="bonusAmount" type="number" min="1" step="1" placeholder="e.g. 500"></div>
       </div>
       <div class="row" style="margin-top:12px">
@@ -268,23 +269,27 @@ function populateBonusUsers(){
     .map(([uid,u])=>`<option value="${esc(uid)}">${esc(u.email||uid)} — ${money(u.balance)} coins</option>`).join("");
   if(users[current])sel.value=current;
 }
-async function giveBonus(uid, amount){
+async function giveBonus(uid, amount, title){
   const n=Number(amount);
+  const bonusTitle=String(title||"").trim();
+  if(!bonusTitle){toast("Bonus Name / Type লিখুন");return}
   if(!uid||!Number.isFinite(n)||n<=0){toast("Valid user and positive bonus amount required");return}
   const bonusId=db.ref("users/"+uid+"/bonuses").push().key;
   const now=Date.now();
-  const bonus={amount:n,createdAt:now,expiresAt:now+(5*60*60*1000),status:"pending",grantedBy:auth.currentUser?.email||"admin"};
+  const bonus={title:bonusTitle,amount:n,createdAt:now,expiresAt:now+(5*60*60*1000),status:"pending",grantedBy:auth.currentUser?.email||"admin"};
   await db.ref("users/"+uid+"/bonuses/"+bonusId).set(bonus);
-  await audit("grant_bonus",uid,JSON.stringify({amount:n,bonusId,expiresAt:bonus.expiresAt}));
+  await audit("grant_bonus",uid,JSON.stringify({title:bonusTitle,amount:n,bonusId,expiresAt:bonus.expiresAt}));
   await loadAll();
   toast("Bonus added to Bonus Box");
 }
 $("giveBonusBtn").onclick=async()=>{
-  try{await giveBonus($("bonusUser").value,$("bonusAmount").value)}
+  try{await giveBonus($("bonusUser").value,$("bonusAmount").value,$("bonusTitle").value)}
   catch(e){toast(e.message)}
 };
 $("giveAllBonusBtn").onclick=async()=>{
   const n=Number($("bonusAmount").value);
+  const bonusTitle=String($("bonusTitle").value||"").trim();
+  if(!bonusTitle){toast("Bonus Name / Type লিখুন");return}
   if(!Number.isFinite(n)||n<=0){toast("Enter a positive bonus amount");return}
   const entries=Object.keys(users);
   if(!entries.length){toast("No users found");return}
@@ -292,10 +297,10 @@ $("giveAllBonusBtn").onclick=async()=>{
   const now=Date.now(), updates={};
   entries.forEach(uid=>{
     const bonusId=db.ref("users/"+uid+"/bonuses").push().key;
-    updates["users/"+uid+"/bonuses/"+bonusId]={amount:n,createdAt:now,expiresAt:now+(5*60*60*1000),status:"pending",grantedBy:auth.currentUser?.email||"admin"};
+    updates["users/"+uid+"/bonuses/"+bonusId]={title:bonusTitle,amount:n,createdAt:now,expiresAt:now+(5*60*60*1000),status:"pending",grantedBy:auth.currentUser?.email||"admin"};
   });
   await db.ref().update(updates);
-  await audit("grant_bonus_all","all_users",JSON.stringify({amount:n,userCount:entries.length,expiresInHours:5}));
+  await audit("grant_bonus_all","all_users",JSON.stringify({title:bonusTitle,amount:n,userCount:entries.length,expiresInHours:5}));
   await loadAll();
   toast("Bonus added to all users' Bonus sections");
 };
@@ -463,24 +468,43 @@ $("saveConfig").onclick=async()=>{
 
 // ===== Private Help Center =====
 (function(){
+  const CHAT_TTL=60*60*1000;
   let selectedUid=null, chatData={};
   const list=$("supportUserList"), msgs=$("supportMessages"), title=$("supportSelectedUser"), input=$("supportReply"), send=$("supportSend"), status=$("supportStatus");
   function esc(v){return String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));}
+  function expiryOf(m){const ts=Number(m?.timestamp||0),ex=Number(m?.expiresAt||0);return ex>0?ex:(ts>0?ts+CHAT_TTL:0);}
+  async function cleanupAllExpired(){
+    const rootSnap=await db.ref('supportChats').once('value');
+    const root=rootSnap.val()||{}, now=Date.now(), updates={};
+    Object.entries(root).forEach(([uid,chat])=>Object.entries(chat?.messages||{}).forEach(([id,m])=>{if(expiryOf(m)>0&&expiryOf(m)<=now) updates['supportChats/'+uid+'/messages/'+id]=null;}));
+    if(Object.keys(updates).length) await db.ref().update(updates);
+  }
   function renderUsers(){
-    const uids=Object.keys(chatData).filter(uid=>chatData[uid]&&chatData[uid].messages).sort((a,b)=>String(users[a]?.email||a).localeCompare(String(users[b]?.email||b)));
-    list.innerHTML=uids.length?uids.map(uid=>`<button type="button" data-support-uid="${esc(uid)}" style="display:block;width:100%;text-align:left;padding:9px;margin-bottom:6px;border:1px solid var(--line);border-radius:9px;background:${uid===selectedUid?'var(--panel2)':'transparent'};color:var(--text);">${esc(users[uid]?.email||uid)}</button>`).join(''):'<div style="opacity:.65;padding:10px;font-size:12px;">No conversations.</div>';
+    const now=Date.now();
+    const uids=Object.keys(chatData).filter(uid=>Object.values(chatData[uid]?.messages||{}).some(m=>expiryOf(m)>now)).sort((a,b)=>String(users[a]?.email||a).localeCompare(String(users[b]?.email||b)));
+    list.innerHTML=uids.length?uids.map(uid=>`<button type="button" data-support-uid="${esc(uid)}" style="display:block;width:100%;text-align:left;padding:9px;margin-bottom:6px;border:1px solid var(--line);border-radius:9px;background:${uid===selectedUid?'var(--panel2)':'transparent'};color:var(--text);">${esc(users[uid]?.email||uid)}</button>`).join(''):'<div style="opacity:.65;padding:10px;font-size:12px;">No active conversations.</div>';
     list.querySelectorAll('[data-support-uid]').forEach(b=>b.onclick=()=>selectUser(b.dataset.supportUid));
   }
   function renderMessages(){
     if(!selectedUid){msgs.innerHTML='';return;}
-    const data=(chatData[selectedUid]||{}).messages||{};
-    const rows=Object.values(data).sort((a,b)=>Number(a.timestamp||0)-Number(b.timestamp||0));
-    msgs.innerHTML=rows.length?rows.map(m=>`<div style="margin:6px 0;padding:8px 10px;border-radius:10px;background:${m.senderType==='admin'?'rgba(84,224,167,.14)':'rgba(255,255,255,.06)'};"><div style="white-space:pre-wrap;overflow-wrap:anywhere;">${esc(m.text)}</div><small style="opacity:.55;">${m.senderType==='admin'?'Admin':'User'}</small></div>`).join(''):'<div style="opacity:.6;font-size:12px;">No messages.</div>';
+    const data=(chatData[selectedUid]||{}).messages||{}, now=Date.now();
+    const rows=Object.values(data).filter(m=>expiryOf(m)>now).sort((a,b)=>Number(a.timestamp||0)-Number(b.timestamp||0));
+    msgs.innerHTML=rows.length?rows.map(m=>`<div style="margin:6px 0;padding:8px 10px;border-radius:10px;background:${m.senderType==='admin'?'rgba(84,224,167,.14)':'rgba(255,255,255,.06)'};"><div style="white-space:pre-wrap;overflow-wrap:anywhere;">${esc(m.text)}</div><small style="opacity:.55;">${m.senderType==='admin'?'Admin':'User'}</small></div>`).join(''):'<div style="opacity:.6;font-size:12px;">No active messages. Messages automatically clear after 1 hour.</div>';
     msgs.scrollTop=msgs.scrollHeight;
   }
   function selectUser(uid){selectedUid=uid;title.textContent=users[uid]?.email||uid;renderUsers();renderMessages();status.textContent='';input.focus();}
   db.ref('supportChats').on('value',snap=>{chatData=snap.val()||{};renderUsers();if(selectedUid)renderMessages();});
-  send.onclick=async()=>{if(!selectedUid)return;const text=input.value.trim();if(!text)return;send.disabled=true;try{await db.ref('supportChats/'+selectedUid+'/messages').push({text:text.slice(0,500),senderUid:auth.currentUser.uid,senderType:'admin',timestamp:firebase.database.ServerValue.TIMESTAMP});input.value='';status.textContent='';}catch(e){status.textContent='Reply failed: '+(e.message||e)}finally{send.disabled=false;input.focus()}};
+  cleanupAllExpired().catch(()=>{});
+  setInterval(()=>cleanupAllExpired().catch(()=>{}),30000);
+  send.onclick=async()=>{
+    if(!selectedUid)return; const text=input.value.trim(); if(!text)return;
+    send.disabled=true;
+    try{
+      const now=Date.now();
+      await db.ref('supportChats/'+selectedUid+'/messages').push({text:text.slice(0,500),senderUid:auth.currentUser.uid,senderType:'admin',timestamp:now,expiresAt:now+CHAT_TTL});
+      input.value='';status.textContent='';
+    }catch(e){status.textContent='Reply failed: '+(e.message||e)}finally{send.disabled=false;input.focus()}
+  };
   input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send.click()}});
 })();
 
