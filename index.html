@@ -956,7 +956,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <input type="number" id="deposit-amount" placeholder="কয়েন পরিমাণ (যেমন: ৫০০)" value="500" min="100">
+                <input type="number" id="deposit-amount" placeholder="কয়েন পরিমাণ (যেমন: ৫০০)" value="500" min="50">
             </div>
             <div class="form-group">
                 <input type="text" id="deposit-trxid" placeholder="ট্রানজেকশন আইডি (TrxID) দিন" required>
@@ -1526,6 +1526,11 @@
                 depositMsg.innerText = "সঠিক পরিমাণ লিখুন।";
                 return;
             }
+            if (amt < 50) {
+                depositMsg.style.color = "#ef9a9a";
+                depositMsg.innerText = "Minimum Deposit ৳50। ৫০ টাকার কম Deposit করা যাবে না।";
+                return;
+            }
             if (!trxId) {
                 depositMsg.style.color = "#ef9a9a";
                 depositMsg.innerText = "ট্রানজেকশন আইডি (TrxID) প্রদান করুন।";
@@ -1653,9 +1658,9 @@
             const method = document.getElementById('withdraw-method').value;
             const accountNo = document.getElementById('withdraw-account').value.trim();
 
-            if (isNaN(amt) || amt <= 0) {
+            if (isNaN(amt) || amt < 100) {
                 withdrawMsg.style.color = "#ef9a9a";
-                withdrawMsg.innerText = "সঠিক পরিমাণ লিখুন।";
+                withdrawMsg.innerText = "সর্বনিম্ন ৳100 Withdraw করতে হবে।";
                 return;
             }
             if (!accountNo) {
