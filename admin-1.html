@@ -58,6 +58,7 @@
     <button class="active" data-page="overview">📊 Overview</button>
     <button data-page="users">👥 Users</button>
     <button data-page="requests">💳 Requests</button>
+    <button data-page="support">🆘 Help Center</button>
     <button data-page="games">🎮 Games & Config</button>
     <button data-page="announcement">📢 Announcement</button>
     <button data-page="audit">🛡️ Audit Log</button>
@@ -99,7 +100,6 @@
       <div class="notice" style="margin-bottom:12px">নির্দিষ্ট user-কে transparent bonus হিসেবে coins যোগ করা যাবে। এটি Boxing King-এর winning probability বা game outcome পরিবর্তন করে না।</div>
       <div class="form">
         <div class="field"><label>Select user</label><select id="bonusUser"><option value="">Select a user…</option></select></div>
-        <div class="field"><label>Bonus Name / Type</label><input id="bonusTitle" type="text" maxlength="80" placeholder="e.g. Weekly Bonus"></div>
         <div class="field"><label>Bonus coins</label><input id="bonusAmount" type="number" min="1" step="1" placeholder="e.g. 500"></div>
       </div>
       <div class="row" style="margin-top:12px">
@@ -141,6 +141,23 @@
     <div class="card section"><h2>Withdrawal requests</h2><div class="table-wrap"><table class="table"><thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Status</th><th>Action</th></tr></thead><tbody id="withdrawalsBody"></tbody></table></div></div>
   </section>
 
+
+
+  <section id="support" class="page">
+    <div class="card">
+      <h3 style="margin-top:0;">🆘 Private Help Center</h3>
+      <p style="opacity:.78;font-size:13px;">প্রতিটি user-এর conversation আলাদা। Admin এখানে user-এর message দেখে reply দিতে পারবেন।</p>
+      <div style="display:grid;grid-template-columns:minmax(170px,.8fr) minmax(0,1.5fr);gap:12px;">
+        <div id="supportUserList" style="border:1px solid var(--line);border-radius:12px;padding:8px;max-height:520px;overflow:auto;"></div>
+        <div>
+          <div id="supportSelectedUser" style="font-weight:800;margin-bottom:8px;">কোনো user নির্বাচন করুন</div>
+          <div id="supportMessages" style="height:380px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(0,0,0,.12);"></div>
+          <div style="display:flex;gap:7px;margin-top:8px;"><input id="supportReply" maxlength="500" placeholder="Reply লিখুন..." style="flex:1;min-width:0;"><button id="supportSend" class="btn primary" type="button">Send</button></div>
+          <div id="supportStatus" style="font-size:12px;margin-top:6px;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section id="games" class="page">
     <div class="bk-control-card">
@@ -251,27 +268,23 @@ function populateBonusUsers(){
     .map(([uid,u])=>`<option value="${esc(uid)}">${esc(u.email||uid)} — ${money(u.balance)} coins</option>`).join("");
   if(users[current])sel.value=current;
 }
-async function giveBonus(uid, amount, title){
+async function giveBonus(uid, amount){
   const n=Number(amount);
-  const bonusTitle=String(title||"").trim();
-  if(!bonusTitle){toast("Bonus Name / Type লিখুন");return}
   if(!uid||!Number.isFinite(n)||n<=0){toast("Valid user and positive bonus amount required");return}
   const bonusId=db.ref("users/"+uid+"/bonuses").push().key;
   const now=Date.now();
-  const bonus={title:bonusTitle,amount:n,createdAt:now,expiresAt:now+(5*60*60*1000),status:"pending",grantedBy:auth.currentUser?.email||"admin"};
+  const bonus={amount:n,createdAt:now,expiresAt:now+(5*60*60*1000),status:"pending",grantedBy:auth.currentUser?.email||"admin"};
   await db.ref("users/"+uid+"/bonuses/"+bonusId).set(bonus);
-  await audit("grant_bonus",uid,JSON.stringify({title:bonusTitle,amount:n,bonusId,expiresAt:bonus.expiresAt}));
+  await audit("grant_bonus",uid,JSON.stringify({amount:n,bonusId,expiresAt:bonus.expiresAt}));
   await loadAll();
   toast("Bonus added to Bonus Box");
 }
 $("giveBonusBtn").onclick=async()=>{
-  try{await giveBonus($("bonusUser").value,$("bonusAmount").value,$("bonusTitle").value)}
+  try{await giveBonus($("bonusUser").value,$("bonusAmount").value)}
   catch(e){toast(e.message)}
 };
 $("giveAllBonusBtn").onclick=async()=>{
   const n=Number($("bonusAmount").value);
-  const bonusTitle=String($("bonusTitle").value||"").trim();
-  if(!bonusTitle){toast("Bonus Name / Type লিখুন");return}
   if(!Number.isFinite(n)||n<=0){toast("Enter a positive bonus amount");return}
   const entries=Object.keys(users);
   if(!entries.length){toast("No users found");return}
@@ -279,10 +292,10 @@ $("giveAllBonusBtn").onclick=async()=>{
   const now=Date.now(), updates={};
   entries.forEach(uid=>{
     const bonusId=db.ref("users/"+uid+"/bonuses").push().key;
-    updates["users/"+uid+"/bonuses/"+bonusId]={amount:n,createdAt:now,expiresAt:now+(5*60*60*1000),title:bonusTitle,status:"pending",grantedBy:auth.currentUser?.email||"admin"};
+    updates["users/"+uid+"/bonuses/"+bonusId]={amount:n,createdAt:now,expiresAt:now+(5*60*60*1000),status:"pending",grantedBy:auth.currentUser?.email||"admin"};
   });
   await db.ref().update(updates);
-  await audit("grant_bonus_all","all_users",JSON.stringify({title:bonusTitle,amount:n,userCount:entries.length,expiresInHours:5}));
+  await audit("grant_bonus_all","all_users",JSON.stringify({amount:n,userCount:entries.length,expiresInHours:5}));
   await loadAll();
   toast("Bonus added to all users' Bonus sections");
 };
@@ -447,6 +460,30 @@ $("saveConfig").onclick=async()=>{
     toast("Boxing King settings saved");
   }catch(e){$("configMsg").textContent="Save failed: "+e.message;toast(e.message)}
 };
+
+// ===== Private Help Center =====
+(function(){
+  let selectedUid=null, chatData={};
+  const list=$("supportUserList"), msgs=$("supportMessages"), title=$("supportSelectedUser"), input=$("supportReply"), send=$("supportSend"), status=$("supportStatus");
+  function esc(v){return String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));}
+  function renderUsers(){
+    const uids=Object.keys(chatData).filter(uid=>chatData[uid]&&chatData[uid].messages).sort((a,b)=>String(users[a]?.email||a).localeCompare(String(users[b]?.email||b)));
+    list.innerHTML=uids.length?uids.map(uid=>`<button type="button" data-support-uid="${esc(uid)}" style="display:block;width:100%;text-align:left;padding:9px;margin-bottom:6px;border:1px solid var(--line);border-radius:9px;background:${uid===selectedUid?'var(--panel2)':'transparent'};color:var(--text);">${esc(users[uid]?.email||uid)}</button>`).join(''):'<div style="opacity:.65;padding:10px;font-size:12px;">No conversations.</div>';
+    list.querySelectorAll('[data-support-uid]').forEach(b=>b.onclick=()=>selectUser(b.dataset.supportUid));
+  }
+  function renderMessages(){
+    if(!selectedUid){msgs.innerHTML='';return;}
+    const data=(chatData[selectedUid]||{}).messages||{};
+    const rows=Object.values(data).sort((a,b)=>Number(a.timestamp||0)-Number(b.timestamp||0));
+    msgs.innerHTML=rows.length?rows.map(m=>`<div style="margin:6px 0;padding:8px 10px;border-radius:10px;background:${m.senderType==='admin'?'rgba(84,224,167,.14)':'rgba(255,255,255,.06)'};"><div style="white-space:pre-wrap;overflow-wrap:anywhere;">${esc(m.text)}</div><small style="opacity:.55;">${m.senderType==='admin'?'Admin':'User'}</small></div>`).join(''):'<div style="opacity:.6;font-size:12px;">No messages.</div>';
+    msgs.scrollTop=msgs.scrollHeight;
+  }
+  function selectUser(uid){selectedUid=uid;title.textContent=users[uid]?.email||uid;renderUsers();renderMessages();status.textContent='';input.focus();}
+  db.ref('supportChats').on('value',snap=>{chatData=snap.val()||{};renderUsers();if(selectedUid)renderMessages();});
+  send.onclick=async()=>{if(!selectedUid)return;const text=input.value.trim();if(!text)return;send.disabled=true;try{await db.ref('supportChats/'+selectedUid+'/messages').push({text:text.slice(0,500),senderUid:auth.currentUser.uid,senderType:'admin',timestamp:firebase.database.ServerValue.TIMESTAMP});input.value='';status.textContent='';}catch(e){status.textContent='Reply failed: '+(e.message||e)}finally{send.disabled=false;input.focus()}};
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send.click()}});
+})();
+
 async function loadAnnouncement(){const s=await db.ref("adminSettings/announcement").once("value");$("announcementText").value=s.val()||""}$("saveAnnouncement").onclick=async()=>{await db.ref("adminSettings/announcement").set($("announcementText").value);await audit("update_announcement","adminSettings/announcement",$("announcementText").value);toast("Announcement published")};$("clearAnnouncement").onclick=async()=>{await db.ref("adminSettings/announcement").set("");$("announcementText").value="";await audit("clear_announcement","adminSettings/announcement","");toast("Announcement cleared")};
 function renderAudit(data){const rows=Object.values(data).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));$("auditBody").innerHTML=rows.map(x=>`<tr><td>${x.timestamp?new Date(x.timestamp).toLocaleString():"—"}</td><td>${esc(x.adminEmail||x.adminUid)}</td><td>${esc(x.action)}</td><td>${esc(x.target)}</td><td>${esc(x.details)}</td></tr>`).join("")||`<tr><td colspan="5">No audit entries.</td></tr>`}
 
