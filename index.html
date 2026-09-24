@@ -3651,10 +3651,12 @@ function rbLockAndSpin(){
       card.style.cssText="background:#0b1018;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;";
       const amount=Number(b.amount||0);
       const exp=Number(b.expiresAt||0);
+      const title=String(b.title||"Bonus").replace(/[&<>"']/g, ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
       card.innerHTML=`
         <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
           <div>
-            <div style="font-weight:900;color:#ffd54f;font-size:20px;">৳${amount.toFixed(2)}</div>
+            <div style="font-weight:900;color:#ffd54f;font-size:20px;">${title}</div>
+            <div style="font-size:16px;color:#fff;margin-top:4px;">৳${amount.toFixed(2)}</div>
             <div style="font-size:12px;color:#9aa6b2;margin-top:4px;">Bonus • Claim করলে main balance-এ যোগ হবে</div>
           </div>
           <button type="button" data-bonus-id="${id}" style="border:0;border-radius:10px;padding:10px 14px;background:#8e24aa;color:#fff;font-weight:800;cursor:pointer;">Claim</button>
