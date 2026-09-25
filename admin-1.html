@@ -405,12 +405,16 @@ window.requestAction=async(type,id,status)=>{
 
     // IMPORTANT: remove the actual request node directly.
     // This is the operation that makes it disappear from the admin queue.
-    await db.ref(path).remove();
+    // Remove the request node directly. set(null) is used explicitly here
+    // so Reject follows the same proven Firebase deletion method as the
+    // Admin user-remove action. This removes both approved and rejected
+    // requests from the queue instead of leaving a rejected row behind.
+    await db.ref(path).set(null);
 
     // Verify removal from Firebase. Retry once for transient client/network issues.
     let verify=await db.ref(path).once("value");
     if(verify.exists()){
-      await db.ref(path).remove();
+      await db.ref(path).set(null);
       verify=await db.ref(path).once("value");
     }
     if(verify.exists()){
