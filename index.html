@@ -1341,6 +1341,8 @@
         let isProcessingBet = false;
         let lastCrashSettlementAttempt = -1;
         let aviatorBetsListener = null;
+        let aviatorForcedRoundIndex = null;
+        let aviatorForcedRoundStart = 0;
 
         // Aviator uses Firebase server time so every device derives the same round/crash point.
         // This prevents one phone from being a few seconds ahead/behind because of local clock drift.
@@ -2185,8 +2187,16 @@
             const WAIT_DURATION = 3000;
 
             const now = getAviatorServerNow();
-            const currentRoundIndex = Math.floor(now / CYCLE_DURATION);
-            const cycleElapsed = now % CYCLE_DURATION;
+            let currentRoundIndex = Math.floor(now / CYCLE_DURATION);
+            let cycleElapsed = now % CYCLE_DURATION;
+
+            // After a crash, start the next round after a fresh 3-second countdown
+            // instead of waiting for the old fixed 100-second clock boundary.
+            const forcedRoundActive = aviatorForcedRoundIndex !== null;
+            if (forcedRoundActive) {
+                currentRoundIndex = aviatorForcedRoundIndex;
+                cycleElapsed = Math.max(0, (now - aviatorForcedRoundStart));
+            }
 
             const targetCrashPoint = getDeterministicCrashPoint(currentRoundIndex);
             const totalFlightTimeNeeded = calculateTimeFromMultiplier(targetCrashPoint);
@@ -2245,6 +2255,12 @@
                     multiplierDisplay.innerText = "FLEW AWAY!\n" + targetCrashPoint.toFixed(2) + "x";
                     multiplierDisplay.classList.add('crashed');
 
+                    // Schedule the next round immediately after this crash.
+                    if (aviatorForcedRoundIndex !== currentRoundIndex) {
+                        aviatorForcedRoundIndex = currentRoundIndex + 1;
+                        aviatorForcedRoundStart = now + WAIT_DURATION;
+                    }
+
                     if (isBetActiveForCurrentRound && !hasCashedOut && currentUser && lastCrashSettlementAttempt !== currentRoundIndex) {
                         lastCrashSettlementAttempt = currentRoundIndex;
                         settleAviatorCrash(currentRoundIndex, targetCrashPoint);
@@ -2295,8 +2311,12 @@
             const CYCLE_DURATION = 100000;
             const WAIT_DURATION = 3000;
             const now = getAviatorServerNow();
-            const cycleElapsed = now % CYCLE_DURATION;
-            const currentRoundIndex = Math.floor(now / CYCLE_DURATION);
+            let cycleElapsed = now % CYCLE_DURATION;
+            let currentRoundIndex = Math.floor(now / CYCLE_DURATION);
+            if (aviatorForcedRoundIndex !== null) {
+                currentRoundIndex = aviatorForcedRoundIndex;
+                cycleElapsed = Math.max(0, now - aviatorForcedRoundStart);
+            }
             const roundKey = getAviatorRoundKey(currentRoundIndex);
 
             if (cycleElapsed < WAIT_DURATION) {
