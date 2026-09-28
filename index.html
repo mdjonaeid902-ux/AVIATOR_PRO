@@ -1409,7 +1409,7 @@
         }
 
         function buildNextAviatorRound(roundIndex, roundStartAt) {
-            const safeRoundIndex = (Number(roundIndex) || 0) + 1;
+            const safeRoundIndex = Number(roundIndex) || 1;
             const startAt = Number(roundStartAt);
             const crashPoint = getDeterministicCrashPoint(safeRoundIndex);
             const flightMs = Math.min(100000, Math.max(0, calculateTimeFromMultiplier(crashPoint) * 1000));
@@ -2357,9 +2357,15 @@
                 drawAviatorFlight(currentLocalMult, flyElapsed, totalFlightTimeNeeded);
                 if (isBetActiveForCurrentRound && !hasCashedOut) {
                     const liveWin = (activeBet * currentLocalMult).toFixed(2);
-                    betBtn.innerText = 'CASH OUT\n(' + liveWin + ' কয়েন)';
-                    betBtn.className = 'av-btn av-btn-action av-btn-cashout';
-                    betBtn.disabled = false;
+                    if (isProcessingBet) {
+                        betBtn.innerText = 'CASHING OUT...\n(' + liveWin + ' কয়েন)';
+                        betBtn.className = 'av-btn av-btn-action av-btn-waiting';
+                        betBtn.disabled = true;
+                    } else {
+                        betBtn.innerText = 'CASH OUT\n(' + liveWin + ' কয়েন)';
+                        betBtn.className = 'av-btn av-btn-action av-btn-cashout';
+                        betBtn.disabled = false;
+                    }
                 } else if (hasCashedOut) {
                     betBtn.innerText = 'CASHED OUT\n(' + cashedAmount.toFixed(2) + ' কয়েন)';
                     betBtn.className = 'av-btn av-btn-action av-btn-waiting';
