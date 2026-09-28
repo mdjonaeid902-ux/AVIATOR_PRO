@@ -2371,9 +2371,10 @@
                     betBtn.className = 'av-btn av-btn-action av-btn-waiting';
                     betBtn.disabled = true;
                 } else {
-                    betBtn.innerText = 'পরবর্তী রাউন্ডে বেট দিন';
-                    betBtn.className = 'av-btn av-btn-action av-btn-bet';
-                    betBtn.disabled = false;
+                    // Betting closes as soon as the flight starts, like a normal Aviator round.
+                    betBtn.innerText = 'বেটিং বন্ধ';
+                    betBtn.className = 'av-btn av-btn-action av-btn-waiting';
+                    betBtn.disabled = true;
                 }
             }
 
@@ -2397,7 +2398,8 @@
                 if (betRoundIndex === currentRoundIndex || isProcessingBet) return;
                 const betAmt = parseFloat(betInput.value);
                 if (isNaN(betAmt) || betAmt < 10) return alert('সর্বনিম্ন বেট পরিমাণ ১০ কয়েন');
-                if (betAmt > currentBalance) return alert('পর্যাপ্ত কয়েন ব্যালেন্স নেই!');
+                // The Firebase transaction below is the authority for the real balance.
+                // Do not block the BET button using a possibly stale local balance.
                 isProcessingBet = true;
                 betBtn.innerText = 'প্রসেসিং...';
                 betBtn.disabled = true;
@@ -2434,8 +2436,10 @@
                         betBtn.disabled = true;
                         renderMyLiveBetUI(currentRoundIndex, false);
                     } else {
+                        betBtn.innerText = 'বেট দিন';
+                        betBtn.className = 'av-btn av-btn-action av-btn-bet';
                         betBtn.disabled = false;
-                        alert('এই রাউন্ডে বেট নেওয়া যায়নি। ইতিমধ্যে বেট/লেনদেন থাকতে পারে।');
+                        alert('এই রাউন্ডে বেট নেওয়া যায়নি। ইতিমধ্যে বেট/লেনদেন থাকতে পারে বা ব্যালেন্স কম থাকতে পারে।');
                     }
                 }).catch(function(error) {
                     isProcessingBet = false;
