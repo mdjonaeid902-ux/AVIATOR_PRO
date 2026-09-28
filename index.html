@@ -1409,7 +1409,7 @@
         }
 
         function buildNextAviatorRound(roundIndex, roundStartAt) {
-            const safeRoundIndex = Number(roundIndex) || 1;
+            const safeRoundIndex = (Number(roundIndex) || 0) + 1;
             const startAt = Number(roundStartAt);
             const crashPoint = getDeterministicCrashPoint(safeRoundIndex);
             const flightMs = Math.min(100000, Math.max(0, calculateTimeFromMultiplier(crashPoint) * 1000));
