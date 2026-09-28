@@ -6,7 +6,8 @@
     <title>Gaming Zone - Professional Game Lobby</title>
 
     <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">\n        // KAGOJER BEMAN — smooth visual round. No client-side wallet mutation.\n        let kpAnim=null,kpStart=0,kpCrash=0,kpRunning=false,kpRound=0;\n        function kpMultiplier(t){ return 1 + Math.pow(t,1.38)*0.62; }\n        function kpStartRound(){\n            cancelAnimationFrame(kpAnim); kpRound++; kpStart=performance.now(); kpCrash=6.5+Math.random()*5.5; kpRunning=true;\n            const state=document.getElementById('kp-state'); if(state) state.textContent='উড্ডয়ন হচ্ছে…';\n            kpTick(kpStart);\n        }\n        function kpTick(now){\n            const board=document.getElementById('kp-board'),canvas=document.getElementById('kp-canvas'),plane=document.getElementById('kp-plane'),mult=document.getElementById('kp-mult'); if(!board||!canvas||!plane||!mult)return;\n            const w=board.clientWidth,h=board.clientHeight; canvas.width=w; canvas.height=h; const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,w,h);\n            const t=Math.min(1.18,(now-kpStart)/10000); const m=kpMultiplier(t);\n            const x=18+(w-55)*Math.min(1,t/1.05); const y=h-42-(h-85)*Math.pow(Math.min(1,t/1.05),1.25);\n            plane.style.left=x+'px'; plane.style.top=y+'px'; plane.style.transform='rotate(-'+(8+28*t)+'deg)'; mult.textContent=m.toFixed(2)+'x';\n            ctx.beginPath(); ctx.moveTo(0,h-22); ctx.bezierCurveTo(w*.25,h-25,w*.58,h*.72,w*.95,h*.18); ctx.strokeStyle='rgba(255,204,0,.62)'; ctx.lineWidth=3; ctx.stroke();\n            if((now-kpStart)/1000 < kpCrash){ kpAnim=requestAnimationFrame(kpTick); } else { kpRunning=false; const state=document.getElementById('kp-state'); if(state) state.textContent='উড়ে গেল! • পরের রাউন্ড…'; setTimeout(kpStartRound,2200); }\n        }\n        function kpDemoBet(n){\n            const input=document.getElementById('kp-bet'+n),amount=Number(input?.value||0);\n            if(!Number.isFinite(amount)||amount<=0){alert('সঠিক কয়েন পরিমাণ দিন।');return;}\n            if(amount>Number(currentBalance||0)){alert('Main Balance পর্যাপ্ত নয়।');return;}\n            alert('ডেমো বেট নির্বাচিত হয়েছে। নিরাপত্তার জন্য এই HTML থেকে Main Balance কাটা বা payout করা হচ্ছে না।');\n        }\n        document.addEventListener('DOMContentLoaded',()=>{ setTimeout(kpStartRound,350); });\n
+    </script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -1027,8 +1028,9 @@
                 <button class="av-btn" id="bonus-btn" type="button" style="background:#8e24aa;padding:7px 18px;font-size:0.75rem;position:relative;white-space:nowrap;box-shadow:0 4px 12px rgba(142,36,170,0.28);">🎁 Bonus <span id="bonus-count-badge" style="display:none;margin-left:4px;background:#ffcc00;color:#111;border-radius:999px;padding:1px 6px;font-size:10px;font-weight:900;">0</span></button>
             </div>
 
-            <div class="category-bar">
+            <div class="category-bar" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
                 <div class="category-badge">🔥 HOT GAMES</div>
+                <button type="button" id="help-center-btn" class="av-btn" style="padding:7px 12px;font-size:.72rem;background:#1976d2;white-space:nowrap;">🆘 Help Center</button>
             </div>
 
             <div class="games-grid" id="lobby-games-grid"></div>
@@ -1072,7 +1074,7 @@
         </div>
     </div>
 
-    <!-- PAGE 3: BOXING KING -->
+\n    <!-- PAGE 4: BOXING KING -->
     <div class="page-screen" id="boxing-king-screen">
         <div class="bk-game-container" id="bkGameContainer">
             <div class="bk-game-header">
@@ -1346,13 +1348,6 @@
         let aviatorFirebaseConnected = false;
         let aviatorLoopRunning = false;
 
-        // Transparent Aviator safety control.
-        // When an admin sets config/aviator/maxMultiplier, the random crash
-        // point is capped at that value. Clearing the setting restores the
-        // normal deterministic/random crash-point logic. This is a maximum
-        // multiplier cap, not a hidden exact-outcome override.
-        let aviatorConfig = { maxMultiplier: null };
-
         // Do not let cached/local JavaScript keep Aviator running without a live Firebase connection.
         function isAviatorOnline() {
             return navigator.onLine !== false && aviatorFirebaseConnected === true;
@@ -1394,12 +1389,6 @@
         db.ref('.info/serverTimeOffset').on('value', function(snapshot) {
             const v = Number(snapshot.val());
             aviatorServerTimeOffset = Number.isFinite(v) ? v : 0;
-        });
-        db.ref('config/aviator').on('value', function(snapshot) {
-            const cfg = snapshot.val() || {};
-            const rawCap = cfg.maxMultiplier;
-            const cap = Number(rawCap);
-            aviatorConfig.maxMultiplier = Number.isFinite(cap) && cap >= 1.01 ? Number(cap.toFixed(2)) : null;
         });
         function getAviatorServerNow() {
             return Date.now() + aviatorServerTimeOffset;
@@ -1671,9 +1660,9 @@
             const method = document.getElementById('withdraw-method').value;
             const accountNo = document.getElementById('withdraw-account').value.trim();
 
-            if (isNaN(amt) || amt <= 0) {
+            if (isNaN(amt) || amt < 100) {
                 withdrawMsg.style.color = "#ef9a9a";
-                withdrawMsg.innerText = "সঠিক পরিমাণ লিখুন।";
+                withdrawMsg.innerText = "সর্বনিম্ন ৳100 Withdraw করতে হবে।";
                 return;
             }
             if (!accountNo) {
@@ -1772,9 +1761,20 @@
             testUserUid: '',
             testRtpFactor: 1.0
         };
-        // Color Gems uses the SAME Boxing King configuration.
-        // There is intentionally NO separate config/colorGems path.
-        let cgConfig = bkConfig;
+        // Color Gems has its OWN independent configuration.
+        // Boxing King/Flag King continue using config/boxingKing/rtpFactor.
+        // Color Gems reads ONLY config/colorGems, so changing one does not change the other.
+        let cgConfig = {
+            enabled: true,
+            minBet: 1,
+            maxBet: 10,
+            betOptions: [1.00, 2.00, 3.00, 5.00, 10.00],
+            animationSpeedMs: 90,
+            rtpFactor: 1.0,
+            testMode: false,
+            testUserUid: '',
+            testRtpFactor: 1.0
+        };
 
         // User-specific RTP / Reference Factor loader.
         // This reads the value saved by the Admin Panel for the logged-in UID.
@@ -1823,14 +1823,30 @@
                     bkConfig.betOptions = [1.00, 2.00, 3.00, 5.00, 10.00];
                 }
             }
-            cgConfig = bkConfig;
             applyBkConfigToUI();
+            applyCgConfigToUI();
+        });
+
+        // Color Gems — independent configuration path.
+        db.ref('config/colorGems').on('value', function(snapshot) {
+            const cfg = snapshot.val();
+            if (cfg) {
+                cgConfig = Object.assign({}, cgConfig, cfg);
+                if (typeof cgConfig.betOptions === 'string') {
+                    cgConfig.betOptions = cgConfig.betOptions.split(',').map(n => parseFloat(n.trim())).filter(n => !isNaN(n));
+                }
+                if (!Array.isArray(cgConfig.betOptions) || cgConfig.betOptions.length === 0) {
+                    cgConfig.betOptions = [1.00, 2.00, 3.00, 5.00, 10.00];
+                }
+            }
             applyCgConfigToUI();
         });
 
         function updateSharedBalanceUI() {
             const lobbyBalEl = document.getElementById('lobby-bal');
             if (lobbyBalEl) lobbyBalEl.innerText = currentBalance.toFixed(2);
+            const kpBalEl = document.getElementById('kp-main-balance');
+            if (kpBalEl) kpBalEl.innerText = currentBalance.toFixed(2);
 
             const bkBalEl = document.getElementById('bk-bal');
             if (bkBalEl) bkBalEl.innerText = bkFormatDecimal(currentBalance);
@@ -1982,6 +1998,13 @@
             }
         });
 
+        let aviatorConfig = { maxMultiplier: null };
+        db.ref('config/aviator').on('value', function(snapshot) {
+            const cfg = snapshot.val() || {};
+            const n = Number(cfg.maxMultiplier);
+            aviatorConfig.maxMultiplier = Number.isFinite(n) && n >= 1.01 ? Number(n.toFixed(2)) : null;
+        });
+
         function getDeterministicCrashPoint(roundIndex) {
             let hash = Math.sin(roundIndex * 12.9898 + 78.233) * 43758.5453;
             let rand = hash - Math.floor(hash);
@@ -1990,14 +2013,10 @@
             else if (rand < 0.65) crash = 1.10 + ((rand - 0.12) / 0.53) * 0.90; 
             else if (rand < 0.90) crash = 2.00 + ((rand - 0.65) / 0.25) * 3.00; 
             else crash = 5.00 + ((rand - 0.90) / 0.10) * 20.00; 
+            if (aviatorConfig.maxMultiplier !== null) {
+                crash = Math.min(crash, aviatorConfig.maxMultiplier);
+            }
             return parseFloat(crash.toFixed(2));
-        }
-
-        function getAviatorCrashPoint(roundIndex) {
-            const randomPoint = getDeterministicCrashPoint(roundIndex);
-            const cap = Number(aviatorConfig?.maxMultiplier);
-            if (!Number.isFinite(cap) || cap <= 0) return randomPoint;
-            return parseFloat(Math.min(randomPoint, Math.max(1.01, cap)).toFixed(2));
         }
 
         function calculateMultiplierFromTime(seconds) {
@@ -2162,14 +2181,14 @@
 
         function masterGameLoop() {
             if (!isAviatorOnline()) { stopAviatorLoopForOffline(); return; }
-            const CYCLE_DURATION = 18000;
+            const CYCLE_DURATION = 25000;
             const WAIT_DURATION = 3000;
 
             const now = getAviatorServerNow();
             const currentRoundIndex = Math.floor(now / CYCLE_DURATION);
             const cycleElapsed = now % CYCLE_DURATION;
 
-            const targetCrashPoint = getAviatorCrashPoint(currentRoundIndex);
+            const targetCrashPoint = getDeterministicCrashPoint(currentRoundIndex);
             const totalFlightTimeNeeded = calculateTimeFromMultiplier(targetCrashPoint);
 
             if (currentRoundIndex !== lastProcessedRound) {
@@ -2179,7 +2198,7 @@
                     renderHistoryUI();
                 } else {
                     for(let k = 3; k >= 1; k--) {
-                        historyArray.push(getAviatorCrashPoint(currentRoundIndex - k));
+                        historyArray.push(getDeterministicCrashPoint(currentRoundIndex - k));
                     }
                     renderHistoryUI();
                 }
@@ -2273,7 +2292,7 @@
             if (!isAviatorOnline()) return alert("ইন্টারনেট সংযোগ নেই। সংযোগ ফিরে এলে আবার চেষ্টা করুন।");
             if (!currentUser) return alert("প্রথমে Login করুন!");
 
-            const CYCLE_DURATION = 18000;
+            const CYCLE_DURATION = 25000;
             const WAIT_DURATION = 3000;
             const now = getAviatorServerNow();
             const cycleElapsed = now % CYCLE_DURATION;
@@ -2292,7 +2311,7 @@
                 betBtn.innerText = "প্রসেসিং...";
                 betBtn.disabled = true;
 
-                const targetCrashPoint = getAviatorCrashPoint(targetRoundIndex);
+                const targetCrashPoint = getDeterministicCrashPoint(targetRoundIndex);
                 const totalFlightTimeNeeded = calculateTimeFromMultiplier(targetCrashPoint);
 
                 db.ref('users/' + currentUser.uid).transaction(function(data) {
@@ -2335,7 +2354,7 @@
                 });
             }
             else if (cycleElapsed >= WAIT_DURATION && betRoundIndex === currentRoundIndex && !hasCashedOut) {
-                const targetCrashPoint = getAviatorCrashPoint(currentRoundIndex);
+                const targetCrashPoint = getDeterministicCrashPoint(currentRoundIndex);
                 const totalFlightTimeNeeded = calculateTimeFromMultiplier(targetCrashPoint);
                 const serverNowAtClick = getAviatorServerNow();
                 const flyElapsed = (serverNowAtClick - (currentRoundIndex * CYCLE_DURATION + WAIT_DURATION)) / 1000;
@@ -3813,5 +3832,59 @@ function rbLockAndSpin(){
   </div>
 </div>
 
+
+    <!-- PRIVATE HELP CENTER -->
+    <div class="av-modal-overlay hidden" id="help-center-modal">
+        <div class="av-glass-card av-modal" style="max-width:430px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                <h2 style="margin:0;">🆘 Help Center</h2>
+                <button type="button" id="close-help-center-btn" class="av-btn av-btn-logout" style="padding:6px 10px;">✕</button>
+            </div>
+            <div style="font-size:.72rem;color:var(--text-dim);margin:8px 0 10px;">এটি আপনার ব্যক্তিগত Support Chat। অন্য কোনো user এই conversation দেখতে পারবে না।</div>
+            <div id="help-chat-list" style="height:280px;overflow:auto;display:flex;flex-direction:column;gap:7px;padding:8px;background:rgba(0,0,0,.18);border-radius:12px;"></div>
+            <div class="av-error-msg" id="help-chat-msg" style="margin-top:7px;"></div>
+            <div style="display:flex;gap:6px;margin-top:8px;">
+                <input type="text" id="help-chat-input" maxlength="500" placeholder="আপনার সমস্যা লিখুন..." style="flex:1;min-width:0;">
+                <button type="button" id="help-chat-send" class="av-btn av-btn-deposit" style="padding:8px 12px;">Send</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+(function(){
+  const btn=document.getElementById('help-center-btn');
+  const modal=document.getElementById('help-center-modal');
+  const close=document.getElementById('close-help-center-btn');
+  const list=document.getElementById('help-chat-list');
+  const input=document.getElementById('help-chat-input');
+  const send=document.getElementById('help-chat-send');
+  const status=document.getElementById('help-chat-msg');
+  let chatListener=null;
+  function esc(v){return String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));}
+  function render(snap){
+    const data=snap.val()||{};
+    const rows=Object.entries(data).sort((a,b)=>Number(a[1]?.timestamp||0)-Number(b[1]?.timestamp||0));
+    list.innerHTML=rows.length?rows.map(([id,m])=>`<div style="align-self:${m.senderUid===currentUser?.uid?'flex-end':'flex-start'};max-width:86%;padding:7px 9px;border-radius:10px;background:${m.senderUid===currentUser?.uid?'rgba(25,118,210,.32)':'rgba(255,255,255,.08)'};"><div style="font-size:.78rem;white-space:pre-wrap;overflow-wrap:anywhere;">${esc(m.text)}</div><div style="font-size:.58rem;color:#9aa4b2;margin-top:3px;">${m.senderUid===currentUser?.uid?'You':'Admin'}</div></div>`).join(''):'<div style="text-align:center;color:#9aa4b2;font-size:.72rem;padding:35px 8px;">আপনার কোনো message নেই। সাহায্যের জন্য লিখুন।</div>';
+    list.scrollTop=list.scrollHeight;
+  }
+  function start(){
+    if(!currentUser){alert('প্রথমে Login করুন!');return false;}
+    const ref=db.ref('supportChats/'+currentUser.uid+'/messages').limitToLast(100);
+    if(chatListener) chatListener.ref.off('value',chatListener.fn);
+    const fn=snap=>render(snap); chatListener={ref,fn}; ref.on('value',fn); return true;
+  }
+  function stop(){if(chatListener){chatListener.ref.off('value',chatListener.fn);chatListener=null;}}
+  btn?.addEventListener('click',()=>{if(start()){status.textContent='';modal.classList.remove('hidden');input?.focus();}});
+  close?.addEventListener('click',()=>{stop();modal.classList.add('hidden');});
+  send?.addEventListener('click',async()=>{
+    if(!currentUser)return; const text=input.value.trim(); if(!text)return;
+    send.disabled=true; status.textContent='';
+    try{await db.ref('supportChats/'+currentUser.uid+'/messages').push({text:text.slice(0,500),senderUid:currentUser.uid,senderType:'user',timestamp:firebase.database.ServerValue.TIMESTAMP}); input.value='';}
+    catch(e){status.textContent='Message পাঠানো যায়নি: '+(e.message||e);}
+    finally{send.disabled=false;input.focus();}
+  });
+  input?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send.click();}});
+})();
+</script>
 </body>
 </html>
