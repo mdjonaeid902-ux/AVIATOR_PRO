@@ -1027,9 +1027,8 @@
                 <button class="av-btn" id="bonus-btn" type="button" style="background:#8e24aa;padding:7px 18px;font-size:0.75rem;position:relative;white-space:nowrap;box-shadow:0 4px 12px rgba(142,36,170,0.28);">🎁 Bonus <span id="bonus-count-badge" style="display:none;margin-left:4px;background:#ffcc00;color:#111;border-radius:999px;padding:1px 6px;font-size:10px;font-weight:900;">0</span></button>
             </div>
 
-            <div class="category-bar" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div class="category-bar">
                 <div class="category-badge">🔥 HOT GAMES</div>
-                <button type="button" id="help-center-btn" class="av-btn" style="padding:7px 12px;font-size:.72rem;background:#1976d2;white-space:nowrap;">🆘 Help Center</button>
             </div>
 
             <div class="games-grid" id="lobby-games-grid"></div>
@@ -1347,6 +1346,13 @@
         let aviatorFirebaseConnected = false;
         let aviatorLoopRunning = false;
 
+        // Transparent Aviator safety control.
+        // When an admin sets config/aviator/maxMultiplier, the random crash
+        // point is capped at that value. Clearing the setting restores the
+        // normal deterministic/random crash-point logic. This is a maximum
+        // multiplier cap, not a hidden exact-outcome override.
+        let aviatorConfig = { maxMultiplier: null };
+
         // Do not let cached/local JavaScript keep Aviator running without a live Firebase connection.
         function isAviatorOnline() {
             return navigator.onLine !== false && aviatorFirebaseConnected === true;
@@ -1388,6 +1394,12 @@
         db.ref('.info/serverTimeOffset').on('value', function(snapshot) {
             const v = Number(snapshot.val());
             aviatorServerTimeOffset = Number.isFinite(v) ? v : 0;
+        });
+        db.ref('config/aviator').on('value', function(snapshot) {
+            const cfg = snapshot.val() || {};
+            const rawCap = cfg.maxMultiplier;
+            const cap = Number(rawCap);
+            aviatorConfig.maxMultiplier = Number.isFinite(cap) && cap >= 1.01 ? Number(cap.toFixed(2)) : null;
         });
         function getAviatorServerNow() {
             return Date.now() + aviatorServerTimeOffset;
@@ -1659,9 +1671,9 @@
             const method = document.getElementById('withdraw-method').value;
             const accountNo = document.getElementById('withdraw-account').value.trim();
 
-            if (isNaN(amt) || amt < 100) {
+            if (isNaN(amt) || amt <= 0) {
                 withdrawMsg.style.color = "#ef9a9a";
-                withdrawMsg.innerText = "সর্বনিম্ন ৳100 Withdraw করতে হবে।";
+                withdrawMsg.innerText = "সঠিক পরিমাণ লিখুন।";
                 return;
             }
             if (!accountNo) {
@@ -1981,6 +1993,13 @@
             return parseFloat(crash.toFixed(2));
         }
 
+        function getAviatorCrashPoint(roundIndex) {
+            const randomPoint = getDeterministicCrashPoint(roundIndex);
+            const cap = Number(aviatorConfig?.maxMultiplier);
+            if (!Number.isFinite(cap) || cap <= 0) return randomPoint;
+            return parseFloat(Math.min(randomPoint, Math.max(1.01, cap)).toFixed(2));
+        }
+
         function calculateMultiplierFromTime(seconds) {
             let mult = 1.00 + Math.pow(seconds, 1.25) * 0.12;
             return parseFloat(mult.toFixed(2));
@@ -2150,7 +2169,7 @@
             const currentRoundIndex = Math.floor(now / CYCLE_DURATION);
             const cycleElapsed = now % CYCLE_DURATION;
 
-            const targetCrashPoint = getDeterministicCrashPoint(currentRoundIndex);
+            const targetCrashPoint = getAviatorCrashPoint(currentRoundIndex);
             const totalFlightTimeNeeded = calculateTimeFromMultiplier(targetCrashPoint);
 
             if (currentRoundIndex !== lastProcessedRound) {
@@ -2160,7 +2179,7 @@
                     renderHistoryUI();
                 } else {
                     for(let k = 3; k >= 1; k--) {
-                        historyArray.push(getDeterministicCrashPoint(currentRoundIndex - k));
+                        historyArray.push(getAviatorCrashPoint(currentRoundIndex - k));
                     }
                     renderHistoryUI();
                 }
@@ -2273,7 +2292,7 @@
                 betBtn.innerText = "প্রসেসিং...";
                 betBtn.disabled = true;
 
-                const targetCrashPoint = getDeterministicCrashPoint(targetRoundIndex);
+                const targetCrashPoint = getAviatorCrashPoint(targetRoundIndex);
                 const totalFlightTimeNeeded = calculateTimeFromMultiplier(targetCrashPoint);
 
                 db.ref('users/' + currentUser.uid).transaction(function(data) {
@@ -2316,7 +2335,7 @@
                 });
             }
             else if (cycleElapsed >= WAIT_DURATION && betRoundIndex === currentRoundIndex && !hasCashedOut) {
-                const targetCrashPoint = getDeterministicCrashPoint(currentRoundIndex);
+                const targetCrashPoint = getAviatorCrashPoint(currentRoundIndex);
                 const totalFlightTimeNeeded = calculateTimeFromMultiplier(targetCrashPoint);
                 const serverNowAtClick = getAviatorServerNow();
                 const flyElapsed = (serverNowAtClick - (currentRoundIndex * CYCLE_DURATION + WAIT_DURATION)) / 1000;
@@ -3794,59 +3813,5 @@ function rbLockAndSpin(){
   </div>
 </div>
 
-
-    <!-- PRIVATE HELP CENTER -->
-    <div class="av-modal-overlay hidden" id="help-center-modal">
-        <div class="av-glass-card av-modal" style="max-width:430px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-                <h2 style="margin:0;">🆘 Help Center</h2>
-                <button type="button" id="close-help-center-btn" class="av-btn av-btn-logout" style="padding:6px 10px;">✕</button>
-            </div>
-            <div style="font-size:.72rem;color:var(--text-dim);margin:8px 0 10px;">এটি আপনার ব্যক্তিগত Support Chat। অন্য কোনো user এই conversation দেখতে পারবে না।</div>
-            <div id="help-chat-list" style="height:280px;overflow:auto;display:flex;flex-direction:column;gap:7px;padding:8px;background:rgba(0,0,0,.18);border-radius:12px;"></div>
-            <div class="av-error-msg" id="help-chat-msg" style="margin-top:7px;"></div>
-            <div style="display:flex;gap:6px;margin-top:8px;">
-                <input type="text" id="help-chat-input" maxlength="500" placeholder="আপনার সমস্যা লিখুন..." style="flex:1;min-width:0;">
-                <button type="button" id="help-chat-send" class="av-btn av-btn-deposit" style="padding:8px 12px;">Send</button>
-            </div>
-        </div>
-    </div>
-
-<script>
-(function(){
-  const btn=document.getElementById('help-center-btn');
-  const modal=document.getElementById('help-center-modal');
-  const close=document.getElementById('close-help-center-btn');
-  const list=document.getElementById('help-chat-list');
-  const input=document.getElementById('help-chat-input');
-  const send=document.getElementById('help-chat-send');
-  const status=document.getElementById('help-chat-msg');
-  let chatListener=null;
-  function esc(v){return String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));}
-  function render(snap){
-    const data=snap.val()||{};
-    const rows=Object.entries(data).sort((a,b)=>Number(a[1]?.timestamp||0)-Number(b[1]?.timestamp||0));
-    list.innerHTML=rows.length?rows.map(([id,m])=>`<div style="align-self:${m.senderUid===currentUser?.uid?'flex-end':'flex-start'};max-width:86%;padding:7px 9px;border-radius:10px;background:${m.senderUid===currentUser?.uid?'rgba(25,118,210,.32)':'rgba(255,255,255,.08)'};"><div style="font-size:.78rem;white-space:pre-wrap;overflow-wrap:anywhere;">${esc(m.text)}</div><div style="font-size:.58rem;color:#9aa4b2;margin-top:3px;">${m.senderUid===currentUser?.uid?'You':'Admin'}</div></div>`).join(''):'<div style="text-align:center;color:#9aa4b2;font-size:.72rem;padding:35px 8px;">আপনার কোনো message নেই। সাহায্যের জন্য লিখুন।</div>';
-    list.scrollTop=list.scrollHeight;
-  }
-  function start(){
-    if(!currentUser){alert('প্রথমে Login করুন!');return false;}
-    const ref=db.ref('supportChats/'+currentUser.uid+'/messages').limitToLast(100);
-    if(chatListener) chatListener.ref.off('value',chatListener.fn);
-    const fn=snap=>render(snap); chatListener={ref,fn}; ref.on('value',fn); return true;
-  }
-  function stop(){if(chatListener){chatListener.ref.off('value',chatListener.fn);chatListener=null;}}
-  btn?.addEventListener('click',()=>{if(start()){status.textContent='';modal.classList.remove('hidden');input?.focus();}});
-  close?.addEventListener('click',()=>{stop();modal.classList.add('hidden');});
-  send?.addEventListener('click',async()=>{
-    if(!currentUser)return; const text=input.value.trim(); if(!text)return;
-    send.disabled=true; status.textContent='';
-    try{await db.ref('supportChats/'+currentUser.uid+'/messages').push({text:text.slice(0,500),senderUid:currentUser.uid,senderType:'user',timestamp:firebase.database.ServerValue.TIMESTAMP}); input.value='';}
-    catch(e){status.textContent='Message পাঠানো যায়নি: '+(e.message||e);}
-    finally{send.disabled=false;input.focus();}
-  });
-  input?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send.click();}});
-})();
-</script>
 </body>
 </html>
