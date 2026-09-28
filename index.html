@@ -2181,7 +2181,7 @@
 
         function masterGameLoop() {
             if (!isAviatorOnline()) { stopAviatorLoopForOffline(); return; }
-            const CYCLE_DURATION = 25000;
+            const CYCLE_DURATION = 100000;
             const WAIT_DURATION = 3000;
 
             const now = getAviatorServerNow();
@@ -2292,7 +2292,7 @@
             if (!isAviatorOnline()) return alert("ইন্টারনেট সংযোগ নেই। সংযোগ ফিরে এলে আবার চেষ্টা করুন।");
             if (!currentUser) return alert("প্রথমে Login করুন!");
 
-            const CYCLE_DURATION = 25000;
+            const CYCLE_DURATION = 100000;
             const WAIT_DURATION = 3000;
             const now = getAviatorServerNow();
             const cycleElapsed = now % CYCLE_DURATION;
