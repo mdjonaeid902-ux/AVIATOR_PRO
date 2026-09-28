@@ -189,32 +189,34 @@
 
       <button id="saveConfig" class="bk-save" type="button">বক্সিং কিং সেটিংস সেভ করুন</button>
       <div id="configMsg" class="bk-status"></div>
-    </div>
 
-    <div class="bk-control-card" style="margin-top:18px;">
-      <h2 class="bk-title">💎 কালার জেমস কন্ট্রোল <span style="font-size:14px;color:#aab4c1">(Independent Settings)</span></h2>
-      <div class="notice" style="margin-bottom:6px">Color Gems-এর configuration আলাদা <code>config/colorGems</code>-এ সেভ হবে। Boxing King-এর setting এখানে প্রভাব ফেলবে না।</div>
-      <div class="bk-row">
-        <div><div class="bk-label">গেম চালু/বন্ধ (Enable/Disable)</div><div class="bk-help">বন্ধ করলে Color Gems-এর spin শুরু করা যাবে না।</div></div>
-        <label class="bk-switch"><input id="cgEnabled" type="checkbox"><span class="bk-slider"></span></label>
+      <div class="bk-control-card" style="margin-top:14px;padding:14px;border-color:rgba(255,204,0,.25);">
+        <h3 class="bk-title" style="font-size:17px;">✈️ Aviator — Maximum Multiplier</h3>
+        <div class="notice" style="margin-bottom:10px">এটি একটি স্বচ্ছ maximum cap। উদাহরণ: <b>5x</b> দিলে random crash point 5x-এর বেশি হবে না। ঘরটি খালি রাখলে স্বাভাবিক random crash logic ব্যবহার হবে। এটি কোনো গোপন exact crash-point override নয়।</div>
+        <div class="bk-preset-wrap">
+          <div class="bk-preset-title">Maximum Multiplier (x)</div>
+          <input id="avMaxMultiplier" class="bk-input" type="number" min="1.01" max="100000" step="0.01" placeholder="খালি = Random">
+        </div>
+        <button id="saveAvConfig" class="bk-save" type="button" style="margin-top:10px;">Aviator সেটিংস সেভ করুন</button>
+        <div id="avConfigMsg" class="bk-status"></div>
       </div>
-      <div class="bk-row" style="display:block">
-        <div class="bk-label" style="margin-bottom:8px">বেট অপশনসমূহ (কোমা দিয়ে লিখুন)</div>
-        <input id="cgBetOptions" class="bk-input" type="text" placeholder="1.00, 2.00, 3.00, 5.00, 10.00">
+
+      <div class="bk-control-card" style="margin-top:14px;padding:14px;border-color:rgba(116,180,255,.25);">
+        <h3 class="bk-title" style="font-size:17px;">💎 Color Gems — আলাদা RTP Factor</h3>
+        <div class="notice" style="margin-bottom:10px">Color Gems-এর RTP Factor আলাদা। এটি <code>config/colorGems/rtpFactor</code>-এ সেভ হবে এবং Boxing King/Flag King-এর RTP Factor পরিবর্তন করবে না।</div>
+        <div class="bk-preset-wrap">
+          <div class="bk-preset-title">Color Gems RTP / Reference Factor</div>
+          <select id="cgRtpFactor" class="bk-input">
+            <option value="0.4">0.4x</option>
+            <option value="0.7">0.7x</option>
+            <option value="1.0" selected>1.0x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2.0">2.0x</option>
+          </select>
+        </div>
+        <button id="saveCgConfig" class="bk-save" type="button" style="margin-top:10px;">Color Gems RTP সেভ করুন</button>
+        <div id="cgConfigMsg" class="bk-status"></div>
       </div>
-      <div class="bk-preset-wrap">
-        <div class="bk-preset-title">Color Gems RTP / Reference Factor</div>
-        <div class="bk-help" style="margin-bottom:8px">এটি Color Gems-এর নিজস্ব configuration/reference value। Boxing King-এর factor থেকে আলাদা রাখা হয়েছে।</div>
-        <select id="cgRtpFactor" class="bk-input">
-          <option value="0.4">0.4x</option>
-          <option value="0.7">0.7x</option>
-          <option value="1.0" selected>1.0x</option>
-          <option value="1.5">1.5x</option>
-          <option value="2.0">2.0x</option>
-        </select>
-      </div>
-      <button id="saveCgConfig" class="bk-save" type="button">কালার জেমস সেটিংস সেভ করুন</button>
-      <div id="cgConfigMsg" class="bk-status"></div>
     </div>
   </section>
 
@@ -228,7 +230,7 @@
 <script>
 const firebaseConfig={apiKey:"AIzaSyAyTOnCm5IuPcB-yvGjFl3KbwRVxNrcNSY",authDomain:"ff-to-gaming-4ea1b.firebaseapp.com",databaseURL:"https://ff-to-gaming-4ea1b-default-rtdb.firebaseio.com",projectId:"ff-to-gaming-4ea1b",storageBucket:"ff-to-gaming-4ea1b.appspot.com",messagingSenderId:"816776130875",appId:"1:816776130875:web:c3e7984e0de53cbd89871e"};
 firebase.initializeApp(firebaseConfig);const auth=firebase.auth(),db=firebase.database();
-let users={},deposits={},withdrawals={},boxingConfig={},colorGemsConfig={};
+let users={},deposits={},withdrawals={},boxingConfig={},colorGemsConfig={},aviatorConfig={};
 const $=id=>document.getElementById(id);
 function toast(m){$("toast").textContent=m;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),2800)}
 function esc(v){return String(v??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
@@ -270,12 +272,13 @@ async function resetEverythingKeepBalance(){
 $("resetAllBtn").onclick=resetEverythingKeepBalance;
 
 async function loadAll(){
- const [u,dep,wd,c,cg,a]=await Promise.all([
+ const [u,dep,wd,c,cg,av,auditSnap]=await Promise.all([
    db.ref("users").once("value"),
    db.ref("adminRequests/deposits").once("value"),
    db.ref("adminRequests/withdrawals").once("value"),
    db.ref("config/boxingKing").once("value"),
    db.ref("config/colorGems").once("value"),
+   db.ref("config/aviator").once("value"),
    db.ref("adminAudit").limitToLast(100).once("value")
  ]);
  users=u.val()||{};
@@ -283,10 +286,10 @@ async function loadAll(){
  withdrawals=wd.val()||{};
  boxingConfig=c.val()||{};
  colorGemsConfig=cg.val()||{};
+ aviatorConfig=av.val()||{};
  render();
  renderConfig();
- renderCgConfig();
- renderAudit(a.val()||{});
+ renderAudit(auditSnap.val()||{});
 }
 
 function populateBonusUsers(){
@@ -434,16 +437,12 @@ window.requestAction=async(type,id,status)=>{
 
     // IMPORTANT: remove the actual request node directly.
     // This is the operation that makes it disappear from the admin queue.
-    // Remove the request node directly. set(null) is used explicitly here
-    // so Reject follows the same proven Firebase deletion method as the
-    // Admin user-remove action. This removes both approved and rejected
-    // requests from the queue instead of leaving a rejected row behind.
-    await db.ref(path).set(null);
+    await db.ref(path).remove();
 
     // Verify removal from Firebase. Retry once for transient client/network issues.
     let verify=await db.ref(path).once("value");
     if(verify.exists()){
-      await db.ref(path).set(null);
+      await db.ref(path).remove();
       verify=await db.ref(path).once("value");
     }
     if(verify.exists()){
@@ -482,6 +481,10 @@ function renderConfig(){
   const bets=Array.isArray(c.betOptions)?c.betOptions:(typeof c.betOptions==="string"?c.betOptions.split(",").map(Number).filter(Number.isFinite):[1,2,3,5,10]);
   $("bkBetOptions").value=bets.join(", ");
   $("bkRtpFactor").value=c.rtpFactor!=null?String(c.rtpFactor):"1.0";
+  const cg=colorGemsConfig||{};
+  $("cgRtpFactor").value=cg.rtpFactor!=null?String(cg.rtpFactor):"1.0";
+  const av=aviatorConfig||{};
+  $("avMaxMultiplier").value=av.maxMultiplier!=null?String(av.maxMultiplier):"";
 }
 
 $("saveConfig").onclick=async()=>{
@@ -499,26 +502,34 @@ $("saveConfig").onclick=async()=>{
   }catch(e){$("configMsg").textContent="Save failed: "+e.message;toast(e.message)}
 };
 
-function renderCgConfig(){
-  const c=colorGemsConfig||{};
-  $("cgEnabled").checked=c.enabled!==false;
-  const bets=Array.isArray(c.betOptions)?c.betOptions:(typeof c.betOptions==="string"?c.betOptions.split(",").map(Number).filter(Number.isFinite):[1,2,3,5,10]);
-  $("cgBetOptions").value=bets.join(", ");
-  $("cgRtpFactor").value=c.rtpFactor!=null?String(c.rtpFactor):"1.0";
-}
+$("saveAvConfig").onclick=async()=>{
+  const raw=String($("avMaxMultiplier").value||"").trim();
+  let maxMultiplier=null;
+  if(raw!==""){
+    const n=Number(raw);
+    if(!Number.isFinite(n)||n<1.01||n>100000){toast("Aviator Max Multiplier 1.01x থেকে 100000x-এর মধ্যে দিন, অথবা খালি রাখুন");return}
+    maxMultiplier=Number(n.toFixed(2));
+  }
+  const out={maxMultiplier};
+  try{
+    await db.ref("config/aviator").update(out);
+    aviatorConfig=Object.assign({},aviatorConfig,out);
+    await audit("update_aviator_max_multiplier","config/aviator",JSON.stringify(out));
+    $("avConfigMsg").textContent=maxMultiplier===null?"Saved — Random crash logic restored":"Saved — Maximum multiplier: "+maxMultiplier.toFixed(2)+"x";
+    toast(maxMultiplier===null?"Aviator random crash restored":"Aviator maximum multiplier saved");
+  }catch(e){$("avConfigMsg").textContent="Save failed: "+e.message;toast(e.message)}
+};
 
 $("saveCgConfig").onclick=async()=>{
-  const bets=$("cgBetOptions").value.split(",").map(x=>Number(x.trim())).filter(x=>Number.isFinite(x)&&x>0);
   const rtpFactor=Number($("cgRtpFactor").value);
-  if(!bets.length){toast("কমপক্ষে একটি valid Color Gems bet option দিন");return}
   if(!Number.isFinite(rtpFactor)||rtpFactor<=0){toast("Valid Color Gems RTP/reference factor নির্বাচন করুন");return}
-  const out={enabled:$("cgEnabled").checked,betOptions:bets,rtpFactor};
+  const out={rtpFactor};
   try{
     await db.ref("config/colorGems").update(out);
     colorGemsConfig=Object.assign({},colorGemsConfig,out);
     await audit("update_color_gems_config","config/colorGems",JSON.stringify(out));
     $("cgConfigMsg").textContent="Saved successfully";
-    toast("Color Gems settings saved");
+    toast("Color Gems RTP settings saved");
   }catch(e){$("cgConfigMsg").textContent="Save failed: "+e.message;toast(e.message)}
 };
 
