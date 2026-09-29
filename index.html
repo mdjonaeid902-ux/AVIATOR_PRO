@@ -1929,10 +1929,32 @@
             applyCgConfigToUI();
         });
 
-        // Color Gems — independent configuration path.
+        // Color Gems — COMPLETELY INDEPENDENT configuration path.
+        // Only config/colorGems controls Color Gems. It never reads Boxing King's RTP.
+        function normalizeCgRtpFactor(cfg) {
+            const rawFactor = Number(cfg && cfg.rtpFactor);
+            const rawPercent = Number(cfg && cfg.rtpPercent);
+            if (Number.isFinite(rawPercent) && rawPercent > 0) {
+                return Math.max(0.01, Math.min(10, rawPercent / 100));
+            }
+            if (Number.isFinite(rawFactor) && rawFactor > 0) {
+                // Accept both factor form (0.95) and percentage form (95).
+                return rawFactor > 2 ? rawFactor / 100 : rawFactor;
+            }
+            return 1.0;
+        }
+
+        function getCgRtpFactor() {
+            if (cgConfig && cgConfig.testMode) {
+                const test = Number(cgConfig.testRtpFactor);
+                if (Number.isFinite(test) && test > 0) return test > 2 ? test / 100 : test;
+            }
+            return normalizeCgRtpFactor(cgConfig);
+        }
+
         db.ref('config/colorGems').on('value', function(snapshot) {
             const cfg = snapshot.val();
-            if (cfg) {
+            if (cfg && typeof cfg === 'object') {
                 cgConfig = Object.assign({}, cgConfig, cfg);
                 if (typeof cgConfig.betOptions === 'string') {
                     cgConfig.betOptions = cgConfig.betOptions.split(',').map(n => parseFloat(n.trim())).filter(n => !isNaN(n));
@@ -1942,6 +1964,7 @@
                 }
             }
             applyCgConfigToUI();
+            console.log('[Gaming Zone] Color Gems independent RTP factor:', getCgRtpFactor());
         });
 
         function updateSharedBalanceUI() {
@@ -3398,7 +3421,7 @@
             updateCgMult();
             cgAnimateWin(result.indices);
             const mult=CG_MULTS[Math.min(cascadeNo-1,CG_MULTS.length-1)];
-            const factor=Number(cgConfig.rtpFactor)>0?Number(cgConfig.rtpFactor):1;
+            const factor=getCgRtpFactor();
             const stepWin=+(activeBet*mult*Math.max(1,result.indices.length/3)*factor*0.5).toFixed(2);
             totalWin=+(totalWin+stepWin).toFixed(2);
             cgWin=totalWin;
@@ -3456,7 +3479,6 @@
         }
 
         function finishCgSpin(activeBet,totalWin){
-            const factor=Number(cgConfig.rtpFactor)>0?Number(cgConfig.rtpFactor):1;
             cgWin=+Number(totalWin||0).toFixed(2);
             if(cgWin>0){
                 cgSetStatus('💰 চেইন শেষ! মোট উইন: '+cgFmt(cgWin)+' কয়েন','#ffcc00');
