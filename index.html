@@ -1523,6 +1523,7 @@
         }
 
         function watchAviatorRoundState() {
+            watchAviatorCrashHistory();
             if (aviatorRoundStateListener) aviatorRoundStateListener.off();
             aviatorRoundStateListener = db.ref(AVIATOR_ROUND_STATE_PATH);
             aviatorRoundStateListener.on('value', function(snapshot) {
@@ -1568,6 +1569,30 @@
         }
 
 let historyArray = [];
+let aviatorCrashHistoryListener = null;
+const AVIATOR_CRASH_HISTORY_PATH = 'aviatorGame/crashHistory';
+
+function renderAviatorCrashHistoryFromFirebase(snapshot) {
+    const data = snapshot.val() || {};
+    const rows = Object.values(data).map(v => ({roundIndex:Number(v?.roundIndex), crashPoint:Number(v?.crashPoint), timestamp:Number(v?.timestamp||0)}))
+      .filter(v => Number.isFinite(v.roundIndex) && Number.isFinite(v.crashPoint))
+      .sort((a,b) => b.roundIndex - a.roundIndex).slice(0,15);
+    historyArray = rows.map(v => v.crashPoint);
+    renderHistoryUI();
+}
+function watchAviatorCrashHistory() {
+    if (aviatorCrashHistoryListener) aviatorCrashHistoryListener.off();
+    aviatorCrashHistoryListener = db.ref(AVIATOR_CRASH_HISTORY_PATH).limitToLast(100);
+    aviatorCrashHistoryListener.on('value', renderAviatorCrashHistoryFromFirebase);
+}
+function recordAviatorCrashHistory(roundIndex, crashPoint) {
+    const idx=Number(roundIndex), cp=Number(crashPoint);
+    if(!Number.isFinite(idx)||!Number.isFinite(cp)) return;
+    const ref=db.ref(AVIATOR_CRASH_HISTORY_PATH+'/'+String(idx));
+    ref.transaction(current => current && Number.isFinite(Number(current.crashPoint)) ? undefined : {roundIndex:idx,crashPoint:Number(cp.toFixed(2)),timestamp:firebase.database.ServerValue.TIMESTAMP})
+      .catch(err=>console.warn('Aviator crash history save failed:',err));
+}
+
 
         const authModal = document.getElementById('auth-modal');
         const authError = document.getElementById('auth-error');
@@ -2423,16 +2448,6 @@ let historyArray = [];
             const now = getAviatorServerNow();
 
             if (currentRoundIndex !== lastProcessedRound) {
-                if (lastProcessedRound !== -1 && Number.isFinite(Number(lastCrashedDisplayValue))) {
-                    historyArray.unshift(lastCrashedDisplayValue);
-                    if (historyArray.length > 15) historyArray.pop();
-                    renderHistoryUI();
-                } else if (historyArray.length === 0) {
-                    for (let k = 3; k >= 1; k--) {
-                        historyArray.push(getDeterministicCrashPoint(currentRoundIndex - k));
-                    }
-                    renderHistoryUI();
-                }
                 lastProcessedRound = currentRoundIndex;
                 hasCashedOut = false;
                 cashedMultiplier = 0;
@@ -2460,6 +2475,7 @@ let historyArray = [];
             } else if (state === 'crashed') {
                 currentLocalMult = targetCrashPoint;
                 lastCrashedDisplayValue = currentLocalMult;
+                recordAviatorCrashHistory(currentRoundIndex, targetCrashPoint);
                 multiplierDisplay.innerText = 'FLEW AWAY!\n' + targetCrashPoint.toFixed(2) + 'x';
                 multiplierDisplay.classList.add('crashed');
                 if (isBetActiveForCurrentRound && !hasCashedOut && currentUser && lastCrashSettlementAttempt !== currentRoundIndex) {
