@@ -2502,9 +2502,7 @@ function recordAviatorCrashHistory(roundIndex, crashPoint) {
                 if (now >= crashAtMs) {
                     advanceAviatorRoundState();
                 }
-                const progress = Math.min(1, flyElapsed / totalFlightTimeNeeded);
-                const easedProgress = Math.pow(progress, 1.35);
-                const calculatedMult = 1 + (targetCrashPoint - 1) * easedProgress;
+                const calculatedMult = calculateMultiplierFromTime(Math.min(flyElapsed, totalFlightTimeNeeded));
                 currentLocalMult = Math.min(calculatedMult, targetCrashPoint);
                 multiplierDisplay.innerText = currentLocalMult.toFixed(2) + 'x';
                 multiplierDisplay.classList.remove('crashed');
