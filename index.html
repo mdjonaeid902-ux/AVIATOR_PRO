@@ -396,15 +396,7 @@
         }
 
         #game-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        
-/* Loading state for Aviator round transition */
-.av-loading-state{display:inline-flex;align-items:center;justify-content:center;gap:10px;font-weight:800;letter-spacing:.6px;}
-.av-loading-spinner{width:18px;height:18px;border:3px solid rgba(255,255,255,.22);border-top-color:#fff;border-radius:50%;animation:avLoadingSpin .75s linear infinite;flex:0 0 auto;}
-.av-loading-dots::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:avLoadingDots 1.05s steps(4,end) infinite;}
-@keyframes avLoadingSpin{to{transform:rotate(360deg)}}
-@keyframes avLoadingDots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}100%{content:""}}
-
-.av-multiplier-text { font-size: 2.2rem; font-weight: 900; z-index: 2; text-shadow: 0 0 20px rgba(0, 0, 0, 0.9); text-align: center; }
+        .av-multiplier-text { font-size: 2.2rem; font-weight: 900; z-index: 2; text-shadow: 0 0 20px rgba(0, 0, 0, 0.9); text-align: center; }
         .av-multiplier-text.crashed { color: var(--accent-red); }
 
         .av-cashout-banner {
@@ -1518,10 +1510,20 @@
                 if (current.state === 'crashed') {
                     const crashedAt = Number(current.crashedAtMs);
                     if (Number.isFinite(crashedAt) && now >= crashedAt + 1000) {
+                        // IMPORTANT: advance to a NEW round here.  The previous
+                        // version kept the same roundIndex, so the deterministic
+                        // crash generator returned the same crash point every round
+                        // (e.g. repeatedly ~2.93x).
+                        const nextRoundIndex = roundIndex + 1;
+                        const nextCrashPoint = getDeterministicCrashPoint(nextRoundIndex);
                         return Object.assign({}, current, {
+                            roundIndex: nextRoundIndex,
                             state: 'countdown',
                             countdownStartAt: crashedAt + 1000,
                             roundStartAt: crashedAt + 1000 + 3000,
+                            crashPoint: Number(nextCrashPoint.toFixed(2)),
+                            crashAtMs: null,
+                            crashedAtMs: null,
                             updatedAt: firebase.database.ServerValue.TIMESTAMP
                         });
                     }
@@ -2472,9 +2474,8 @@ function recordAviatorCrashHistory(roundIndex, crashPoint) {
 
             if (state === 'countdown') {
                 const countdownEnd = Number(roundState.roundStartAt);
-                const waitLeft = Math.max(0, countdownEnd - now);
-                void waitLeft; // Keep the server-side 3-second timing unchanged.
-                multiplierDisplay.innerHTML = '<span class="av-loading-state"><span class="av-loading-spinner"></span><span>LOADING<span class="av-loading-dots"></span></span></span>';
+                const waitLeft = Math.max(0, Math.ceil((countdownEnd - now) / 1000));
+                multiplierDisplay.innerText = 'NEXT ROUND IN ' + waitLeft + 's';
                 multiplierDisplay.classList.remove('crashed');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 renderMyLiveBetUI(currentRoundIndex, false);
