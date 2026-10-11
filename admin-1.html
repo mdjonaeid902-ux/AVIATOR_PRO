@@ -161,6 +161,13 @@
   </section>
 
   <section id="games" class="page">
+    <div class="card" style="margin-bottom:14px;border-color:rgba(84,224,167,.35)">
+      <h2 style="margin-top:0">💸 Minimum Withdrawal Amount</h2>
+      <div class="notice" style="margin-bottom:12px">এখানে সর্বনিম্ন কত টাকা Withdrawal করা যাবে সেট করুন। যেমন 300 দিলে 300 টাকার নিচে Withdrawal Request গ্রহণ করার জন্য Main User ফাইলে একই সেটিংস পড়তে হবে। সেটিংস Firebase-এর <code>config/withdrawalLimits/minAmount</code>-এ সেভ হবে।</div>
+      <div class="field" style="max-width:360px;margin-bottom:12px"><label for="minWithdrawalAmount">সর্বনিম্ন Withdrawal (টাকা)</label><input id="minWithdrawalAmount" type="number" min="1" step="1" placeholder="যেমন 300"></div>
+      <button id="saveMinWithdrawal" class="btn primary" type="button">Minimum Amount সেভ করুন</button>
+      <div id="minWithdrawalMsg" style="font-size:12px;margin-top:8px;color:var(--muted)"></div>
+    </div>
     <div class="bk-control-card">
       <h2 class="bk-title">🥊 বক্সিং কিং কন্ট্রোল <span style="font-size:14px;color:#aab4c1">(Settings)</span></h2>
       <div class="notice" style="margin-bottom:6px">এই কন্ট্রোলগুলো সরাসরি <code>config/boxingKing</code>-এ সেভ হবে। Win-rate/RTP দিয়ে খেলোয়াড়ের ফলাফল গোপনে নিয়ন্ত্রণ করার অপশন রাখা হয়নি।</div>
@@ -262,12 +269,13 @@ async function resetEverythingKeepBalance(){
 $("resetAllBtn").onclick=resetEverythingKeepBalance;
 
 async function loadAll(){
- const [u,dep,wd,c,cg,a]=await Promise.all([
+ const [u,dep,wd,c,cg,wm,a]=await Promise.all([
    db.ref("users").once("value"),
    db.ref("adminRequests/deposits").once("value"),
    db.ref("adminRequests/withdrawals").once("value"),
    db.ref("config/boxingKing").once("value"),
    db.ref("config/colorGems").once("value"),
+   db.ref("config/withdrawalLimits/minAmount").once("value"),
    db.ref("adminAudit").limitToLast(100).once("value")
  ]);
  users=u.val()||{};
@@ -275,6 +283,7 @@ async function loadAll(){
  withdrawals=wd.val()||{};
  boxingConfig=c.val()||{};
  colorGemsConfig=cg.val()||{};
+ $("minWithdrawalAmount").value = Number(wm.val()) > 0 ? Number(wm.val()) : 100;
  gameLogs=[];
  Object.entries(users).forEach(([uid,u])=>{
    Object.entries(u?.gameLogs||{}).forEach(([logId,l])=>{
@@ -522,6 +531,21 @@ $("saveConfig").onclick=async()=>{
     $("configMsg").textContent="Saved successfully";
     toast("Boxing King settings saved");
   }catch(e){$("configMsg").textContent="Save failed: "+e.message;toast(e.message)}
+};
+
+$("saveMinWithdrawal").onclick=async()=>{
+  const amount=Number($("minWithdrawalAmount").value);
+  const msg=$("minWithdrawalMsg");
+  if(!Number.isFinite(amount)||amount<1||!Number.isInteger(amount)){
+    msg.textContent="সর্বনিম্ন 1 টাকা বা তার বেশি পূর্ণসংখ্যা লিখুন।";
+    return;
+  }
+  try{
+    await db.ref("config/withdrawalLimits/minAmount").set(amount);
+    await audit("update_minimum_withdrawal","config/withdrawalLimits/minAmount",String(amount));
+    msg.textContent="সেভ হয়েছে। Minimum Withdrawal: ৳"+amount;
+    toast("Minimum withdrawal amount saved");
+  }catch(e){msg.textContent="সেভ করা যায়নি: "+(e.message||e);toast(e.message||String(e));}
 };
 
 $("saveCgConfig").onclick=async()=>{
